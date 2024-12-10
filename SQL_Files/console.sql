@@ -62,12 +62,6 @@ create table if not exists utilizatori
     tip_utilizator varchar(20)  not null
 );
 
-create table if not exists administratori
-(
-    CNP varchar(13) not null,
-    constraint administratori_utilizatori_CNP_fk
-        foreign key (CNP) references utilizatori (CNP)
-);
 
 create table if not exists profesori
 (
@@ -119,10 +113,13 @@ create table if not exists studenti_grupuri_studenti
         foreign key (CNP_student) references studenti (CNP)
 );
 
-create table if not exists super_administratori
-(
-    CNP varchar(13) not null,
-    constraint super_administratori_utilizatori_CNP_fk
-        foreign key (CNP) references utilizatori (CNP)
-);
 
+alter table utilizatori
+    add rol varchar(20) null;
+
+alter table utilizatori
+    add column_name int null;
+
+alter table utilizatori
+    add constraint check_name
+        check (rol in ('administrator', 'super-administrator', 'student', 'profesor'));
