@@ -1,11 +1,12 @@
-
 create table if not exists activitati_profesori
 (
-    data_inceput   datetime    null,
-    tip_activitate varchar(30) null,
-    data_final     datetime    null,
-    id_activitate  int         not null
-        primary key
+    data_inceput        datetime    null,
+    tip_activitate      varchar(30) null,
+    data_final          datetime    null,
+    id_activitate       int         not null
+        primary key,
+    nr_max_participanti int         null,
+    descriere           text        null
 );
 
 create table if not exists activitati_studenti
@@ -19,25 +20,6 @@ create table if not exists activitati_studenti
     nume                     varchar(30) null
 );
 
-create table if not exists calendar
-(
-    cursuri int null
-);
-
-create table if not exists catalog
-(
-    curs varchar(30) null
-);
-
-create table if not exists cursuri
-(
-    CNP_profesor         varchar(13) not null,
-    activitati_profesori varchar(30) null,
-    nume                 varchar(30) not null,
-    id                   int         not null
-        primary key
-);
-
 create table if not exists grupuri_studenti
 (
     materie       varchar(30) null,
@@ -48,78 +30,95 @@ create table if not exists grupuri_studenti
         foreign key (id_activitate) references activitati_studenti (id_activitate)
 );
 
-create table if not exists utilizatori
+create table if not exists materii
 (
-    CNP            varchar(13)  not null
+    activitati_profesori varchar(30) null,
+    nume                 varchar(30) not null,
+    id                   int         not null
         primary key,
-    nume           varchar(30)  not null,
-    prenume        varchar(30)  not null,
-    adresa         varchar(100) not null,
-    numar_telefon  varchar(10)  not null,
-    email          varchar(30)  not null,
-    IBAN           varchar(50)  not null,
-    numar_contract int          null,
-    tip_utilizator varchar(20)  not null
+    pondere_curs         int         null,
+    pondere_lab          int         null,
+    pondere_seminar      int         null
 );
 
-
-create table if not exists profesori
+create table if not exists utilizatori
 (
-    curs                    varchar(30) not null,
+    CNP            varchar(13)                                                          not null
+        primary key,
+    nume           varchar(30)                                                          not null,
+    prenume        varchar(30)                                                          not null,
+    adresa         varchar(100)                                                         not null,
+    numar_telefon  varchar(10)                                                          not null,
+    email          varchar(30)                                                          not null,
+    IBAN           varchar(50)                                                          not null,
+    numar_contract int                                                                  null,
+    tip_utilizator varchar(20)                                                          not null,
+    rol            enum ('administrator', 'super-administrator', 'profesor', 'student') null,
+    column_name    int                                                                  null
+);
+
+create table if not exists detalii_profesori
+(
+    materie                 varchar(30) not null,
     numar_maxim_ore_predate int         null,
     numar_minim_ore_predate int         null,
     departament             varchar(30) not null,
     CNP                     varchar(13) not null,
-    constraint profesori_utilizatori_CNP_fk
+    constraint detalii_profesori_utilizatori_CNP_fk
         foreign key (CNP) references utilizatori (CNP)
+);
+
+create table if not exists detalii_studenti
+(
+    an_de_studiu        int         null,
+    CNP                 varchar(13) not null,
+    numar_ore_sustinute int         null,
+    constraint detalii_studenti_utilizatori_CNP_fk
+        foreign key (CNP) references utilizatori (CNP)
+);
+
+create table if not exists materii_studenti
+(
+    CNP_student  varchar(13) null,
+    id_materie   int         null,
+    nota_lab     float       null,
+    nota_curs    float       null,
+    nota_seminar float       null,
+    nota_finala  int         null,
+    constraint materii_studenti_detalii_studenti_CNP_fk
+        foreign key (CNP_student) references detalii_studenti (CNP),
+    constraint materii_studenti_materii_id_fk
+        foreign key (id_materie) references materii (id)
 );
 
 create table if not exists profesori_activitati_profesori
 (
     id_activitate int         null,
     CNP_profesor  varchar(13) null,
-    constraint profesori_activitati_profesori_profesori_CNP_fk
-        foreign key (CNP_profesor) references profesori (CNP),
+    constraint profesori_activitati_profesori_detalii_profesori_CNP_fk
+        foreign key (CNP_profesor) references detalii_profesori (CNP),
     constraint profesori_id_activitate_fk
         foreign key (id_activitate) references activitati_profesori (id_activitate)
 );
 
-create table if not exists studenti
+create table if not exists profesori_materii
 (
-    an_de_studiu        int         null,
-    CNP                 varchar(13) not null,
-    numar_ore_sustinute int         null,
-    constraint studenti_utilizatori_CNP_fk
-        foreign key (CNP) references utilizatori (CNP)
-);
-
-create table if not exists studenti_cursuri
-(
-    CNP_student varchar(13) null,
-    id_curs     int         null,
-    constraint studenti_cursuri_cursuri_id_fk
-        foreign key (id_curs) references cursuri (id),
-    constraint studenti_cursuri_studenti_CNP_fk
-        foreign key (CNP_student) references studenti (CNP)
+    CNP_profesor varchar(13) null,
+    id_materie   int         null,
+    constraint profesori_materii_detalii_profesori_CNP_fk
+        foreign key (CNP_profesor) references detalii_profesori (CNP),
+    constraint profesori_materii_materii_id_fk
+        foreign key (id_materie) references materii (id)
 );
 
 create table if not exists studenti_grupuri_studenti
 (
     CNP_student varchar(13) null,
     id_grup     int         null,
+    constraint studenti_grupuri_studenti_detalii_studenti_CNP_fk
+        foreign key (CNP_student) references detalii_studenti (CNP),
     constraint studenti_grupuri_studenti_id_grup_fk
-        foreign key (id_grup) references grupuri_studenti (id_grup),
-    constraint studenti_grupuri_studenti_studenti_CNP_fk
-        foreign key (CNP_student) references studenti (CNP)
+        foreign key (id_grup) references grupuri_studenti (id_grup)
 );
 
 
-alter table utilizatori
-    add rol varchar(20) null;
-
-alter table utilizatori
-    add column_name int null;
-
-alter table utilizatori
-    add constraint check_name
-        check (rol in ('administrator', 'super-administrator', 'student', 'profesor'));
