@@ -16,8 +16,6 @@ public class DataBase {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
 }
