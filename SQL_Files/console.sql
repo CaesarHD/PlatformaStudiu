@@ -217,6 +217,78 @@ BEGIN
 
 END;
 
+
+ALTER TABLE detalii_studenti
+DROP FOREIGN KEY detalii_studenti_utilizatori_CNP_fk;
+
+ALTER TABLE detalii_studenti
+ADD CONSTRAINT detalii_studenti_utilizatori_CNP_fk
+    FOREIGN KEY (CNP)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE studenti_grupuri_studenti
+DROP FOREIGN KEY studenti_grupuri_studenti_detalii_studenti_CNP_fk;
+
+ALTER TABLE studenti_grupuri_studenti
+ADD CONSTRAINT studenti_grupuri_studenti_detalii_studenti_CNP_fk
+    FOREIGN KEY (CNP_student)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE note_activitati
+DROP FOREIGN KEY note_activitati_detalii_studenti_CNP_fk;
+
+ALTER TABLE note_activitati
+ADD CONSTRAINT note_activitati_detalii_studenti_CNP_fk
+    FOREIGN KEY (CNP_student)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE detalii_profesori
+DROP FOREIGN KEY detalii_profesori_utilizatori_CNP_fk;
+
+ALTER TABLE detalii_profesori
+ADD CONSTRAINT detalii_profesori_utilizatori_CNP_fk
+    FOREIGN KEY (CNP)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE activitati_profesori
+DROP FOREIGN KEY activitati_profesori_detalii_profesori_CNP_fk;
+
+ALTER TABLE activitati_profesori
+ADD CONSTRAINT activitati_profesori_detalii_profesori_CNP_fk
+    FOREIGN KEY (CNP_profesor)
+    REFERENCES detalii_profesori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE profesori_materii
+DROP FOREIGN KEY profesori_materii_detalii_profesori_CNP_fk;
+
+ALTER TABLE profesori_materii
+ADD CONSTRAINT profesori_materii_detalii_profesori_CNP_fk
+    FOREIGN KEY (CNP_profesor)
+    REFERENCES detalii_profesori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE note_activitati
+DROP FOREIGN KEY note_activitati_activitati_profesori_id_activitate_fk;
+
+ALTER TABLE note_activitati
+ADD CONSTRAINT note_activitati_activitati_profesori_id_activitate_fk
+    FOREIGN KEY (id_activitate)
+    REFERENCES activitati_profesori(id_activitate)
+    ON DELETE CASCADE;
+
+DELETE FROM utilizatori WHERE CNP='1178031729824';
+
 INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator) VALUES
 ('3510341893599', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'mihai.stancu97@example.com', 'RO47BANK8776929935', 1841, 'student'),
 ('6731908237597', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'mihai.stancu64@example.com', 'RO17BANK9695545724', 5378, 'student'),
