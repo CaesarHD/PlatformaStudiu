@@ -1,3 +1,6 @@
+
+USE proiect;
+
 create table if not exists activitati_studenti
 (
     data                     datetime    null,
@@ -406,4 +409,141 @@ INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES
 # ('9865159642844', '2830877367460', 1, 6.84, 9.9, 1.04, 5),
 # ('9905992259372', '1539258833000', 1, 2.92, 2.84, 4.28, 3),
 # ('9925467175816', '2830877367460', 1, 6.86, 2.73, 1.29, 3);
-# 
+#
+
+
+DELIMITER //
+
+CREATE TRIGGER delete_user
+AFTER DELETE ON utilizatori
+FOR EACH ROW
+BEGIN
+
+    DELETE FROM studenti_grupuri_studenti WHERE CNP_student = OLD.CNP;
+
+    DELETE FROM note_activitati WHERE CNP_student = OLD.CNP;
+
+    DELETE FROM materii_studenti WHERE CNP_student = OLD.CNP;
+
+    DELETE FROM activitati_studenti
+    WHERE id_activitate IN (
+        SELECT gs.id_activitate
+        FROM grupuri_studenti gs
+        JOIN studenti_grupuri_studenti sgs ON gs.id_grup = sgs.id_grup
+        WHERE sgs.CNP_student = OLD.CNP
+    );
+
+    DELETE FROM detalii_studenti WHERE CNP = OLD.CNP;
+
+    DELETE FROM activitati_profesori WHERE CNP_profesor = OLD.CNP;
+
+    DELETE FROM profesori_materii WHERE CNP_profesor = OLD.CNP;
+
+    DELETE FROM detalii_profesori WHERE CNP = OLD.CNP;
+
+END//
+
+DELIMITER ;
+
+
+ALTER TABLE detalii_studenti
+DROP FOREIGN KEY detalii_studenti_utilizatori_CNP_fk;
+
+ALTER TABLE detalii_studenti
+ADD CONSTRAINT detalii_studenti_utilizatori_CNP_fk
+    FOREIGN KEY (CNP)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE studenti_grupuri_studenti
+DROP FOREIGN KEY studenti_grupuri_studenti_detalii_studenti_CNP_fk;
+
+ALTER TABLE studenti_grupuri_studenti
+ADD CONSTRAINT studenti_grupuri_studenti_detalii_studenti_CNP_fk
+    FOREIGN KEY (CNP_student)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE note_activitati
+DROP FOREIGN KEY note_activitati_detalii_studenti_CNP_fk;
+
+ALTER TABLE note_activitati
+ADD CONSTRAINT note_activitati_detalii_studenti_CNP_fk
+    FOREIGN KEY (CNP_student)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE detalii_profesori
+DROP FOREIGN KEY detalii_profesori_utilizatori_CNP_fk;
+
+ALTER TABLE detalii_profesori
+ADD CONSTRAINT detalii_profesori_utilizatori_CNP_fk
+    FOREIGN KEY (CNP)
+    REFERENCES utilizatori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE activitati_profesori
+DROP FOREIGN KEY activitati_profesori_detalii_profesori_CNP_fk;
+
+ALTER TABLE activitati_profesori
+ADD CONSTRAINT activitati_profesori_detalii_profesori_CNP_fk
+    FOREIGN KEY (CNP_profesor)
+    REFERENCES detalii_profesori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE profesori_materii
+DROP FOREIGN KEY profesori_materii_detalii_profesori_CNP_fk;
+
+ALTER TABLE profesori_materii
+ADD CONSTRAINT profesori_materii_detalii_profesori_CNP_fk
+    FOREIGN KEY (CNP_profesor)
+    REFERENCES detalii_profesori(CNP)
+    ON DELETE CASCADE;
+
+
+ALTER TABLE note_activitati
+DROP FOREIGN KEY note_activitati_activitati_profesori_id_activitate_fk;
+
+ALTER TABLE note_activitati
+ADD CONSTRAINT note_activitati_activitati_profesori_id_activitate_fk
+    FOREIGN KEY (id_activitate)
+    REFERENCES activitati_profesori(id_activitate)
+    ON DELETE CASCADE;
+
+DELETE FROM utilizatori WHERE CNP='1178031729824';
+
+
+DELIMITER //
+
+CREATE TRIGGER nota_finala
+AFTER INSERT ON note_activitati
+FOR EACH ROW
+BEGIN
+    DECLARE pondera_curs INT;
+    DECLARE pondera_seminar INT;
+    DECLARE pondera_lab INT;
+    DECLARE nota_finala INT;
+
+    SELECT pondere_curs, pondere_seminar, pondere_lab
+    INTO pondera_curs, pondera_seminar, pondera_lab
+    FROM materii
+    WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+
+    SET nota_finala = ROUND((NEW.nota_curs * pondera_curs / 100) +
+                      (NEW.nota_seminar * pondera_seminar / 100) +
+                      (NEW.nota_lab * pondera_lab / 100));
+
+    UPDATE materii_studenti
+    SET nota_finala = nota_finala
+    WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+END //
+
+DELIMITER ;
+
+INSERT INTO note_activitati (nota_curs, nota_seminar, nota_lab, CNP_student, id_activitate)
+VALUES (5, 5, 5, '0127595982004', 1);
