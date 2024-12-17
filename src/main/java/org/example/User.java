@@ -40,5 +40,83 @@ public abstract class User {
 
     }
 
+    public String getCNP() {
+        return CNP;
+    }
 
+    public void setCNP(String CNP) {
+        this.CNP = CNP;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getSecondName() {
+        return secondName;
+    }
+
+    public void setSecondName(String secondName) {
+        this.secondName = secondName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getIban() {
+        return iban;
+    }
+
+    public void setIban(String iban) {
+        this.iban = iban;
+    }
+
+    public int getContractNumber() {
+        return contractNumber;
+    }
+
+    public void setContractNumber(int contractNumber) {
+        this.contractNumber = contractNumber;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public DataBase getDb() {
+        return db;
+    }
+
+    public void setDb(DataBase db) {
+        this.db = db;
+    }
 }
