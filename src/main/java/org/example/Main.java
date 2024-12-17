@@ -12,18 +12,19 @@ public class Main {
         DataBase db = new DataBase();
         db.connect("root", "root");
 
-        JFrame jFrame = new JFrame("asd");
-        jFrame.setSize(1000, 1000);
+        Professor cezar = new Professor("5040420125807", "Cezar", "Stir", "str. Fazanilor, nr. 2", "0767332422", "stir.cezar@gmail.com", "CezarIban", 3495, "profesor", db);
+
+        UI ui = new UI();
         JButton jButton = new JButton("new user");
         jButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                db.execute("insert into materii (nume, id) values ('Cezar', 11);");
+                cezar.add();
             }
         });
-        jFrame.setLayout(new FlowLayout());
-        jFrame.add(jButton);
-        jFrame.setVisible(true);
+        ui.setLayout(new FlowLayout());
+        ui.addComponent(jButton);
+        ui.show();
 
     }
 }
