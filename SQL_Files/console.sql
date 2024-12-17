@@ -26,14 +26,14 @@ create table if not exists materii
 
 create table if not exists grupuri_studenti
 (
-    materie       varchar(30) null,
+    id_materie    int         null,
     id_activitate int         null,
     id_grup       int         auto_increment
         primary key,
     constraint grupuri_studenti_id_activitate_fk
         foreign key (id_activitate) references activitati_studenti (id_activitate),
-    constraint grupuri_studenti_materii_nume_fk
-        foreign key (materie) references materii (nume)
+    constraint grupuri_studenti_materii_id_fk
+        foreign key (id_materie) references materii (id)
 );
 
 create table if not exists utilizatori
@@ -44,7 +44,9 @@ create table if not exists utilizatori
     prenume        varchar(30)                                                          not null,
     adresa         varchar(100)                                                         not null,
     numar_telefon  varchar(10)                                                          not null,
-    email          varchar(100)                                                         not null,
+    email          varchar(100)                                                         not null
+        unique key,
+    parola         varchar(50)                                                          not null,
     IBAN           varchar(50)                                                          not null,
     numar_contract int                                                                  null,
     tip_utilizator enum ('administrator', 'super-administrator', 'profesor', 'student') null
@@ -64,7 +66,7 @@ create table if not exists detalii_profesori
 create table if not exists activitati_profesori
 (
     data_inceput        datetime    null,
-    tip_activitate      varchar(30) null,
+    tip_activitate      enum('curs', 'laborator', 'seminar'),
     data_final          datetime    null,
     id_activitate       int         auto_increment
         primary key,
@@ -105,9 +107,7 @@ create table if not exists materii_studenti
 
 create table if not exists note_activitati
 (
-    nota_curs     float       null,
-    nota_seminar  float       null,
-    nota_lab      float       null,
+    nota     float       null,
     CNP_student   varchar(13) null,
     id_activitate int         null,
     constraint note_activitati_activitati_profesori_id_activitate_fk
@@ -118,53 +118,53 @@ create table if not exists note_activitati
             on delete cascade
 );
 
-create definer = root@localhost trigger nota_finala
-    after insert
-    on note_activitati
-    for each row
-BEGIN
-    DECLARE pondera_curs INT;
-    DECLARE pondera_seminar INT;
-    DECLARE pondera_lab INT;
-    DECLARE nota_finala INT;
-
-    SELECT pondere_curs, pondere_seminar, pondere_lab
-    INTO pondera_curs, pondera_seminar, pondera_lab
-    FROM materii
-    WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-
-    SET nota_finala = ROUND((NEW.nota_curs * pondera_curs / 100) +
-                      (NEW.nota_seminar * pondera_seminar / 100) +
-                      (NEW.nota_lab * pondera_lab / 100));
-
-    UPDATE materii_studenti
-    SET nota_finala = nota_finala
-    WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-END;
-
-create definer = root@localhost trigger nota_finala_update
-    after update
-    on note_activitati
-    for each row
-BEGIN
-    DECLARE pondera_curs INT;
-    DECLARE pondera_seminar INT;
-    DECLARE pondera_lab INT;
-    DECLARE nota_finala INT;
-
-    SELECT pondere_curs, pondere_seminar, pondere_lab
-    INTO pondera_curs, pondera_seminar, pondera_lab
-    FROM materii
-    WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-
-    SET nota_finala = ROUND((NEW.nota_curs * pondera_curs / 100) +
-                      (NEW.nota_seminar * pondera_seminar / 100) +
-                      (NEW.nota_lab * pondera_lab / 100));
-
-    UPDATE materii_studenti
-    SET nota_finala = nota_finala
-    WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-END;
+# create definer = root@localhost trigger nota_finala
+#     after insert
+#     on note_activitati
+#     for each row
+# BEGIN
+#     DECLARE pondera_curs INT;
+#     DECLARE pondera_seminar INT;
+#     DECLARE pondera_lab INT;
+#     DECLARE nota_finala INT;
+#
+#     SELECT pondere_curs, pondere_seminar, pondere_lab
+#     INTO pondera_curs, pondera_seminar, pondera_lab
+#     FROM materii
+#     WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+#
+#     SET nota_finala = ROUND((NEW.nota_curs * pondera_curs / 100) +
+#                       (NEW.nota_seminar * pondera_seminar / 100) +
+#                       (NEW.nota_lab * pondera_lab / 100));
+#
+#     UPDATE materii_studenti
+#     SET nota_finala = nota_finala
+#     WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+# END;
+#
+# create definer = root@localhost trigger nota_finala_update
+#     after update
+#     on note_activitati
+#     for each row
+# BEGIN
+#     DECLARE pondere_curs INT;
+#     DECLARE pondere_seminar INT;
+#     DECLARE pondere_lab INT;
+#     DECLARE nota_finala INT;
+#
+#     SELECT pondere_curs, pondere_seminar, pondere_lab
+#     INTO pondere_curs, pondere_seminar, pondere_lab
+#     FROM materii
+#     WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+#
+#     SET nota_finala = ROUND((NEW.nota_curs * pondere_curs / 100) +
+#                       (NEW.nota_seminar * pondere_seminar / 100) +
+#                       (NEW.nota_lab * pondere_lab / 100));
+#
+#     UPDATE materii_studenti
+#     SET nota_finala = nota_finala
+#     WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+# END;
 
 create table if not exists profesori_materii
 (
@@ -289,313 +289,435 @@ ADD CONSTRAINT note_activitati_activitati_profesori_id_activitate_fk
 
 DELETE FROM utilizatori WHERE CNP='1178031729824';
 
-INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator) VALUES
-('3510341893599', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'mihai.stancu97@example.com', 'RO47BANK8776929935', 1841, 'student'),
-('6731908237597', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'mihai.stancu64@example.com', 'RO17BANK9695545724', 5378, 'student'),
-('3876183919971', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'elena.marinescu61@example.com', 'RO72BANK5693046182', 1545, 'student'),
-('6191179367727', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'elena.marinescu11@example.com', 'RO15BANK1532573917', 2018, 'student'),
-('4486366311522', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'maria.ionescu60@example.com', 'RO69BANK8832630828', 7020, 'student'),
-('1911696832276', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'elena.marinescu78@example.com', 'RO35BANK3594250815', 1366, 'student'),
-('1343204997734', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'maria.ionescu91@example.com', 'RO46BANK4329503171', 8134, 'student'),
-('8155970687577', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 83, București', '0708400792', 'andrei.popescu57@example.com', 'RO18BANK4947786456', 2425, 'student'),
-('7484057531411', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 44, Constanța', '0700283038', 'cristian.vasilescu21@example.com', 'RO55BANK1440528629', 7413, 'student'),
-('6132673255690', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 75, Galați', '0798264612', 'anca.diaconescu32@example.com', 'RO41BANK9739404734', 9884, 'student'),
-('8743101238916', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 9, Galați', '0757404831', 'anca.diaconescu2@example.com', 'RO36BANK9757703596', 4995, 'student'),
-('2366972367613', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 40, Galați', '0788921093', 'anca.diaconescu99@example.com', 'RO23BANK4263852127', 1638, 'student'),
-('1162768493764', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 65, Oradea', '0756520803', 'mihai.stancu61@example.com', 'RO68BANK5916799881', 5483, 'student'),
-('5527018096355', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 63, Brașov', '0715344358', 'alexandru.dumitru36@example.com', 'RO34BANK3161526452', 3260, 'student'),
-('4556743134702', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 41, Timișoara', '0738025982', 'elena.marinescu41@example.com', 'RO70BANK1463545020', 4535, 'student'),
-('9665495902267', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 6, București', '0783787645', 'andrei.popescu65@example.com', 'RO42BANK2406117033', 7482, 'student'),
-('1662473049500', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 7, Oradea', '0786420677', 'mihai.stancu37@example.com', 'RO14BANK8386522334', 8545, 'student'),
-('6332051459740', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 45, București', '0794240572', 'andrei.popescu29@example.com', 'RO87BANK2115700912', 2933, 'student'),
-('1461617928882', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 1, București', '0744872840', 'andrei.popescu80@example.com', 'RO86BANK9254843028', 9271, 'student'),
-('4813880199903', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 57, Brașov', '0791821721', 'alexandru.dumitru42@example.com', 'RO46BANK4865326437', 8075, 'student'),
-('9925467175816', 'Georgescu', 'Ioana', 'Strada Ștefan cel Mare, Nr. 88, Iași', '0726770936', 'ioana.georgescu33@example.com', 'RO57BANK4438942815', 4417, 'student'),
-('1279824269710', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 17, București', '0783790028', 'andrei.popescu62@example.com', 'RO62BANK4584791327', 1490, 'student'),
-('0793853011462', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 41, Oradea', '0708264319', 'mihai.stancu9@example.com', 'RO23BANK6823007862', 8971, 'student'),
-('6176838073293', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 55, Galați', '0723041561', 'anca.diaconescu69@example.com', 'RO28BANK7855469136', 4420, 'student'),
-('6190900135484', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 36, Brașov', '0717015050', 'alexandru.dumitru10@example.com', 'RO15BANK2385128483', 1132, 'student'),
-('2701297587088', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 77, Ploiești', '0712029083', 'roxana.iliescu87@example.com', 'RO47BANK4516665201', 1249, 'student'),
-('7816527504923', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 13, Timișoara', '0788657046', 'elena.marinescu60@example.com', 'RO99BANK4729304561', 2336, 'student'),
-('2053227381742', 'Radu', 'Bianca', 'Strada Bălcescu, Nr. 81, Sibiu', '0743376718', 'bianca.radu62@example.com', 'RO26BANK6910238483', 2692, 'student'),
-('6405843320630', 'Radu', 'Bianca', 'Strada Bălcescu, Nr. 14, Sibiu', '0793924402', 'bianca.radu87@example.com', 'RO53BANK2366435553', 3738, 'student'),
-('0828343984581', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 71, Galați', '0771126383', 'anca.diaconescu80@example.com', 'RO27BANK9237875783', 5602, 'student'),
-('8522152453127', 'Radu', 'Bianca', 'Strada Bălcescu, Nr. 27, Sibiu', '0708966463', 'bianca.radu59@example.com', 'RO53BANK3143093104', 1626, 'student'),
-('8405615202728', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 91, Galați', '0751571366', 'anca.diaconescu93@example.com', 'RO55BANK6894884555', 5395, 'student'),
-('8828914120525', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 80, Oradea', '0790929379', 'mihai.stancu79@example.com', 'RO14BANK4836813605', 2926, 'student'),
-('9663424954074', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 22, Oradea', '0724546304', 'mihai.stancu76@example.com', 'RO84BANK8581523103', 9974, 'student'),
-('2109911232373', 'Georgescu', 'Ioana', 'Strada Ștefan cel Mare, Nr. 12, Iași', '0704564555', 'ioana.georgescu50@example.com', 'RO62BANK3104296455', 9383, 'student'),
-('5708089482027', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 29, Galați', '0740110680', 'anca.diaconescu37@example.com', 'RO95BANK2975429033', 2899, 'student'),
-('2812731589116', 'Radu', 'Bianca', 'Strada Bălcescu, Nr. 65, Sibiu', '0775684714', 'bianca.radu40@example.com', 'RO76BANK3193939939', 3794, 'student'),
-('8569009435856', 'Georgescu', 'Ioana', 'Strada Ștefan cel Mare, Nr. 45, Iași', '0780161283', 'ioana.georgescu58@example.com', 'RO91BANK6036620130', 1641, 'student'),
-('0790918702060', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 60, Ploiești', '0794111123', 'roxana.iliescu9@example.com', 'RO46BANK4912838343', 5270, 'student'),
-('5657732522623', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 94, Constanța', '0795561579', 'cristian.vasilescu96@example.com', 'RO73BANK6078409948', 4468, 'student'),
-('1754010381404', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 33, Galați', '0792173137', 'anca.diaconescu8@example.com', 'RO62BANK5161435204', 9339, 'student'),
-('8015904029158', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 54, Cluj-Napoca', '0772950438', 'maria.ionescu53@example.com', 'RO13BANK8799320633', 4228, 'student'),
-('2145576195996', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 42, Constanța', '0730186632', 'cristian.vasilescu20@example.com', 'RO55BANK9498457166', 4463, 'student'),
-('8126932283860', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 96, București', '0714682289', 'andrei.popescu49@example.com', 'RO13BANK2442658188', 7010, 'student'),
-('8130666442770', 'Radu', 'Bianca', 'Strada Bălcescu, Nr. 34, Sibiu', '0700969047', 'bianca.radu76@example.com', 'RO77BANK4894865004', 8098, 'student'),
-('5227942018199', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 74, Ploiești', '0785144101', 'roxana.iliescu85@example.com', 'RO30BANK5542482575', 8671, 'student'),
-('4312968766160', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 33, Oradea', '0707464740', 'mihai.stancu68@example.com', 'RO56BANK8217168121', 9894, 'student'),
-('7554095082134', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 5, Brașov', '0701420539', 'alexandru.dumitru85@example.com', 'RO95BANK2277177818', 5682, 'student'),
-('0060471045231', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 10, Cluj-Napoca', '0770940696', 'maria.ionescu4@example.com', 'RO40BANK8295948243', 5159, 'student'),
-('4146054842012', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 15, Brașov', '0779308166', 'alexandru.dumitru43@example.com', 'RO63BANK7775835386', 3331, 'student'),
-('1200952180977', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 67, Constanța', '0753384546', 'cristian.vasilescu97@example.com', 'RO77BANK4972780366', 9525, 'student'),
-('9287808121344', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 33, Ploiești', '0710203691', 'roxana.iliescu89@example.com', 'RO64BANK7251716675', 9999, 'student'),
-('4942350502318', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 78, Timișoara', '0761083426', 'elena.marinescu85@example.com', 'RO51BANK7970343395', 4429, 'student'),
-('0127595982004', 'Dumitru', 'Alexandru', 'Strada Calea Victoriei, Nr. 68, Brașov', '0737518346', 'alexandru.dumitru83@example.com', 'RO18BANK6078377534', 9710, 'student'),
-('9865159642844', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 94, Ploiești', '0789638775', 'roxana.iliescu81@example.com', 'RO83BANK6038355881', 8190, 'student'),
-('6906355105611', 'Iliescu', 'Roxana', 'Strada Gării, Nr. 60, Ploiești', '0748208167', 'roxana.iliescu66@example.com', 'RO85BANK2997001132', 2501, 'student'),
-('6603677581723', 'Diaconescu', 'Anca', 'Strada Domnească, Nr. 68, Galați', '0758755414', 'anca.diaconescu10@example.com', 'RO99BANK8434514141', 3578, 'student'),
-('3875425121378', 'Popescu', 'Andrei', 'Strada Mihai Eminescu, Nr. 59, București', '0729238393', 'andrei.popescu21@example.com', 'RO50BANK1583670653', 7677, 'student'),
-('9905992259372', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 22, Constanța', '0738233694', 'cristian.vasilescu81@example.com', 'RO64BANK7727420207', 3844, 'student'),
-('3991843822387', 'Vasilescu', 'Cristian', 'Strada Tomis, Nr. 51, Constanța', '0724702245', 'cristian.vasilescu65@example.com', 'RO61BANK7196167233', 3821, 'student');
-
-INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator) VALUES
-('5337074475276', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 92, Ploiești', '0787778445', 'mihai.petrescu28@example.com', 'RO48BANK7479646067', 1720, 'profesor'),
-('1451796626076', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 98, Ploiești', '0749853256', 'mihai.petrescu18@example.com', 'RO86BANK1169437970', 3725, 'profesor'),
-('5191960707832', 'Avram', 'George', 'Strada Universității, Nr. 66, București', '0770626888', 'george.avram16@example.com', 'RO74BANK3828424558', 6299, 'profesor'),
-('2057338561397', 'Ene', 'Florin', 'Strada Tineretului, Nr. 17, Iași', '0780649984', 'florin.ene1@example.com', 'RO50BANK1001754293', 2318, 'profesor'),
-('3426306266061', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 88, Brașov', '0769401261', 'victor.mocanu11@example.com', 'RO16BANK1874647544', 2847, 'profesor'),
-('8816480108784', 'Neagu', 'Adrian', 'Strada Cetății, Nr. 85, Sibiu', '0702954087', 'adrian.neagu2@example.com', 'RO86BANK9226036441', 8357, 'profesor'),
-('7604752748006', 'Tudor', 'Cristina', 'Strada Delfinului, Nr. 58, Constanța', '0734832348', 'cristina.tudor43@example.com', 'RO12BANK4078076654', 5173, 'profesor'),
-('9697999556235', 'Tudor', 'Cristina', 'Strada Delfinului, Nr. 80, Constanța', '0770256996', 'cristina.tudor29@example.com', 'RO61BANK8639958003', 7245, 'profesor'),
-('2830877367460', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 27, Galați', '0741727635', 'alina.rădulescu5@example.com', 'RO45BANK2929534367', 5191, 'profesor'),
-('8967756958643', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 31, Brașov', '0718495753', 'victor.mocanu5@example.com', 'RO95BANK5916955156', 4854, 'profesor'),
-('4892390499206', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 63, Galați', '0761481612', 'alina.rădulescu42@example.com', 'RO51BANK6880883270', 8959, 'profesor'),
-('5152652753684', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 90, Ploiești', '0755989451', 'mihai.petrescu21@example.com', 'RO12BANK7415086348', 9773, 'profesor'),
-('6183769267218', 'Avram', 'George', 'Strada Universității, Nr. 57, București', '0707936010', 'george.avram17@example.com', 'RO24BANK8265783898', 4884, 'profesor'),
-('2059840727617', 'Ene', 'Florin', 'Strada Tineretului, Nr. 92, Iași', '0793084096', 'florin.ene27@example.com', 'RO11BANK6119982525', 9276, 'profesor'),
-('3366976737858', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 86, Galați', '0733001803', 'alina.rădulescu33@example.com', 'RO33BANK1237027945', 1746, 'profesor'),
-('2393493227855', 'Sandu', 'Diana', 'Strada Independenței, Nr. 52, Oradea', '0719198844', 'diana.sandu33@example.com', 'RO72BANK7826386029', 6326, 'profesor'),
-('1539258833000', 'Ene', 'Florin', 'Strada Tineretului, Nr. 43, Iași', '0700391390', 'florin.ene8@example.com', 'RO61BANK9912306002', 3432, 'profesor'),
-('8605851055721', 'Ciobanu', 'Raluca', 'Strada Memorandumului, Nr. 73, Cluj-Napoca', '0707892371', 'raluca.ciobanu20@example.com', 'RO48BANK3504147731', 7064, 'profesor'),
-('2697958861215', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 51, Brașov', '0730442247', 'victor.mocanu38@example.com', 'RO28BANK7703750413', 8885, 'profesor'),
-('1178031729824', 'Ciobanu', 'Raluca', 'Strada Memorandumului, Nr. 79, Cluj-Napoca', '0798521168', 'raluca.ciobanu50@example.com', 'RO80BANK3357405494', 2837, 'profesor');
 
 
 
 
-INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator) VALUES
-('6577956209703', 'Popa', 'Ion', 'Strada Guvernului, Nr. 27, București', '0745355345', 'ion.popa@example.com', 'RO13BANK7732762238', 8187, 'administrator'),
-('4970040068574', 'Stoica', 'Ana', 'Strada Primăverii, Nr. 22, Cluj-Napoca', '0715595556', 'ana.stoica@example.com', 'RO85BANK1640941043', 5976, 'administrator'),
-('2977127588414', 'Dobre', 'Vasile', 'Strada Alunișului, Nr. 28, Iași', '0726792252', 'vasile.dobre@example.com', 'RO31BANK5389750788', 1931, 'administrator'),
-('9466534949356', 'Niculescu', 'Mirela', 'Strada Libertății, Nr. 22, Timișoara', '0727438484', 'mirela.niculescu@example.com', 'RO16BANK5310342670', 4875, 'administrator'),
-('8052532073205', 'Stan', 'Bogdan', 'Strada Brașovului, Nr. 48, Brașov', '0752991142', 'bogdan.stan@example.com', 'RO69BANK8967388339', 6455, 'administrator'),
-('1867362592391', 'Chiriac', 'Alexandra', 'Strada Principală, Nr. 32, Constanța', '0732197612', 'alexandra.chiriac@example.com', 'RO77BANK1837415033', 1453, 'super-administrator'),
-('8497790498966', 'Vlad', 'Răzvan', 'Strada Cetății, Nr. 34, Sibiu', '0762444026', 'răzvan.vlad@example.com', 'RO17BANK3562609680', 1710, 'super-administrator');
 
 
-INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES
-(3, '0060471045231', 177),
-(1, '0127595982004', 3),
-(3, '0790918702060', 51),
-(2, '0793853011462', 136),
-(3, '0828343984581', 238),
-(4, '1162768493764', 14),
-(3, '1200952180977', 235),
-(1, '1279824269710', 41),
-(1, '1343204997734', 30),
-(4, '1461617928882', 300),
-(3, '1662473049500', 35),
-(2, '1754010381404', 100),
-(1, '1911696832276', 198),
-(3, '2053227381742', 223),
-(2, '2109911232373', 69),
-(3, '2145576195996', 230),
-(3, '2366972367613', 44),
-(2, '2701297587088', 297),
-(1, '2812731589116', 70),
-(1, '3510341893599', 103),
-(3, '3875425121378', 204),
-(4, '3876183919971', 36),
-(3, '3991843822387', 123),
-(2, '4146054842012', 209),
-(3, '4312968766160', 229),
-(4, '4486366311522', 20),
-(4, '4556743134702', 100),
-(3, '4813880199903', 11),
-(2, '4942350502318', 43),
-(1, '5227942018199', 119),
-(2, '5527018096355', 69),
-(1, '5657732522623', 271),
-(2, '5708089482027', 62),
-(1, '6132673255690', 0),
-(3, '6176838073293', 216),
-(4, '6190900135484', 248),
-(2, '6191179367727', 219),
-(2, '6332051459740', 82),
-(4, '6405843320630', 219),
-(4, '6603677581723', 180),
-(3, '6731908237597', 199),
-(3, '6906355105611', 194),
-(2, '7484057531411', 168),
-(2, '7554095082134', 300),
-(2, '7816527504923', 192),
-(1, '8015904029158', 2),
-(3, '8126932283860', 263),
-(1, '8130666442770', 249),
-(3, '8155970687577', 8),
-(2, '8405615202728', 111),
-(4, '8522152453127', 35),
-(4, '8569009435856', 274),
-(1, '8743101238916', 60),
-(4, '8828914120525', 60),
-(1, '9287808121344', 209),
-(3, '9663424954074', 30),
-(2, '9665495902267', 71),
-(2, '9865159642844', 136),
-(4, '9905992259372', 105),
-(1, '9925467175816', 125);
+
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4095341157595', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user90850@example.com', 'ZFsxzapxkL', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6104469521664', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user12013@example.com', '04nKZ5diMd', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0684292625689', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user85812@example.com', 'jM0r3NnSex', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8468597808819', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user71781@example.com', 'bW3E1cSuHX', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4224011469869', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user10679@example.com', 'gw4HNdaIQl', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8417432772807', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user6019@example.com', 'WcGBGioPlU', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7685738248381', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user60436@example.com', 'SkXqDt58wG', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8829126950914', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user27095@example.com', 'rbr6VIb6DI', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7473326800017', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user96946@example.com', 'KBDouyHOkU', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8995884772089', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user38932@example.com', 'FTNYIObJUv', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6642974951139', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user70101@example.com', 'IqsR68EuqT', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0902773084593', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user59858@example.com', 'qSZ1KLUhZp', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9480683926228', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user90843@example.com', 'nm0PRDp0Vp', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9623779137893', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user90106@example.com', 'P8YImSLIgI', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0276964342825', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user27460@example.com', 'rBAkrNX8Fg', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5143749520421', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user63013@example.com', 'mVmJKe7SH9', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5040578352938', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user39411@example.com', 'kwYHnQcgc1', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5999333818255', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user18251@example.com', 'vk0TXUhRvh', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3646944547942', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user41365@example.com', 'RyzhbbopPz', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3831706449480', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user65100@example.com', 'mX2RsPA9VA', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1099400049672', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user7133@example.com', 'hz6cZd2Aql', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0561588733883', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user99745@example.com', 'WQEeRSkoGM', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2404023608380', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user8926@example.com', 'IfVh3yRlXc', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5109973862646', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user15214@example.com', 'jYYjhhgswy', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1728127878140', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user7838@example.com', 'zpWk9zurDM', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1928611476860', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user91419@example.com', 'TL37EVB4Di', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0386592596164', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user12418@example.com', 'nHXFoeuGF0', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9484723178453', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user70291@example.com', 'z0FT3PWzrM', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4213051539788', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user16259@example.com', 'EvZ5ynvQta', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9794389736547', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user38301@example.com', 'ldX52zFddK', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6088122767983', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user47869@example.com', 'uBhgYvOi0H', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5079758056055', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user72930@example.com', 'l2rmrEdnLx', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7091952483698', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user76657@example.com', 'CEqCaFETQ1', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6359711026080', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user73182@example.com', 'ag6HWoNL4m', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6021110165120', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user60963@example.com', 'Pzwa74aos0', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6583105434210', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user45994@example.com', 'rMxRNzFIzf', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9673209540461', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user38673@example.com', 'foa2koTW24', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9703978868542', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user37638@example.com', 'tmCXJGjPNG', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5372828678163', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user9317@example.com', 'KmT3PmUZoj', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1948434079530', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user38296@example.com', 'MGtw2FjuDE', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4615961056796', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user72363@example.com', 'sEC80gYm5j', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9805837237664', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user88153@example.com', 'BagCVkQZEH', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1756162041010', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user68479@example.com', 'EZo16p4jfa', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7436910111097', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user23670@example.com', '2XwHZhYg5B', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5917953849696', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user36307@example.com', 'TMeJBZwHe3', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4752196142176', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user38896@example.com', 'BNHa1lYVla', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7452736860806', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user78371@example.com', 'Oz9ZYCmMJJ', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0346300920140', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user93245@example.com', 'H9njYcf2bh', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9847606272399', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user2642@example.com', 'KSzChddlLn', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2944677451359', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user73980@example.com', 'gbOYXLrbkY', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7463636496480', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user60171@example.com', 'Sv8k9vHV3E', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3392736662265', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user70616@example.com', 'XiVSCDoNwg', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7021070909985', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user57584@example.com', 'LBT6TFyNzo', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6283550823976', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user55257@example.com', '5dmRe2BSEa', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4395753560715', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user31336@example.com', 'cJvPDLPipg', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5851761964552', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user74403@example.com', 'nHUDa5sm8x', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4911360347795', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user63636@example.com', 'mQqktlcpEJ', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7052723376911', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user67636@example.com', '9ITFQeIaRR', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1399976944787', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user36981@example.com', 'jwTbaXRb6I', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8088635380514', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user83389@example.com', '7lX6Hr2Epi', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5781429640621', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user23295@example.com', 'IAshhJa34a', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0042217620436', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user98653@example.com', 'sig7YmJWof', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7808352501289', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user58236@example.com', 'rFhUBuJNaH', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0665908090508', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user85200@example.com', '40vGNQXpnl', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4749549800221', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user23886@example.com', '7r8pw2NMhp', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8816367931388', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user78907@example.com', 'ZB5qnGExh4', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4479542646576', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user80131@example.com', 'Ees0dgYvrn', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2264098827430', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user57799@example.com', 'X6VMCVsJXZ', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6105126772686', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user85399@example.com', 'Tt2oPtyobh', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6026054554920', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user64687@example.com', 'PVhUioC58j', 'RO46BANK4329503171', 8134, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('1281622380138', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user88024@example.com', '6ZmMGzH1lQ', 'RO47BANK8776929935', 1841, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8981395793520', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user85456@example.com', '6SEzHqwGGN', 'RO17BANK9695545724', 5378, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5755486704549', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 56, Timișoara', '0795832878', 'user23227@example.com', 'ebCfcribkB', 'RO72BANK5693046182', 1545, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8105937318451', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 57, Timișoara', '0747012291', 'user67676@example.com', 'RZ5kUMbXmW', 'RO15BANK1532573917', 2018, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6478156243317', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 65, Cluj-Napoca', '0708715470', 'user1140@example.com', 'oyW6PEpzzB', 'RO69BANK8832630828', 7020, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7520316043481', 'Marinescu', 'Elena', 'Strada Libertății, Nr. 79, Timișoara', '0765517603', 'user92051@example.com', 'GhYRNM94bN', 'RO35BANK3594250815', 1366, 'student');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8646041072180', 'Ionescu', 'Maria', 'Strada Lalelelor, Nr. 66, Cluj-Napoca', '0727933955', 'user85201@example.com', 'HKzkBxulUA', 'RO46BANK4329503171', 8134, 'student');
 
 
-INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES
-(122, 37, 'Networks', '1178031729824'),
-(140, 36, 'AI and ML', '1451796626076'),
-(93, 30, 'Computer Science', '1539258833000'),
-(137, 32, 'Computer Science', '2057338561397'),
-(140, 40, 'Cybersecurity', '2059840727617'),
-(176, 47, 'Networks', '2393493227855'),
-(167, 33, 'Computer Science', '2697958861215'),
-(68, 18, 'AI and ML', '2830877367460'),
-(150, 12, 'Cybersecurity', '3366976737858'),
-(74, 18, 'Computer Science', '3426306266061'),
-(129, 14, 'Computer Science', '4892390499206'),
-(186, 12, 'Cybersecurity', '5152652753684'),
-(129, 18, 'Cybersecurity', '5191960707832'),
-(109, 29, 'AI and ML', '5337074475276'),
-(127, 46, 'Computer Science', '6183769267218'),
-(132, 17, 'Data Science', '7604752748006'),
-(56, 46, 'Cybersecurity', '8605851055721'),
-(134, 10, 'AI and ML', '8816480108784'),
-(121, 32, 'Data Science', '8967756958643'),
-(54, 33, 'Software Engineering', '9697999556235');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9636398095255', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 92, Ploiești', '0787778445', 'prof78286@example.com', 'W9GAUA1o9d', 'RO48BANK7479646067', 1720, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9924047006153', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 98, Ploiești', '0749853256', 'prof4173@example.com', 'FSJtodB7l8', 'RO86BANK1169437970', 3725, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8400244911342', 'Avram', 'George', 'Strada Universității, Nr. 66, București', '0770626888', 'prof26934@example.com', 'Aci6MrX8LW', 'RO74BANK3828424558', 6299, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5969849093080', 'Ene', 'Florin', 'Strada Tineretului, Nr. 17, Iași', '0780649984', 'prof25383@example.com', 'JrZFZXkx4s', 'RO50BANK1001754293', 2318, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3252625163261', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 88, Brașov', '0769401261', 'prof28099@example.com', 'ImKjrFWjVe', 'RO16BANK1874647544', 2847, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9442879290479', 'Neagu', 'Adrian', 'Strada Cetății, Nr. 85, Sibiu', '0702954087', 'prof89595@example.com', 'w19P8HVV0C', 'RO86BANK9226036441', 8357, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2174897302000', 'Tudor', 'Cristina', 'Strada Delfinului, Nr. 58, Constanța', '0734832348', 'prof66273@example.com', 'WZuxthqdob', 'RO12BANK4078076654', 5173, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5415821131183', 'Tudor', 'Cristina', 'Strada Delfinului, Nr. 80, Constanța', '0770256996', 'prof27581@example.com', 'KCeej2kcGy', 'RO61BANK8639958003', 7245, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8425289091609', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 27, Galați', '0741727635', 'prof2243@example.com', 'RU1zqpf1Ml', 'RO45BANK2929534367', 5191, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0127150807876', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 31, Brașov', '0718495753', 'prof41527@example.com', '2sduf84rlo', 'RO95BANK5916955156', 4854, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('8286157437721', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 63, Galați', '0761481612', 'prof70642@example.com', '35n31sciFk', 'RO51BANK6880883270', 8959, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9741169600624', 'Petrescu', 'Mihai', 'Strada Mihai Viteazul, Nr. 90, Ploiești', '0755989451', 'prof79711@example.com', 'RyNpW7c0tr', 'RO12BANK7415086348', 9773, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4104733170501', 'Avram', 'George', 'Strada Universității, Nr. 57, București', '0707936010', 'prof59842@example.com', '2pQJWWpo13', 'RO24BANK8265783898', 4884, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9403029209133', 'Ene', 'Florin', 'Strada Tineretului, Nr. 92, Iași', '0793084096', 'prof94623@example.com', 'NeMP90QpBe', 'RO11BANK6119982525', 9276, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('9242738541942', 'Rădulescu', 'Alina', 'Strada Eroilor, Nr. 86, Galați', '0733001803', 'prof17245@example.com', 'BH1T0Du41r', 'RO33BANK1237027945', 1746, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0407404275263', 'Sandu', 'Diana', 'Strada Independenței, Nr. 52, Oradea', '0719198844', 'prof93155@example.com', '2XTZCZneFe', 'RO72BANK7826386029', 6326, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3951032160081', 'Ene', 'Florin', 'Strada Tineretului, Nr. 43, Iași', '0700391390', 'prof18162@example.com', 'EdHIlvuG8R', 'RO61BANK9912306002', 3432, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('5584397183497', 'Ciobanu', 'Raluca', 'Strada Memorandumului, Nr. 73, Cluj-Napoca', '0707892371', 'prof44473@example.com', 'hL3AcryS8l', 'RO48BANK3504147731', 7064, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0611494230499', 'Mocanu', 'Victor', 'Strada Carpaților, Nr. 51, Brașov', '0730442247', 'prof18474@example.com', 'GgpOrnKTPw', 'RO28BANK7703750413', 8885, 'profesor');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4490531059273', 'Ciobanu', 'Raluca', 'Strada Memorandumului, Nr. 79, Cluj-Napoca', '0798521168', 'prof83389@example.com', 'gsJSJktjOS', 'RO80BANK3357405494', 2837, 'profesor');
 
+
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2095611977880', 'Popa', 'Ion', 'Strada Guvernului, Nr. 27, București', '0745355345', 'admin12287@example.com', '4Vo7ITSEVa', 'RO13BANK7732762238', 8187, 'administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2486360523991', 'Stoica', 'Ana', 'Strada Primăverii, Nr. 22, Cluj-Napoca', '0715595556', 'admin54132@example.com', '0d1Bxr246X', 'RO85BANK1640941043', 5976, 'administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('0408426060477', 'Dobre', 'Vasile', 'Strada Alunișului, Nr. 28, Iași', '0726792252', 'admin34491@example.com', 'LXjIdtrhlF', 'RO31BANK5389750788', 1931, 'administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7836685343262', 'Niculescu', 'Mirela', 'Strada Libertății, Nr. 22, Timișoara', '0727438484', 'admin23806@example.com', 'Y1TykNRxWJ', 'RO16BANK5310342670', 4875, 'administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('2285221449049', 'Stan', 'Bogdan', 'Strada Brașovului, Nr. 48, Brașov', '0752991142', 'admin42319@example.com', 'B5qRaaUkso', 'RO69BANK8967388339', 6455, 'administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('7854181596552', 'Chiriac', 'Alexandra', 'Strada Principală, Nr. 32, Constanța', '0732197612', 'superadmin34064@example.com', '1URaIfpST9', 'RO77BANK1837415033', 1453, 'super-administrator');
+INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('3637902399444', 'Vlad', 'Răzvan', 'Strada Cetății, Nr. 34, Sibiu', '0762444026', 'superadmin72319@example.com', 'tdaImbrdYE', 'RO17BANK3562609680', 1710, 'super-administrator');
+
+SELECT * from utilizatori where tip_utilizator = 'student';
+
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '0042217620436', 35);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '0276964342825', 114);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '0346300920140', 154);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '0386592596164', 152);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '0561588733883', 71);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '0665908090508', 157);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '0684292625689', 127);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '0902773084593', 69);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '1099400049672', 189);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '1281622380138', 198);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '1399976944787', 44);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '1728127878140', 196);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '1756162041010', 165);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '1928611476860', 79);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '1948434079530', 16);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '2264098827430', 170);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '2404023608380', 144);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '2944677451359', 37);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '3392736662265', 131);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '3646944547942', 107);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '3831706449480', 64);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '4095341157595', 133);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '4213051539788', 123);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '4224011469869', 41);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '4395753560715', 131);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '4479542646576', 126);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '4615961056796', 39);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '4749549800221', 73);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '4752196142176', 158);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '4911360347795', 140);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '5040578352938', 63);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '5079758056055', 59);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '5109973862646', 30);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '5143749520421', 140);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '5372828678163', 118);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '5755486704549', 163);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '5781429640621', 195);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '5851761964552', 127);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '5917953849696', 144);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '5999333818255', 64);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '6021110165120', 165);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '6026054554920', 38);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '6088122767983', 153);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '6104469521664', 47);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '6105126772686', 148);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '6283550823976', 30);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '6359711026080', 157);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '6478156243317', 120);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '6583105434210', 155);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '6642974951139', 192);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '7021070909985', 129);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '7052723376911', 141);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '7091952483698', 137);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '7436910111097', 39);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '7452736860806', 179);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '7463636496480', 52);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '7473326800017', 191);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '7520316043481', 55);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '7685738248381', 62);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '7808352501289', 67);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '8088635380514', 132);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '8105937318451', 27);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '8417432772807', 54);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '8468597808819', 57);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '8646041072180', 177);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '8816367931388', 197);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '8829126950914', 15);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (2, '8981395793520', 197);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '8995884772089', 145);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '9480683926228', 161);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (1, '9484723178453', 176);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '9623779137893', 101);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '9673209540461', 81);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '9703978868542', 73);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (3, '9794389736547', 155);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '9805837237664', 167);
+INSERT INTO detalii_studenti (an_de_studiu, CNP, numar_ore_sustinute) VALUES (4, '9847606272399', 87);
+
+select * from utilizatori where tip_utilizator = 'profesor';
+
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (187, 98, 'Artificial Intelligence', '0127150807876');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (223, 144, 'Data Science', '0407404275263');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (184, 129, 'Operating Systems', '0611494230499');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (234, 100, 'Databases', '2174897302000');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (229, 212, 'Operating Systems', '3252625163261');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (193, 103, 'Artificial Intelligence', '3951032160081');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (194, 143, 'Data Science', '4104733170501');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (278, 101, 'Algorithms and Complexity', '4490531059273');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (170, 137, 'Data Science', '5415821131183');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (280, 132, 'Artificial Intelligence', '5584397183497');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (101, 82, 'Computer Graphics', '5969849093080');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (279, 215, 'Computer Networks', '8286157437721');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (290, 212, 'Databases', '8400244911342');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (140, 89, 'Human-Computer Interaction', '8425289091609');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (258, 204, 'Data Science', '9242738541942');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (188, 58, 'Computer Graphics', '9403029209133');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (166, 88, 'Data Science', '9442879290479');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (260, 64, 'Artificial Intelligence', '9636398095255');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (140, 89, 'Computer Graphics', '9741169600624');
+INSERT INTO detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament, CNP) VALUES (119, 59, 'Cybersecurity', '9924047006153');
 
 
 INSERT INTO materii (nume, id, pondere_curs, pondere_lab, pondere_seminar) VALUES
-('Introduction to Programming', 1, 0, 0, 0),
-('Data Structures', 2, 0, 0, 0),
-('Operating Systems', 3, 0, 0, 0),
-('Computer Networks', 4, 0, 0, 0),
-('Database Systems', 5, 0, 0, 0),
-('Artificial Intelligence', 6, 0, 0, 0),
-('Machine Learning', 7, 0, 0, 0),
-('Web Development', 8, 0, 0, 0),
-('Cybersecurity', 9, 0, 0, 0),
-('Mobile Application Development', 10, 0, 0, 0);
+('Introduction to Programming', 1, 50, 30, 20),
+('Data Structures', 2, 60, 40, 0),
+('Operating Systems', 3, 40, 30, 30),
+('Computer Networks', 4, 70, 0, 30),
+('Database Systems', 5, 50, 20, 30),
+('Artificial Intelligence', 6, 45, 35, 20),
+('Machine Learning', 7, 60, 40, 0),
+('Web Development', 8, 50, 30, 20),
+('Cybersecurity', 9, 80, 0, 20),
+('Mobile Application Development', 10, 65, 25, 10);
 
 
-INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES
-('1178031729824', 9),
-('1451796626076', 8),
-('1539258833000', 1),
-('2057338561397', 7),
-('2059840727617', 9),
-('2393493227855', 8),
-('2697958861215', 3),
-('2830877367460', 1),
-('3366976737858', 10),
-('3426306266061', 2),
-('4892390499206', 10),
-('5152652753684', 5),
-('5191960707832', 6),
-('5337074475276', 6),
-('6183769267218', 3),
-('7604752748006', 7),
-('8605851055721', 3),
-('8816480108784', 8),
-('8967756958643', 4),
-('9697999556235', 8);
 
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES
-('0060471045231', '2830877367460', 1, 0),
-('0127595982004', '2830877367460', 1, 0),
-('0790918702060', '1539258833000', 1, 0),
-('0793853011462', '1539258833000', 1, 0),
-('0828343984581', '2830877367460', 1, 0),
-('1162768493764', '2830877367460', 1, 0),
-('1200952180977', '2830877367460', 1, 0),
-('1279824269710', '1539258833000', 1, 0),
-('1343204997734', '1539258833000', 1, 0),
-('1461617928882', '2830877367460', 1, 0),
-('1662473049500', '1539258833000', 1, 0),
-('1754010381404', '1539258833000', 1, 0),
-('1911696832276', '1539258833000', 1, 0),
-('2053227381742', '1539258833000', 1, 0),
-('2109911232373', '1539258833000', 1, 0),
-('2145576195996', '1539258833000', 1, 0),
-('2366972367613', '1539258833000', 1, 0),
-('2701297587088', '1539258833000', 1, 0),
-('2812731589116', '1539258833000', 1, 0),
-('3510341893599', '1539258833000', 1, 0),
-('3875425121378', '1539258833000', 1, 0),
-('3876183919971', '2830877367460', 1, 0),
-('3991843822387', '1539258833000', 1, 0),
-('4146054842012', '2830877367460', 1, 0),
-('4312968766160', '2830877367460', 1, 0),
-('4486366311522', '1539258833000', 1, 0),
-('4556743134702', '2830877367460', 1, 0),
-('4813880199903', '2830877367460', 1, 0),
-('4942350502318', '2830877367460', 1, 0),
-('5227942018199', '1539258833000', 1, 0),
-('5527018096355', '2830877367460', 1, 0),
-('5657732522623', '2830877367460', 1, 0),
-('5708089482027', '2830877367460', 1, 0),
-('6132673255690', '2830877367460', 1, 0),
-('6176838073293', '2830877367460', 1, 0),
-('6190900135484', '2830877367460', 1, 0),
-('6191179367727', '1539258833000', 1, 0),
-('6332051459740', '2830877367460', 1, 0),
-('6405843320630', '2830877367460', 1, 0),
-('6603677581723', '1539258833000', 1, 0),
-('6731908237597', '2830877367460', 1, 0),
-('6906355105611', '1539258833000', 1, 0),
-('7484057531411', '1539258833000', 1, 0),
-('7554095082134', '2830877367460', 1, 0),
-('7816527504923', '2830877367460', 1, 0),
-('8015904029158', '1539258833000', 1, 0),
-('8126932283860', '2830877367460', 1, 0),
-('8130666442770', '1539258833000', 1, 0),
-('8155970687577', '1539258833000', 1, 0),
-('8405615202728', '1539258833000', 1, 0),
-('8522152453127', '2830877367460', 1, 0),
-('8569009435856', '2830877367460', 1, 0),
-('8743101238916', '1539258833000', 1, 0),
-('8828914120525', '1539258833000', 1, 0),
-('9287808121344', '2830877367460', 1, 0),
-('9663424954074', '1539258833000', 1, 0),
-('9665495902267', '1539258833000', 1, 0),
-('9865159642844', '2830877367460', 1, 0),
-('9905992259372', '1539258833000', 1, 0),
-('9925467175816', '2830877367460', 1, 0);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0127150807876', 10);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0407404275263', 6);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0611494230499', 2);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('2174897302000', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3252625163261', 3);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3951032160081', 4);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('4104733170501', 10);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('4490531059273', 5);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('5415821131183', 5);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('5584397183497', 7);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('5969849093080', 2);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8286157437721', 5);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8400244911342', 4);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8425289091609', 3);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9242738541942', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9403029209133', 8);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9442879290479', 7);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9636398095255', 6);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9741169600624', 9);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9924047006153', 2);
 
-INSERT INTO activitati_profesori (data_inceput, tip_activitate, data_final, id_activitate, nr_max_participanti, descriere, CNP_profesor, id_materie)
-values ('2024-03-11 12:00', 'seminar', '2024-03-11 14:00', 1, 20, 'activitatea 1 de test', 1539258833000, 1);
+
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0042217620436', '3951032160081', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0276964342825', '9741169600624', 9, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0346300920140', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0386592596164', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0561588733883', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0665908090508', '8400244911342', 4, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0684292625689', '3951032160081', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('0902773084593', '5584397183497', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1099400049672', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1281622380138', '0407404275263', 6, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1399976944787', '8425289091609', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1728127878140', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1756162041010', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1928611476860', '0407404275263', 6, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1948434079530', '3951032160081', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '2174897302000', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '2174897302000', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2944677451359', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3392736662265', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3831706449480', '5969849093080', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4095341157595', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4213051539788', '9403029209133', 8, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4224011469869', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4395753560715', '8400244911342', 4, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4479542646576', '9924047006153', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4615961056796', '0407404275263', 6, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4749549800221', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4752196142176', '5415821131183', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4911360347795', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5040578352938', '9403029209133', 8, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5079758056055', '5969849093080', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5109973862646', '5415821131183', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5143749520421', '3252625163261', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5372828678163', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5755486704549', '2174897302000', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5781429640621', '0611494230499', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5851761964552', '2174897302000', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5917953849696', '5584397183497', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5999333818255', '9924047006153', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6021110165120', '4104733170501', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6026054554920', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6088122767983', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6104469521664', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6105126772686', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6283550823976', '5415821131183', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6359711026080', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6478156243317', '0407404275263', 6, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6583105434210', '0407404275263', 6, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('6642974951139', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7021070909985', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7052723376911', '9924047006153', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7091952483698', '0611494230499', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7436910111097', '3951032160081', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7452736860806', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7463636496480', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7473326800017', '0611494230499', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7520316043481', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7685738248381', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7808352501289', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8088635380514', '3951032160081', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8105937318451', '8425289091609', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8417432772807', '8400244911342', 4, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8468597808819', '5969849093080', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8646041072180', '4490531059273', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8816367931388', '0127150807876', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8829126950914', '8286157437721', 5, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8981395793520', '9403029209133', 8, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8995884772089', '3252625163261', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9480683926228', '2174897302000', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9484723178453', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9623779137893', '5969849093080', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9673209540461', '8425289091609', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9703978868542', '9442879290479', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9794389736547', '4104733170501', 10, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9805837237664', '9741169600624', 9, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9847606272399', '9636398095255', 7, 0);
+
 
 INSERT INTO activitati_profesori (data_inceput, tip_activitate, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)
 VALUES
-('2024-01-10 09:00:00', 'seminar', '2024-01-10 12:00:00', 25, 'Seminar de informatica avansata', '1960501123456', 1),
-('2024-02-15 14:00:00', 'laborator', '2024-02-15 16:30:00', 20, 'Workshop despre metode moderne de predare', '1980302123457', 2),
-('2024-03-05 10:00:00', 'curs', '2024-03-05 11:30:00', 30, 'Introducere in matematica discreta', '1970203123458', 3),
-('2024-03-10 08:30:00', 'laborator', '2024-03-10 11:00:00', 15, 'Laborator de programare in Python', '1960404123459', 1),
-('2024-04-01 13:00:00', 'Conferinta', '2024-04-01 17:00:00', 50, 'Conferinta despre inteligenta artificiala', '1990605123460', 4),
-('2024-04-20 09:00:00', 'Curs', '2024-04-20 11:00:00', 40, 'Analiza matematica - Limite si continuitati', '1970706123461', 3),
-('2024-05-10 15:00:00', 'Seminar', '2024-05-10 17:00:00', 20, 'Seminar despre metode numerice', '1980807123462', 2),
-('2024-06-05 10:30:00', 'Workshop', '2024-06-05 13:00:00', 25, 'Workshop: Algoritmi de sortare eficienti', '1960908123463', 1),
-('2024-07-01 11:00:00', 'Laborator', '2024-07-01 13:00:00', 10, 'Laborator de fizica - Optica', '1991009123464', 5),
-('2024-08-15 09:00:00', 'Conferinta', '2024-08-15 13:00:00', 60, 'Conferinta: Evolutia tehnologiei', '1981101123465', 4),
-('2024-09-10 08:00:00', 'Curs', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '1971202123466', 6),
-('2024-10-05 10:00:00', 'Seminar', '2024-10-05 12:00:00', 30, 'Seminar de chimie organica', '1961303123467', 7),
-('2024-11-20 14:00:00', 'Laborator', '2024-11-20 16:00:00', 12, 'Laborator de biologie - Genetica', '1991404123468', 8),
-('2024-12-01 15:30:00', 'Workshop', '2024-12-01 18:00:00', 20, 'Workshop: Dezvoltarea aplicatiilor web', '1981505123469', 1),
-('2024-12-20 09:30:00', 'Conferinta', '2024-12-20 12:30:00', 70, 'Conferinta anuala de stiinte exacte', '1971606123470', 9);
+('2024-01-10 09:00:00', 'seminar', '2024-01-10 12:00:00', 25, 'Seminar de informatica avansata', '2174897302000', 1),
+('2024-01-10 09:00:00', 'curs', '2024-01-10 12:00:00', 100, 'Curs informatica avansata', '2174897302000', 1),
+('2024-01-10 09:00:00', 'laborator', '2024-01-10 12:00:00', 25, 'Laborator de informatica avansata', '2174897302000', 1),
+('2024-02-15 14:00:00', 'laborator', '2024-02-15 16:30:00', 20, 'Workshop despre metode moderne de predare', '0611494230499', 2),
+('2024-03-05 10:00:00', 'curs', '2024-03-05 11:30:00', 30, 'Introducere in matematica discreta', '3252625163261', 3),
+('2024-03-10 08:30:00', 'laborator', '2024-03-10 11:00:00', 15, 'Laborator de programare in Python', '3951032160081', 4),
+('2024-04-01 13:00:00', 'curs', '2024-04-01 17:00:00', 50, 'Conferinta despre inteligenta artificiala', '4490531059273', 5),
+('2024-04-20 09:00:00', 'curs', '2024-04-20 11:00:00', 40, 'Analiza matematica - Limite si continuitati', '0407404275263', 6),
+('2024-05-10 15:00:00', 'seminar', '2024-05-10 17:00:00', 20, 'Seminar despre metode numerice', '5584397183497', 7),
+('2024-06-05 10:30:00', 'curs', '2024-06-05 13:00:00', 25, 'Workshop: Algoritmi de sortare eficienti', '9403029209133', 8),
+('2024-07-01 11:00:00', 'curs', '2024-07-01 13:00:00', 10, 'Laborator de fizica - Optica', '9741169600624', 9),
+('2024-08-15 09:00:00', 'laborator', '2024-08-15 13:00:00', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
+('2024-09-10 08:00:00', 'seminar', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '9242738541942', 1),
+('2024-10-05 10:00:00', 'seminar', '2024-10-05 12:00:00', 30, 'Seminar de chimie organica', '5969849093080', 2),
+('2024-11-20 14:00:00', 'laborator', '2024-11-20 16:00:00', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
+('2024-12-01 15:30:00', 'curs', '2024-12-01 18:00:00', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
+('2024-12-20 09:30:00', 'seminar', '2024-12-20 12:30:00', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
 
-INSERT INTO note_activitati (nota_curs, nota_seminar, nota_lab, CNP_student, id_activitate)
-VALUES (5, 5, 5, '0127595982004', 1);
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-01-28 23:37:40', 7, 44, '2024-02-05 23:37:40', 1, 'Cybersecurity Talk');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-05-31 08:04:47', 5, 29, '2024-06-09 08:04:47', 2, 'Algorithms Bootcamp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-07-19 15:17:25', 6, 50, '2024-08-18 15:17:25', 3, 'Networking Basics');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-10-01 13:44:10', 1, 44, '2024-10-07 13:44:10', 4, 'Coding Camp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-05-21 04:28:12', 1, 34, '2024-05-28 04:28:12', 5, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-03-11 14:58:13', 7, 10, '2024-03-28 14:58:13', 6, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-09-12 02:29:08', 8, 9, '2024-09-28 02:29:08', 7, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-12-21 19:08:27', 4, 28, '2025-01-20 19:08:27', 8, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-07-18 12:54:13', 7, 23, '2024-07-24 12:54:13', 9, 'Database Optimization');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-11-10 13:49:59', 7, 32, '2024-11-30 13:49:59', 10, 'HCI Workshop');
 
-UPDATE note_activitati
-SET nota_curs = 9,
-    nota_seminar = 9,
-    nota_lab = 9
-WHERE CNP_student = '0127595982004' AND id_activitate = 1;
+INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (1, 4, 1);
+INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (2, 1, 2);
+INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (3, 8, 3);
+INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (4, 9, 4);
+INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (5, 6, 5);
+
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0042217620436', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0276964342825', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0346300920140', 2);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0386592596164', 4);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0561588733883', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0665908090508', 4);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0684292625689', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0902773084593', 2);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1099400049672', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1281622380138', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1399976944787', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1728127878140', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1756162041010', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1928611476860', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1948434079530', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2264098827430', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2404023608380', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2944677451359', 2);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('3392736662265', 4);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('3646944547942', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('3831706449480', 3);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4095341157595', 4);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4213051539788', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4224011469869', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4395753560715', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4479542646576', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4615961056796', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4749549800221', 5);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4752196142176', 4);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4911360347795', 5);
+
+
+
+
+INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
+(5,  '2404023608380', 1),
+(5,  '2404023608380', 2),
+(5,  '2404023608380', 3),
+
+(7,  '3646944547942', 1),
+(8,  '3646944547942', 2),
+(9,  '3646944547942', 3),
+
+
+(3,  '5143749520421', 1),
+(2,  '5851761964552', 2),
+(1,  '7520316043481', 3);
+
+select * from materii_studenti where id_materie = 1;
+
+# UPDATE note_activitati
+# SET nota_curs = 9,
+#     nota_seminar = 9,
+#     nota_lab = 9
+# WHERE CNP_student = '0127595982004' AND id_activitate = 1;
+
+select * from utilizatori where tip_utilizator = 'student';
+
+
+
