@@ -31,9 +31,10 @@ public abstract class User {
     public void add() {
         this.db.execute("insert into utilizatori " +
                 "(CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator)" +
-                " values ('" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
-                "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" +this.phoneNumber + "'"
-                + "," + "'" + this.email + "'" + "," + "'" + this.userType + "'" + "');");
+                " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
+                "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
+                + "," + "'" + this.email + "'" + "," + "'" + this.iban + "'" + "," +
+                "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
     }
 
     public void delete() {
