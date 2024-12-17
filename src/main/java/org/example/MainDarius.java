@@ -8,7 +8,7 @@ import java.sql.SQLException;
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class MainDarius {
-    public static void main(String[] args) throws SQLException {
+    public static void dariusMain() throws SQLException {
         DataBase db = new DataBase();
         db.connect("root", "root");
 
@@ -28,4 +28,4 @@ public class MainDarius {
 
     }
 }
-}
+

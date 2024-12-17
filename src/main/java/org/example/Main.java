@@ -14,5 +14,8 @@ public class Main {
         CezarMain cMain = new CezarMain();
         cMain.cezarMain();
 
+        MainDarius dMain= new MainDarius();
+        dMain.dariusMain();
+
     }
 }
