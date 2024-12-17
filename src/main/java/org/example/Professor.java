@@ -23,7 +23,7 @@ public class Professor extends User{
             Statement st = db.getCon().createStatement();
             st.execute("use proiect");
             st.execute("insert into detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament)" +
-                    "values( " + "'" + this.maxHour + "'" + "'" + this.minHour + "'" + "'" + this.department + "');");
+                    "values( " + "'" + this.maxHour + "'" + "," + "'" + this.minHour + "'" + "," + "'" + this.department + "');");
             st.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
