@@ -9,13 +9,14 @@ public abstract class User {
     String email;
     String iban;
     int contractNumber;
+    String password;
     String userType;
     DataBase db;
 
     public User() {
     }
 
-    public User(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String userType, DataBase db) {
+    public User(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
         this.CNP = CNP;
         this.firstName = firstName;
         this.secondName = secondName;
@@ -24,16 +25,17 @@ public abstract class User {
         this.email = email;
         this.iban = iban;
         this.contractNumber = contractNumber;
+        this.password = password;
         this.userType = userType;
         this.db = db;
     }
 
     public void add() {
         this.db.execute("insert into utilizatori " +
-                "(CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator)" +
+                "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
                 " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
                 "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
-                + "," + "'" + this.email + "'" + "," + "'" + this.iban + "'" + "," +
+                + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
                 "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
     }
 

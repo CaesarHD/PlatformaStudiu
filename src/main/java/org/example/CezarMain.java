@@ -11,7 +11,7 @@ public class CezarMain {
         DataBase db = new DataBase();
         db.connect("root", "root");
 
-        Professor cezar = new Professor("5040420125807", "Cezar", "Stir", "str. Fazanilor, nr. 2", "0767332422", "stir.cezar@gmail.com", "CezarIban", 3495, "profesor", db);
+        Professor cezar = new Professor("5040420125807", "Cezar", "Stir", "str. Fazanilor, nr. 2", "0767332422", "stir.cezar@gmail.com", "CezarIban", 3495, "cezar", "profesor", db);
         Professor pr1 = new Professor();
         cezar.add();
 //        UI ui = new UI();
