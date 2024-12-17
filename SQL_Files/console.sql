@@ -570,8 +570,26 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 ('9905992259372', '1539258833000', 1, 0),
 ('9925467175816', '2830877367460', 1, 0);
 
+INSERT INTO activitati_profesori (data_inceput, tip_activitate, data_final, id_activitate, nr_max_participanti, descriere, CNP_profesor, id_materie)
+values ('2024-03-11 12:00', 'seminar', '2024-03-11 14:00', 1, 20, 'activitatea 1 de test', 1539258833000, 1);
 
-
+INSERT INTO activitati_profesori (data_inceput, tip_activitate, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('2024-01-10 09:00:00', 'seminar', '2024-01-10 12:00:00', 25, 'Seminar de informatica avansata', '1960501123456', 1),
+('2024-02-15 14:00:00', 'laborator', '2024-02-15 16:30:00', 20, 'Workshop despre metode moderne de predare', '1980302123457', 2),
+('2024-03-05 10:00:00', 'curs', '2024-03-05 11:30:00', 30, 'Introducere in matematica discreta', '1970203123458', 3),
+('2024-03-10 08:30:00', 'laborator', '2024-03-10 11:00:00', 15, 'Laborator de programare in Python', '1960404123459', 1),
+('2024-04-01 13:00:00', 'Conferinta', '2024-04-01 17:00:00', 50, 'Conferinta despre inteligenta artificiala', '1990605123460', 4),
+('2024-04-20 09:00:00', 'Curs', '2024-04-20 11:00:00', 40, 'Analiza matematica - Limite si continuitati', '1970706123461', 3),
+('2024-05-10 15:00:00', 'Seminar', '2024-05-10 17:00:00', 20, 'Seminar despre metode numerice', '1980807123462', 2),
+('2024-06-05 10:30:00', 'Workshop', '2024-06-05 13:00:00', 25, 'Workshop: Algoritmi de sortare eficienti', '1960908123463', 1),
+('2024-07-01 11:00:00', 'Laborator', '2024-07-01 13:00:00', 10, 'Laborator de fizica - Optica', '1991009123464', 5),
+('2024-08-15 09:00:00', 'Conferinta', '2024-08-15 13:00:00', 60, 'Conferinta: Evolutia tehnologiei', '1981101123465', 4),
+('2024-09-10 08:00:00', 'Curs', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '1971202123466', 6),
+('2024-10-05 10:00:00', 'Seminar', '2024-10-05 12:00:00', 30, 'Seminar de chimie organica', '1961303123467', 7),
+('2024-11-20 14:00:00', 'Laborator', '2024-11-20 16:00:00', 12, 'Laborator de biologie - Genetica', '1991404123468', 8),
+('2024-12-01 15:30:00', 'Workshop', '2024-12-01 18:00:00', 20, 'Workshop: Dezvoltarea aplicatiilor web', '1981505123469', 1),
+('2024-12-20 09:30:00', 'Conferinta', '2024-12-20 12:30:00', 70, 'Conferinta anuala de stiinte exacte', '1971606123470', 9);
 
 INSERT INTO note_activitati (nota_curs, nota_seminar, nota_lab, CNP_student, id_activitate)
 VALUES (5, 5, 5, '0127595982004', 1);
