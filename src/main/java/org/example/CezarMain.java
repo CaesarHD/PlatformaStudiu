@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class CezarMain {
 
-    public void cezarMain () throws SQLException {
+    public static void main(String[] args) throws SQLException {
         DataBase db = new DataBase();
         db.connect("root", "root");
 

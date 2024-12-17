@@ -11,11 +11,6 @@ import java.sql.SQLException;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) throws SQLException {
-        CezarMain cMain = new CezarMain();
-        cMain.cezarMain();
-
-        MainDarius dMain= new MainDarius();
-        dMain.dariusMain();
 
     }
 }
