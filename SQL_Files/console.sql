@@ -313,7 +313,72 @@ END$$
 DELIMITER ;
 
 
+DELIMITER $$
 
+CREATE TRIGGER update_nota_finala
+AFTER UPDATE ON note_activitati
+FOR EACH ROW
+BEGIN
+    DECLARE curs_pondere INT;
+    DECLARE lab_pondere INT;
+    DECLARE seminar_pondere INT;
+    DECLARE nota_curs FLOAT;
+    DECLARE nota_lab FLOAT;
+    DECLARE nota_seminar FLOAT;
+    DECLARE suma_pondere INT;
+    DECLARE nota_finala INT;
+
+    SELECT pondere_curs, pondere_lab, pondere_seminar
+    INTO curs_pondere, lab_pondere, seminar_pondere
+    FROM materii
+    WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+
+    SELECT AVG(nota)
+    INTO nota_curs
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'curs'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SELECT AVG(nota)
+    INTO nota_lab
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'laborator'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SELECT AVG(nota)
+    INTO nota_seminar
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'seminar'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SET suma_pondere = IFNULL(curs_pondere, 0) + IFNULL(lab_pondere, 0) + IFNULL(seminar_pondere, 0);
+
+    SET nota_finala = ROUND((
+        IFNULL(nota_curs, 0) * IFNULL(curs_pondere, 0) +
+        IFNULL(nota_lab, 0) * IFNULL(lab_pondere, 0) +
+        IFNULL(nota_seminar, 0) * IFNULL(seminar_pondere, 0)
+    ) / suma_pondere);
+
+    UPDATE materii_studenti
+    SET nota_finala = nota_finala
+    WHERE CNP_student = NEW.CNP_student
+      AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+
+END$$
+
+DELIMITER ;
 
 INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('4095341157595', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 54, Oradea', '0764601491', 'user90850@example.com', 'ZFsxzapxkL', 'RO47BANK8776929935', 1841, 'student');
 INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator) VALUES ('6104469521664', 'Stancu', 'Mihai', 'Strada Republicii, Nr. 57, Oradea', '0700410904', 'user12013@example.com', '04nKZ5diMd', 'RO17BANK9695545724', 5378, 'student');
