@@ -17,7 +17,7 @@ create table if not exists materii
     nume            varchar(30) not null,
     id              int auto_increment
         primary key,
-    pondere_curs    int         null,
+    pondere_curs    int        null,
     pondere_lab     int         null,
     pondere_seminar int         null,
     constraint materii_pk
@@ -96,7 +96,7 @@ create table if not exists materii_studenti
     CNP_student  varchar(13) null,
     CNP_profesor varchar(13) null,
     id_materie   int         null,
-    nota_finala  int         null,
+    nota_finala  int        null,
     constraint materii_studenti_detalii_studenti_CNP_fk
         foreign key (CNP_student) references detalii_studenti (CNP),
     constraint materii_studenti_materii_id_fk
@@ -114,57 +114,11 @@ create table if not exists note_activitati
         foreign key (id_activitate) references activitati_profesori (id_activitate)
             on delete cascade,
     constraint note_activitati_detalii_studenti_CNP_fk
-        foreign key (CNP_student) references utilizatori (CNP)
+        foreign key (CNP_student) references detalii_studenti(CNP)
             on delete cascade
+
 );
 
-# create definer = root@localhost trigger nota_finala
-#     after insert
-#     on note_activitati
-#     for each row
-# BEGIN
-#     DECLARE pondera_curs INT;
-#     DECLARE pondera_seminar INT;
-#     DECLARE pondera_lab INT;
-#     DECLARE nota_finala INT;
-#
-#     SELECT pondere_curs, pondere_seminar, pondere_lab
-#     INTO pondera_curs, pondera_seminar, pondera_lab
-#     FROM materii
-#     WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-#
-#     SET nota_finala = ROUND((NEW.nota_curs * pondera_curs / 100) +
-#                       (NEW.nota_seminar * pondera_seminar / 100) +
-#                       (NEW.nota_lab * pondera_lab / 100));
-#
-#     UPDATE materii_studenti
-#     SET nota_finala = nota_finala
-#     WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-# END;
-#
-# create definer = root@localhost trigger nota_finala_update
-#     after update
-#     on note_activitati
-#     for each row
-# BEGIN
-#     DECLARE pondere_curs INT;
-#     DECLARE pondere_seminar INT;
-#     DECLARE pondere_lab INT;
-#     DECLARE nota_finala INT;
-#
-#     SELECT pondere_curs, pondere_seminar, pondere_lab
-#     INTO pondere_curs, pondere_seminar, pondere_lab
-#     FROM materii
-#     WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-#
-#     SET nota_finala = ROUND((NEW.nota_curs * pondere_curs / 100) +
-#                       (NEW.nota_seminar * pondere_seminar / 100) +
-#                       (NEW.nota_lab * pondere_lab / 100));
-#
-#     UPDATE materii_studenti
-#     SET nota_finala = nota_finala
-#     WHERE CNP_student = NEW.CNP_student AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
-# END;
 
 create table if not exists profesori_materii
 (
@@ -238,8 +192,9 @@ ADD CONSTRAINT studenti_grupuri_studenti_detalii_studenti_CNP_fk
     ON DELETE CASCADE;
 
 
-ALTER TABLE note_activitati
-DROP FOREIGN KEY note_activitati_detalii_studenti_CNP_fk;
+alter table note_activitati
+    drop foreign key note_activitati_detalii_studenti_CNP_fk;
+
 
 ALTER TABLE note_activitati
 ADD CONSTRAINT note_activitati_detalii_studenti_CNP_fk
@@ -287,11 +242,75 @@ ADD CONSTRAINT note_activitati_activitati_profesori_id_activitate_fk
     REFERENCES activitati_profesori(id_activitate)
     ON DELETE CASCADE;
 
-DELETE FROM utilizatori WHERE CNP='1178031729824';
+ALTER TABLE materii_studenti
+DROP FOREIGN KEY materii_studenti_detalii_studenti_CNP_fk;
 
+DELIMITER $$
 
+CREATE TRIGGER calculeaza_nota_finala
+AFTER INSERT ON note_activitati
+FOR EACH ROW
+BEGIN
+    DECLARE curs_pondere INT;
+    DECLARE lab_pondere INT;
+    DECLARE seminar_pondere INT;
+    DECLARE nota_curs FLOAT;
+    DECLARE nota_lab FLOAT;
+    DECLARE nota_seminar FLOAT;
+    DECLARE suma_pondere INT;
+    DECLARE nota_finala INT;
 
+    SELECT pondere_curs, pondere_lab, pondere_seminar
+    INTO curs_pondere, lab_pondere, seminar_pondere
+    FROM materii
+    WHERE id = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
 
+    SELECT AVG(nota)
+    INTO nota_curs
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'curs'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SELECT AVG(nota)
+    INTO nota_lab
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'laborator'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SELECT AVG(nota)
+    INTO nota_seminar
+    FROM note_activitati
+    WHERE id_activitate IN (
+        SELECT id_activitate
+        FROM activitati_profesori
+        WHERE id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate)
+          AND tip_activitate = 'seminar'
+    ) AND CNP_student = NEW.CNP_student;
+
+    SET suma_pondere = IFNULL(curs_pondere, 0) + IFNULL(lab_pondere, 0) + IFNULL(seminar_pondere, 0);
+
+    SET nota_finala = ROUND((
+        IFNULL(nota_curs, 0) * IFNULL(curs_pondere, 0) +
+        IFNULL(nota_lab, 0) * IFNULL(lab_pondere, 0) +
+        IFNULL(nota_seminar, 0) * IFNULL(seminar_pondere, 0)
+    ) / suma_pondere);
+
+    UPDATE materii_studenti
+    SET nota_finala = nota_finala
+    WHERE CNP_student = NEW.CNP_student
+      AND id_materie = (SELECT id_materie FROM activitati_profesori WHERE id_activitate = NEW.id_activitate);
+
+END$$
+
+DELIMITER ;
 
 
 
@@ -638,7 +657,7 @@ VALUES
 ('2024-06-05 10:30:00', 'curs', '2024-06-05 13:00:00', 25, 'Workshop: Algoritmi de sortare eficienti', '9403029209133', 8),
 ('2024-07-01 11:00:00', 'curs', '2024-07-01 13:00:00', 10, 'Laborator de fizica - Optica', '9741169600624', 9),
 ('2024-08-15 09:00:00', 'laborator', '2024-08-15 13:00:00', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
-('2024-09-10 08:00:00', 'seminar', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '9242738541942', 1),
+('2024-09-10 08:00:00', 'seminar', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '9242738541942', 3),
 ('2024-10-05 10:00:00', 'seminar', '2024-10-05 12:00:00', 30, 'Seminar de chimie organica', '5969849093080', 2),
 ('2024-11-20 14:00:00', 'laborator', '2024-11-20 16:00:00', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
 ('2024-12-01 15:30:00', 'curs', '2024-12-01 18:00:00', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
@@ -695,29 +714,55 @@ INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4911360347
 
 
 
+
 INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
-(5,  '2404023608380', 1),
-(5,  '2404023608380', 2),
-(5,  '2404023608380', 3),
+(5.0,  '2404023608380', 1),
+(5.0,  '2404023608380', 2),
+(5.0,  '2404023608380', 3),
 
-(7,  '3646944547942', 1),
-(8,  '3646944547942', 2),
-(9,  '3646944547942', 3),
+(7.0,  '3646944547942', 1),
+(8.0,  '3646944547942', 2),
+(9.0,  '3646944547942', 3),
 
 
-(3,  '5143749520421', 1),
-(2,  '5851761964552', 2),
-(1,  '7520316043481', 3);
+(3.0,  '5143749520421', 1),
+(2.0,  '5143749520421', 2),
+(1.0,  '5143749520421', 3);
 
-select * from materii_studenti where id_materie = 1;
+SELECT nota
+    FROM note_activitati where id_activitate = 1 and CNP_student = '2404023608380';
 
+# UPDATE materii_studenti
+#     SET nota_finala = ROUND(
+#         (IFNULL(7, 0) * 30 / 100) +
+#         (IFNULL(5, 0) * 20 / 100) +
+#         (IFNULL(6, 0) * 50 / 100)
+# )
+#     WHERE CNP_student = 2404023608380 AND id_materie = 1;
+#
 # UPDATE note_activitati
 # SET nota_curs = 9,
 #     nota_seminar = 9,
 #     nota_lab = 9
 # WHERE CNP_student = '0127595982004' AND id_activitate = 1;
+#
 
-select * from utilizatori where tip_utilizator = 'student';
+#
+#     SELECT *
+#     FROM activitati_profesori where id_materie = 1 and tip_activitate = 'curs';
+#
+#     SELECT *
+#     FROM activitati_profesori where id_materie = 1 and tip_activitate = 'laborator';
+#
+#     SELECT *
+#     FROM activitati_profesori where id_materie = 1 and tip_activitate = 'seminar';
+#
+#     SELECT detalii_studenti.CNP
+#     FROM detalii_studenti where CNP = '2404023608380';
+#
+#     SELECT nota
+#     FROM note_activitati where id_activitate = 1 and CNP_student = '2404023608380';
 
 
+DELETE FROM utilizatori WHERE CNP='0042217620436';
 
