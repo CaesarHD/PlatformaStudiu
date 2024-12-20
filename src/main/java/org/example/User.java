@@ -39,6 +39,11 @@ public abstract class User {
                 "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
     }
 
+    public static void findUser(String CNP) {
+//        db.execute("SELECT * from utilizatori where CNP like '" + CNP + "';");
+    }
+
+
     public void delete() {
 
     }
