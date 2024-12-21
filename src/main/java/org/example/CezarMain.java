@@ -14,9 +14,11 @@ public class CezarMain {
         User user =  dbController.getUser(User.findUser("8400244911342", "Aci6MrX8LW"));
         Professor professor = (Professor) user;
         professor.setSubjects(dbController.getSubjects(professor.getSubject()));
-        System.out.println(professor);
-        professor.printSubjects();
+//        System.out.println(professor);
+//        professor.printSubjects();
 
+        ProffesorUI pUi = new ProffesorUI(professor);
+        pUi.show();
 
     }
 }

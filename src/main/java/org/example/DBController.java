@@ -115,6 +115,8 @@ public class DBController {
         subject.setSemWeight(rs.getInt("pondere_seminar"));
     }
 
+
+
 //    public void getStudents() {
 //        this.db.execute("SELECT * from utilizatori where");
 //    }
