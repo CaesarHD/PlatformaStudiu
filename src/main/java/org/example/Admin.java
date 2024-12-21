@@ -3,7 +3,8 @@ package org.example;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Admin extends User {
+public class Admin extends User
+{
     public Admin() {
     }
 
@@ -12,29 +13,31 @@ public class Admin extends User {
     }
 
     public void add() {
-        this.db.execute("insert into utilizatori " +
-                "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
-                " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
-                "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
-                + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
-                "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
+        if (!this.userType.equals("administrator"))
+        {
+            this.db.execute("insert into utilizatori " +
+                    "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
+                    " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
+                    "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
+                    + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
+                    "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
+        }
     }
-
     public void deleteUser(String CNP)
     {
-        String query = "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
+        String query = "DELETE FROM utilizatori WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
         this.db.execute(query);
     }
 
     public void updateUser(String CNP,String field, String newValue)
     {
-        String query ="UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
+        String query ="UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
         this.db.execute(query);
     }
 
     public void searchUser(String name) throws SQLException
     {
-       String query = "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
+       String query = "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%' AND tip_utilizator IN ('student', 'profesor');";
        this.db.execute(query);
     }
 
@@ -66,6 +69,5 @@ public class Admin extends User {
                         "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
         this.db.execute(query);
     }
-
 
 }

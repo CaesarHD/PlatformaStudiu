@@ -13,6 +13,7 @@ public class MainDarius {
         db.connect("root", "root");
 
         Admin darius = new Admin("5050118245033", "Darius", "SefuVost", "str. Dinamo, nr. 1", "0756992299", "popdarius1801@gmail.com", "DariusIban", 6969, "darius", "administrator",db);
+        SuperAdministrator darius2 = new SuperAdministrator("5050118245034","Darius", "Pop", "str. Dinamo, nr. 1a", "0756992292", "popdarius18010@gmail.com", "DariusIban1", 6970, "darius1", "super-administrator",db);
         try
         {
             darius.add();
@@ -23,6 +24,9 @@ public class MainDarius {
             darius.assignProfessor("9741169600624",1);
             darius.searchCourseByName("Data Structures");
             darius.listStudents(1);
+
+            darius2.add();
+
         }
         catch (SQLException e)
         {
