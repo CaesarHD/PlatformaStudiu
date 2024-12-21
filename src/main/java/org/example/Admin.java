@@ -3,7 +3,8 @@ package org.example;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Admin extends User {
+public class Admin extends User
+{
     public Admin() {
     }
 
@@ -11,19 +12,24 @@ public class Admin extends User {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
     }
 
+
     public String deleteUser(String CNP)
     {
         return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
+
     }
 
     public String updateUser(String CNP,String field, String newValue)
     {
         return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
+
     }
 
     public String searchUser(String name) throws SQLException
     {
+
        return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
+
     }
 
     public String filterUsers(String userType) throws SQLException

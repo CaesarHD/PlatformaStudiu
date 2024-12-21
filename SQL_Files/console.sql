@@ -245,6 +245,15 @@ ADD CONSTRAINT note_activitati_activitati_profesori_id_activitate_fk
 ALTER TABLE materii_studenti
 DROP FOREIGN KEY materii_studenti_detalii_studenti_CNP_fk;
 
+ALTER TABLE materii_studenti
+DROP FOREIGN KEY materii_studenti_profesor_id_fk;
+
+ALTER TABLE materii_studenti
+ADD CONSTRAINT materii_studenti_profesor_id_fk
+    FOREIGN KEY (CNP_profesor)
+    REFERENCES detalii_profesori(CNP)
+    ON DELETE CASCADE;
+
 DELIMITER $$
 
 CREATE TRIGGER calculeaza_nota_finala
