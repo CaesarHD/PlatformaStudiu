@@ -3,6 +3,8 @@ package org.example;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBController {
     DataBase db;
@@ -26,6 +28,7 @@ public class DBController {
             user = switch (userType) {
                 case "profesor" -> new Proffesor();
                 case "administrator" -> new Admin();
+                case "student" -> new Student();
                 default -> throw new IllegalArgumentException("Unknown user type: " + userType);
             };
 
@@ -74,6 +77,7 @@ public class DBController {
         proffesor.setMinHour(rs.getInt("numar_minim_ore_predate"));
         proffesor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
     }
+
 
 
 
