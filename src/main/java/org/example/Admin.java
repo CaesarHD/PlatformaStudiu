@@ -8,31 +8,32 @@ public class Admin extends User
     public Admin() {
     }
 
-    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
-        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
+    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType)
+    {
+        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
     }
 
 
     public String deleteUser(String CNP)
     {
-        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
+        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
 
     }
 
     public String updateUser(String CNP,String field, String newValue)
     {
-        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
+        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
 
     }
 
     public String searchUser(String name) throws SQLException
     {
 
-       return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
+       return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%' AND tip_utilizator IN ('student', 'profesor');";
 
     }
 
-    public String filterUsers(String userType) throws SQLException
+    public String filterUser(String userType) throws SQLException
     {
         return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
     }
