@@ -19,9 +19,7 @@ public class ProffesorUI extends UI{
         this.addComponent(currentDay);
         this.addComponent(meetings);
         this.addComponent(allActivities);
-        this.addComponent(classBook);
+//        this.addComponent(classBook);
     }
-
-
 
 }
