@@ -58,4 +58,8 @@ public class Admin extends User {
         this.db.execute(query);
     }
 
+    // ce mi place sa lucrez la proiect
+    //ce fain e
+    // sper sa nu terminam niciodata pt ca mi place prea mult!
+
 }
