@@ -11,6 +11,15 @@ public class Admin extends User {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
     }
 
+    public void add() {
+        this.db.execute("insert into utilizatori " +
+                "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
+                " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
+                "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
+                + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
+                "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
+    }
+
     public void deleteUser(String CNP)
     {
         String query = "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
@@ -58,7 +67,5 @@ public class Admin extends User {
         this.db.execute(query);
     }
 
-    // ce fain e acest proiect
-    // wow
-    // ce mi plc
+
 }
