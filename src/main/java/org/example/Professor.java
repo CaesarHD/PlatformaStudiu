@@ -1,27 +1,43 @@
 package org.example;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-public class Proffesor extends User{
+import java.util.List;
+public class Professor extends User{
 
     int maxHour;
     int minHour;
     String department;
 
-    public Proffesor() {
+
+    public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
+        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
     }
 
-
-    public Proffesor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
-        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
+    public String getSubject() {
+        return ("select * from profesori_materii where CNP_profesor = '" + this.CNP + "';");
     }
 
+    public void printSubjects() {
+        for(Subject s : subjects){
+            System.out.println(s);
+        }
+    }
+
+    public List<Subject> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<Subject> subjects) {
+        this.subjects = subjects;
+    }
+
+    List<Subject> subjects;
+
+    public Professor() {
+    }
 
     @Override
     public String toString() {
-        return "Proffesor{" +
+        return "Professor{" +
                 "CNP='" + CNP + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", secondName='" + secondName + '\'' +
@@ -34,7 +50,8 @@ public class Proffesor extends User{
                 ", userType='" + userType + '\'' +
                 ", maxHour=" + maxHour +
                 ", minHour=" + minHour +
-                ", department='" + department + '\'' +
+                ", department='" + department +
+
                 '}';
     }
 

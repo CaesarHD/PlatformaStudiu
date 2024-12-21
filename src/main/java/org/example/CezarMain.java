@@ -1,8 +1,6 @@
 package org.example;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.util.List;
 import java.sql.SQLException;
 
 public class CezarMain {
@@ -13,11 +11,12 @@ public class CezarMain {
         DBController dbController = new DBController(db);
 
 
-        User user =  dbController.getUser(User.findUser("3951032160081", "EdHIlvuG8R"));
+        User user =  dbController.getUser(User.findUser("8400244911342", "Aci6MrX8LW"));
+        Professor professor = (Professor) user;
+        professor.setSubjects(dbController.getSubjects(professor.getSubject()));
+        System.out.println(professor);
+        professor.printSubjects();
 
-        Proffesor proffesor = (Proffesor) user;
-
-        System.out.println(proffesor);
 
     }
 }
