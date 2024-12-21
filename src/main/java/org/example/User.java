@@ -11,9 +11,9 @@ public abstract class User {
     int contractNumber;
     String password;
     String userType;
-    DataBase db;
 
     public User() {
+
     }
 
     public User(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
@@ -23,20 +23,23 @@ public abstract class User {
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.email = email;
+        this.password = password;
         this.iban = iban;
         this.contractNumber = contractNumber;
-        this.password = password;
         this.userType = userType;
-        this.db = db;
     }
 
-    public void add() {
-        this.db.execute("insert into utilizatori " +
+    public String add() {
+        return ("insert into utilizatori " +
                 "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
                 " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
                 "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
                 + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
                 "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
+    }
+
+    public static String findUser(String CNP, String password) {
+        return ("select * from utilizatori where CNP = '" + CNP + "' and parola = '" + password + "';");
     }
 
     public static void findUser(String CNP) {
@@ -47,6 +50,7 @@ public abstract class User {
     public void delete() {
 
     }
+
 
     public String getCNP() {
         return CNP;
@@ -120,11 +124,11 @@ public abstract class User {
         this.userType = userType;
     }
 
-    public DataBase getDb() {
-        return db;
+    public String getPassword() {
+        return password;
     }
 
-    public void setDb(DataBase db) {
-        this.db = db;
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
