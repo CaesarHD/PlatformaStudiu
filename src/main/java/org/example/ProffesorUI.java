@@ -22,6 +22,4 @@ public class ProffesorUI extends UI{
 //        this.addComponent(classBook);
     }
 
-
-
 }
