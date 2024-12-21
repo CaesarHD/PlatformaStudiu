@@ -11,71 +11,52 @@ public class SuperAdministrator extends Admin
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
     }
 
-    @Override
-    public void add()
+    public String deleteUser(String CNP)
     {
-        this.db.execute("insert into utilizatori " +
-                "(CNP, nume, prenume, adresa, numar_telefon, email, parola, IBAN, numar_contract, tip_utilizator)" +
-                " values (" + "'" + this.CNP + "'" + "," + "'" + this.secondName + "'" + "," +
-                "'" + this.firstName + "'" + "," + "'" + this.address + "'" + "," + "'" + this.phoneNumber + "'"
-                + "," + "'" + this.email + "'" + "," + "'" + this.password + "'" + "," + "'" + this.iban + "'" + "," +
-                "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
+        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
 
     }
-    @Override
-    public void deleteUser(String CNP)
+
+    public String updateUser(String CNP,String field, String newValue)
     {
-        String query = "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
-        this.db.execute(query);
+        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
+
     }
-    @Override
-    public void updateUser(String CNP,String field, String newValue)
+
+    public String searchUser(String name) throws SQLException
     {
-        String query ="UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
-        this.db.execute(query);
+
+        return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
+
     }
-    @Override
-    public void searchUser(String name) throws SQLException
+
+    public String filterUsers(String userType) throws SQLException
     {
-        String query = "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
-        this.db.execute(query);
+        return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
     }
-    @Override
-    public void filterUsers(String userType) throws SQLException
+
+    public String assignProfessor(String profCNP,int id)
     {
-        String query ="SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
-        this.db.execute(query);
+        return "INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('" + profCNP + "', " + id + ");";
     }
-    @Override
-    public void assignProfessor(String profCNP,int id)
+
+    public String searchCourseByName(String materie) throws SQLException
     {
-        String query = "INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('" + profCNP + "', " + id + ");";
-        this.db.execute(query);
-    }
-    @Override
-    public void searchCourseByName(String materie) throws SQLException
-    {
-        String query = "SELECT m.id, m.nume, u.nume AS nume_profesor, u.prenume AS prenume_profesor " +
+        return "SELECT m.id, m.nume, u.nume AS nume_profesor, u.prenume AS prenume_profesor " +
                 "FROM materii m " + "JOIN profesori_materii pm ON m.id = pm.id_materie " +
                 "JOIN utilizatori u ON pm.CNP_profesor = u.CNP " +
                 "WHERE m.nume LIKE '%" + materie + "%';";
-        this.db.execute(query);
-    }
-    @Override
-    public void listStudents(int id) throws  SQLException
-    {
-        String query = "SELECT u.nume, u.prenume " + "FROM studenti_grupuri_studenti sgs " +
-                "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
-                "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
-        this.db.execute(query);
     }
 
-    public void changeUserRole(String CNP, String newRole)
+    public String listStudents(int id) throws  SQLException
     {
-        String query = "UPDATE utilizatori SET tip_utilizator = '" + newRole + "' WHERE CNP = '" + CNP + "';";
-        this.db.execute(query);
+        return "SELECT u.nume, u.prenume " + "FROM studenti_grupuri_studenti sgs " +
+                "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
+                "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
     }
+
 }
+
 
 
 
