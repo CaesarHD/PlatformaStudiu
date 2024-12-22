@@ -16,24 +16,24 @@ public class Admin extends User
 
     public String deleteUser(String CNP)
     {
-        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
+        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
 
     }
 
     public String updateUser(String CNP,String field, String newValue)
     {
-        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "' AND tip_utilizator IN ('student', 'profesor');";
+        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
 
     }
 
     public String searchUser(String name) throws SQLException
     {
 
-       return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%' AND tip_utilizator IN ('student', 'profesor');";
+       return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
 
     }
 
-    public String filterUser(String userType) throws SQLException
+    public String filterUsers(String userType) throws SQLException
     {
         return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
     }
