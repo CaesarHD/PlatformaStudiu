@@ -1,50 +1,58 @@
 package org.example;
 
-import javax.xml.crypto.Data;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
+import java.util.List;
 public class Professor extends User{
 
     int maxHour;
     int minHour;
     String department;
+    List<Subject> subjects;
 
     public Professor() {
     }
 
-
-    public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
-        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType, db);
+    public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
+        super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
     }
 
-    public void insertDetails() {
-        try {
-            Statement st = db.getCon().createStatement();
-            st.execute("use proiect");
-            st.execute("insert into detalii_profesori (numar_maxim_ore_predate, numar_minim_ore_predate, departament)" +
-                    "values( " + "'" + this.maxHour + "'" + "," + "'" + this.minHour + "'" + "," + "'" + this.department + "');");
-            st.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public String getSubject() {
+        return ("select * from profesori_materii where CNP_profesor = '" + this.CNP + "';");
+    }
+
+    public void printSubjects() {
+        for(Subject s : subjects){
+            System.out.println(s);
         }
     }
 
-    public ResultSet getDetails() {
-        try {
-            Statement st = db.getCon().createStatement();
-            st.execute("use proiect");
-            ResultSet rs = st.executeQuery("SELECT * from detalii_profesori where CNP = " + "'" + this.CNP + "';");
-            st.close();
-            return rs;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public List<Subject> getSubjects() {
+        return subjects;
     }
 
-    public void getStudents() {
-        this.db.execute("SELECT * from utilizatori where");
+    public void setSubjects(List<Subject> subjects) {
+        this.subjects = subjects;
+    }
+
+
+
+    @Override
+    public String toString() {
+        return "Professor{" +
+                "CNP='" + CNP + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", secondName='" + secondName + '\'' +
+                ", address='" + address + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
+                ", iban='" + iban + '\'' +
+                ", contractNumber=" + contractNumber +
+                ", password='" + password + '\'' +
+                ", userType='" + userType + '\'' +
+                ", maxHour=" + maxHour +
+                ", minHour=" + minHour +
+                ", department='" + department +
+
+                '}';
     }
 
     public int getMaxHour() {
