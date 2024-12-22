@@ -41,9 +41,9 @@ public class Student extends User{
 
     public String getAllGrades() {
         return "SELECT m.nume AS subject_name, ap.tip_activitate AS activity_type, na.nota AS grade FROM materii m " +
-        "JOIN activitati_profesori ap ON m.id = ap.id_materie " +
-        "LEFT JOIN note_activitati na ON ap.id_activitate = na.id_activitate " +
-       " WHERE na.CNP_student = '" + this.CNP + "';";
+                "JOIN activitati_profesori ap ON m.id = ap.id_materie " +
+                "LEFT JOIN note_activitati na ON ap.id_activitate = na.id_activitate " +
+                " WHERE na.CNP_student = '" + this.CNP + "';";
 
     }
 

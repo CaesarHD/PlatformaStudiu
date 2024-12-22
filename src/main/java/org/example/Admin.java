@@ -8,7 +8,7 @@ public class Admin extends User
     public Admin() {
     }
 
-    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
+    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
     }
 
