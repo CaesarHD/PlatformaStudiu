@@ -17,7 +17,7 @@ public class CezarMain {
 //        System.out.println(professor);
 //        professor.printSubjects();
 
-        ProffesorUI pUi = new ProffesorUI(professor);
+        ProffesorUI pUi = new ProffesorUI(professor, dbController);
         pUi.show();
 
     }

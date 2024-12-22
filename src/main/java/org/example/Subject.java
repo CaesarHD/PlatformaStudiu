@@ -22,6 +22,18 @@ public class Subject {
         return ("select * from materii where id = '" + id + "';" );
     }
 
+    public String changeLabWeight() {
+        return ("UPDATE materii SET pondere_lab = '" + this.labWeight + "' where id = '" + this.id + "';");
+    }
+
+    public String changeClassWeight() {
+        return ("UPDATE materii SET pondere_curs = '" + this.classWeight + "' WHERE id = '" + this.id + "';");
+    }
+
+    public String changeSemWeight() {
+        return ("UPDATE materii SET pondere_seminar = '" + this.semWeight + "' where id = '" + this.id + "';");
+    }
+
     public int getId() {
         return id;
     }

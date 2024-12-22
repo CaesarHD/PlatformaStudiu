@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.List;
 
@@ -16,19 +14,23 @@ public class ProffesorUI extends UI {
     private final JButton meetings = new JButton("Meetings");
     private final JButton allActivities = new JButton("All Activities");
     private final JButton classBook = new JButton("Class Book");
+    private final JButton profile = new JButton("Profile");
+    private final JButton logOut = new JButton("Log Out");
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menu = new JMenu("Menu");
-    private JTable classTable;
-
+    private JTable classTable; // Global classTable object
+    private DBController dbController;
     private JPanel displayPanel;
 
     Professor professor;
 
-    public ProffesorUI(Professor professor) {
+    public ProffesorUI(Professor professor, DBController dbController) {
         initializeUI();
+        this.dbController = dbController;
         this.professor = professor;
         addClassesActionListeners();
         addCurrentDayActionListener();
+        addProfileActionListener();
     }
 
     private void initializeUI() {
@@ -42,13 +44,15 @@ public class ProffesorUI extends UI {
 
     private JPanel createButtonsPanel() {
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(5, 1));
+        buttonsPanel.setLayout(new GridLayout(7, 1));
         buttonsPanel.setBackground(Color.LIGHT_GRAY);
         buttonsPanel.add(classes);
         buttonsPanel.add(currentDay);
         buttonsPanel.add(meetings);
         buttonsPanel.add(allActivities);
         buttonsPanel.add(classBook);
+        buttonsPanel.add(profile);
+        buttonsPanel.add(logOut);
         return buttonsPanel;
     }
 
@@ -60,7 +64,25 @@ public class ProffesorUI extends UI {
         currentDay.addActionListener(e -> clearPanel());
     }
 
-    private void clearPanel () {
+    public void addProfileActionListener() {
+        profile.addActionListener(e -> displayData());
+    }
+
+    public void displayData () {
+        displayPanel.removeAll();
+
+        JLabel numeLabel = new JLabel("Nume: " + professor.firstName);
+        JLabel emailLabel = new JLabel("Email: " + professor.email);
+
+        // Adăugăm JLabel-urile pe JPanel
+        displayPanel.add(numeLabel);
+        displayPanel.add(emailLabel);
+
+        displayPanel.revalidate();
+        displayPanel.repaint();
+    }
+
+    private void clearPanel() {
         displayPanel.removeAll();
         displayPanel.revalidate();
         displayPanel.repaint();
@@ -70,7 +92,6 @@ public class ProffesorUI extends UI {
         // Clear the existing content in the displayPanel
         displayPanel.removeAll();
 
-        // Create the table with the professor's subjects and add it to the displayPanel
         createTable(professor.getSubjects());
 
         // Revalidate and repaint to make sure the table is displayed properly
@@ -78,11 +99,27 @@ public class ProffesorUI extends UI {
         displayPanel.repaint();
     }
 
-
     public void createTable(List<Subject> subjects) {
         String[] columnNames = {"Name", "Lab Weight", "Sem Weight", "Class Weight"};
         Object[][] data = convertSubjectsToData(subjects);
-        JScrollPane scrollPane = createTableScrollPane(data, columnNames);
+
+        // Initialize the global classTable here
+        classTable = new JTable(new DefaultTableModel(data, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column != 0;
+            }
+        });
+
+        addTableEditListener();
+
+        JScrollPane scrollPane = new JScrollPane(classTable);
+
+        // Adjust table appearance
+        classTable.setFont(new Font("Arial", Font.PLAIN, 20));
+        classTable.setRowHeight(40);
+        JTableHeader tableHeader = classTable.getTableHeader();
+        tableHeader.setFont(new Font("Arial", Font.BOLD, 30));
 
         displayPanel.setLayout(new BorderLayout());
         displayPanel.add(scrollPane, BorderLayout.CENTER);
@@ -100,78 +137,51 @@ public class ProffesorUI extends UI {
         return data;
     }
 
-    private JScrollPane createTableScrollPane(Object[][] data, String[] columnNames) {
-        JTable table = createTable(data, columnNames);
-        adjustColumnWidths(table);
-        return new JScrollPane(table);
-    }
-
-    private JTable createTable(Object[][] data, String[] columnNames) {
-        JTable table = new JTable(new DefaultTableModel(data, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column != 0;
-            }
-        });
-
-        // Set font for the table and header
-        Font tableFont = new Font("Arial", Font.PLAIN, 20);
-        table.setFont(tableFont);
-
-        // Set row height to make cells bigger
-        table.setRowHeight(40); // Adjust this value to increase or decrease the cell height
-
-        JTableHeader tableHeader = table.getTableHeader();
-        tableHeader.setFont(new Font("Arial", Font.BOLD, 30));
-
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        table.setFillsViewportHeight(true); // Ensure the table fills the available height
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Single row selection
-
-        return table;
-    }
-
-    private void adjustColumnWidths(JTable table) {
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            TableColumn column = table.getColumnModel().getColumn(i);
-            column.setPreferredWidth(getPreferredWidth(table, i));
-        }
-    }
-
-    private int getPreferredWidth(JTable table, int columnIndex) {
-        int width = 0;
-        for (int row = 0; row < table.getRowCount(); row++) {
-            TableCellRenderer renderer = table.getCellRenderer(row, columnIndex);
-            Component comp = table.prepareRenderer(renderer, row, columnIndex);
-            width = Math.max(comp.getPreferredSize().width, width);
-        }
-        return width + 10;
-    }
-
-    public static void addTableEditListener(JTable table) {
-        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+    public void addTableEditListener() {
+        DefaultTableModel tableModel = (DefaultTableModel) classTable.getModel();
 
         tableModel.addTableModelListener(e -> {
             if (e.getType() == TableModelEvent.UPDATE) {
                 int row = e.getFirstRow();
                 int column = e.getColumn();
 
-                // Obține valoarea nouă a celulei
+                // Get the new value of the cell
                 Object newValue = tableModel.getValueAt(row, column);
+                Object id = tableModel.getValueAt(row, 0);
+
+                int value;
 
                 try {
-                    // Încercăm să converim valoarea la int
-                    int value = Integer.parseInt(newValue.toString());
+                    // Try to convert the value to an int
+                    value = Integer.parseInt(newValue.toString());
                 } catch (NumberFormatException ex) {
-                    throw new IllegalArgumentException("Valoarea introdusă nu este un număr întreg valid.");
+                    throw new IllegalArgumentException("Invalid input. Please enter a valid integer.");
                 }
 
-                // Aici poți adăuga logica ta pentru a reacționa la modificarea celulei
-                // De exemplu, salvezi schimbarea într-o bază de date sau într-o variabilă
-
-
+                // Update the corresponding Subject object
+                Subject subject = null;
+                for (Subject s : professor.subjects) {
+                    if (id.equals(s.getName())) { // Assuming Name is unique and used as an identifier
+                        subject = s;
+                        break;
+                    }
+                }
+                assert subject != null;
+                switch (column) {
+                    case 1:
+                        subject.setLabWeight(value);
+                        dbController.changeLabWeight(subject);
+                        break;
+                    case 2:
+                        subject.setSemWeight(value);
+                        dbController.changeSemWeight(subject);
+                        break;
+                    case 3:
+                        subject.setClassWeight(value);
+                        dbController.changeClassWeight(subject);
+                        break;
+                }
             }
         });
-
     }
 }
