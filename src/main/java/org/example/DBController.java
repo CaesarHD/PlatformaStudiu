@@ -28,6 +28,7 @@ public class DBController {
             user = switch (userType) {
                 case "profesor" -> new Professor();
                 case "administrator" -> new Admin();
+                case "student" -> new Student();
                 default -> throw new IllegalArgumentException("Unknown user type: " + userType);
             };
 
@@ -126,6 +127,7 @@ public class DBController {
     public void changeSemWeight(Subject subject) {
         db.execute(subject.changeSemWeight());
     }
+
 
 //    public void getStudents() {
 //        this.db.execute("SELECT * from utilizatori where");
