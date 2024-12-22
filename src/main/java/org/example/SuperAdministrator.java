@@ -23,14 +23,14 @@ public class SuperAdministrator extends Admin
 
     }
 
-    public String searchUser(String name) throws SQLException
+    public String searchUser(String name)
     {
 
         return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
 
     }
 
-    public String filterUsers(String userType) throws SQLException
+    public String filterUsers(String userType)
     {
         return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
     }
@@ -40,7 +40,7 @@ public class SuperAdministrator extends Admin
         return "INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('" + profCNP + "', " + id + ");";
     }
 
-    public String searchCourseByName(String materie) throws SQLException
+    public String searchCourseByName(String materie)
     {
         return "SELECT m.id, m.nume, u.nume AS nume_profesor, u.prenume AS prenume_profesor " +
                 "FROM materii m " + "JOIN profesori_materii pm ON m.id = pm.id_materie " +
@@ -48,7 +48,7 @@ public class SuperAdministrator extends Admin
                 "WHERE m.nume LIKE '%" + materie + "%';";
     }
 
-    public String listStudents(int id) throws  SQLException
+    public String listStudents(int id)
     {
         return "SELECT u.nume, u.prenume " + "FROM studenti_grupuri_studenti sgs " +
                 "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
