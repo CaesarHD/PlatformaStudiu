@@ -58,4 +58,8 @@ public class Admin extends User
                         "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
     }
 
+    // ce mi place sa lucrez la proiect
+    //ce fain e
+    // sper sa nu terminam niciodata pt ca mi place prea mult!
+
 }
