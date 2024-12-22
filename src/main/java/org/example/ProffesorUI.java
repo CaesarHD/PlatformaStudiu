@@ -5,6 +5,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProffesorUI extends UI {
@@ -16,9 +18,9 @@ public class ProffesorUI extends UI {
     private final JButton classBook = new JButton("Class Book");
     private final JButton profile = new JButton("Profile");
     private final JButton logOut = new JButton("Log Out");
-    private JMenuBar menuBar = new JMenuBar();
-    private JMenu menu = new JMenu("Menu");
-    private JTable classTable; // Global classTable object
+    private final List<JButton> classButtons = new ArrayList<>();
+    private JTable classTable;
+    private JTable gradesTable;
     private DBController dbController;
     private JPanel displayPanel;
 
@@ -31,6 +33,7 @@ public class ProffesorUI extends UI {
         addClassesActionListeners();
         addCurrentDayActionListener();
         addProfileActionListener();
+        addClassBookActionListener();
     }
 
     private void initializeUI() {
@@ -65,22 +68,127 @@ public class ProffesorUI extends UI {
     }
 
     public void addProfileActionListener() {
-        profile.addActionListener(e -> displayData());
+        profile.addActionListener(e -> displayUserData());
     }
 
-    public void displayData () {
+    public void addClassBookActionListener() {classBook.addActionListener(e -> {
+        try {
+            displayClassButtons();
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+    });}
+
+    public void displayClassButtons() throws SQLException {
         displayPanel.removeAll();
+        displayPanel.setLayout(new FlowLayout());
 
-        JLabel numeLabel = new JLabel("Nume: " + professor.firstName);
-        JLabel emailLabel = new JLabel("Email: " + professor.email);
 
-        // Adăugăm JLabel-urile pe JPanel
-        displayPanel.add(numeLabel);
-        displayPanel.add(emailLabel);
+        for(ProfessorActivity professorActivity : professor.getProfessorActivities()){
+            JButton button = new JButton(professorActivity.getClassName() + " - " + professorActivity.getType());
+            displayPanel.add(button);
+            classButtons.add(button);
+            createActivityActionListener(button, professorActivity);
+        }
 
         displayPanel.revalidate();
         displayPanel.repaint();
     }
+
+
+    public void createActivityActionListener(JButton button, ProfessorActivity professorActivity) {
+        button.addActionListener(e -> displayClassBook(professorActivity));
+    }
+
+    public void displayClassBook(ProfessorActivity professorActivity) {
+        displayPanel.removeAll();
+
+        String[] columnNames = {"FirstName", "SecondName", "CNP", "Grade"};
+        Object[][] data = convertStudentsToData(professorActivity);
+
+
+        // Initialize the global classTable here
+        gradesTable = new JTable(new DefaultTableModel(data, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 3;
+            }
+        });
+
+
+        JScrollPane scrollPane = new JScrollPane(gradesTable);
+        scrollPane.setPreferredSize(new Dimension(800, 600));
+
+        // Adjust table appearance
+        gradesTable.setFont(new Font("Arial", Font.PLAIN, 20));
+        gradesTable.setRowHeight(40);
+        JTableHeader tableHeader = gradesTable.getTableHeader();
+        tableHeader.setFont(new Font("Arial", Font.BOLD, 30));
+
+        displayPanel.setLayout(new BorderLayout());
+        displayPanel.add(scrollPane, BorderLayout.CENTER);
+        displayPanel.revalidate();
+        displayPanel.repaint();
+    }
+
+    private Object[][] convertStudentsToData (ProfessorActivity professorActivity) {
+        Object[][] data = new Object[professorActivity.getStudents().size()][4];
+        for (int i = 0; i < professorActivity.getStudents().size(); i++) {
+            Student student = professorActivity.getStudents().get(i);
+            data[i][0] = student.getFirstName();
+            data[i][1] = student.getSecondName();
+            data[i][2] = student.getCNP();
+            data[i][3] = professorActivity.getGrades().get(student);
+        }
+        return data;
+    }
+
+    public void displayUserData() {
+        displayPanel.removeAll();
+
+        // Set layout to center the components
+        displayPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = GridBagConstraints.RELATIVE; // Position components vertically
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.fill = GridBagConstraints.NONE;
+
+        // Create JLabel components with larger font
+        JLabel firstNameLabel = new JLabel("Prenume: " + professor.firstName);
+        JLabel secondNameLabel = new JLabel("Nume: " + professor.secondName);
+        JLabel CNPLabel = new JLabel("CNP: " + professor.CNP);
+        JLabel emailLabel = new JLabel("Email: " + professor.email);
+        JLabel addressLabel = new JLabel("Adresa: " + professor.address);
+        JLabel phoneNumberLabel = new JLabel("Numar de telefon: " + professor.phoneNumber);
+        JLabel IBANLabel = new JLabel("Iban: " + professor.iban);
+        JLabel contractNumberLabel = new JLabel("Numar de contract: " + professor.contractNumber);
+
+        Font largeFont = new Font("Arial", Font.BOLD, 35); // Define larger font
+        firstNameLabel.setFont(largeFont);
+        secondNameLabel.setFont(largeFont);
+        CNPLabel.setFont(largeFont);
+        emailLabel.setFont(largeFont);
+        addressLabel.setFont(largeFont);
+        phoneNumberLabel.setFont(largeFont);
+        IBANLabel.setFont(largeFont);
+        contractNumberLabel.setFont(largeFont);
+
+        // Add components to the panel with constraints
+        displayPanel.add(firstNameLabel, constraints);
+        displayPanel.add(secondNameLabel, constraints);
+        displayPanel.add(CNPLabel, constraints);
+        displayPanel.add(emailLabel, constraints);
+        displayPanel.add(addressLabel, constraints);
+        displayPanel.add(phoneNumberLabel, constraints);
+        displayPanel.add(IBANLabel, constraints);
+        displayPanel.add(contractNumberLabel, constraints);
+        // Revalidate and repaint panel to reflect changes
+        displayPanel.revalidate();
+        displayPanel.repaint();
+    }
+
+
 
     private void clearPanel() {
         displayPanel.removeAll();
@@ -111,7 +219,7 @@ public class ProffesorUI extends UI {
             }
         });
 
-        addTableEditListener();
+        addClassTableEditListener();
 
         JScrollPane scrollPane = new JScrollPane(classTable);
 
@@ -137,7 +245,7 @@ public class ProffesorUI extends UI {
         return data;
     }
 
-    public void addTableEditListener() {
+    public void addClassTableEditListener() {
         DefaultTableModel tableModel = (DefaultTableModel) classTable.getModel();
 
         tableModel.addTableModelListener(e -> {
@@ -160,7 +268,7 @@ public class ProffesorUI extends UI {
 
                 // Update the corresponding Subject object
                 Subject subject = null;
-                for (Subject s : professor.subjects) {
+                for (Subject s : professor.getSubjects()) {
                     if (id.equals(s.getName())) { // Assuming Name is unique and used as an identifier
                         subject = s;
                         break;

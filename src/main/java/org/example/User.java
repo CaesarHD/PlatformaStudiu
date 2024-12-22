@@ -42,8 +42,8 @@ public abstract class User {
         return ("select * from utilizatori where CNP = '" + CNP + "' and parola = '" + password + "';");
     }
 
-    public static void findUser(String CNP) {
-//        db.execute("SELECT * from utilizatori where CNP like '" + CNP + "';");
+    public static String findUser(String CNP) {
+        return ("select * from utilizatori where CNP = '" + CNP + "';");
     }
 
 
