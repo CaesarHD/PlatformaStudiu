@@ -26,7 +26,7 @@ public class DBController {
 
             String userType = rs.getString("tip_utilizator");
             user = switch (userType) {
-                case "profesor" -> new Proffesor();
+                case "profesor" -> new Professor();
                 case "administrator" -> new Admin();
                 case "student" -> new Student();
                 default -> throw new IllegalArgumentException("Unknown user type: " + userType);
@@ -34,8 +34,8 @@ public class DBController {
 
             populateUserFields(user, rs);
 
-            if(user instanceof Proffesor proffesor) {
-                getProffesorDetails(proffesor);
+            if(user instanceof Professor professor) {
+                getProffesorDetails(professor);
             }
         }
 
@@ -57,28 +57,76 @@ public class DBController {
     }
 
 
-    public void getProffesorDetails(Proffesor proffesor) throws SQLException {
+    public void getProffesorDetails(Professor professor) throws SQLException {
         db.execute("use proiect");
-        String query = "SELECT * FROM detalii_profesori WHERE CNP = '" + proffesor.CNP + "';";
+        String query = "SELECT * FROM detalii_profesori WHERE CNP = '" + professor.CNP + "';";
 
         try (Statement stmt = db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
             if (!rs.next()) {
-                throw new SQLException("No professor details found for CNP: " + proffesor.CNP);
+                throw new SQLException("No professor details found for CNP: " + professor.CNP);
             }
-            populateProffesorFields(proffesor, rs);
+            populateProffesorFields(professor, rs);
         }
     }
 
-    private void populateProffesorFields(Proffesor proffesor, ResultSet rs) throws SQLException {
-        proffesor.setCNP(rs.getString("CNP"));
-        proffesor.setDepartment(rs.getString("departament"));
-        proffesor.setMinHour(rs.getInt("numar_minim_ore_predate"));
-        proffesor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
+    private void populateProffesorFields(Professor professor, ResultSet rs) throws SQLException {
+        professor.setCNP(rs.getString("CNP"));
+        professor.setDepartment(rs.getString("departament"));
+        professor.setMinHour(rs.getInt("numar_minim_ore_predate"));
+        professor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
     }
 
+    public List<Subject> getSubjects(String query) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        List<Subject> subjects = new ArrayList<>();
+        while(rs.next()) {
+            Subject subject = new Subject();
+            subject.setId(rs.getInt("id_materie"));
+            populateSubjectDetails(subject);
+            subjects.add(subject);
+        }
 
+        return subjects;
+    }
+
+    private void populateSubjectDetails(Subject subject) {
+        db.execute("use proiect");
+        String query = "SELECT * FROM materii WHERE id = '" + subject.getId() + "';";
+
+        try (Statement stmt = db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            if (!rs.next()) {
+                throw new SQLException("No subject details found for id: " + subject.getId());
+            }
+            populateSubjectFields(subject, rs);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void populateSubjectFields(Subject subject, ResultSet rs) throws SQLException {
+        subject.setName(rs.getString("nume"));
+        subject.setClassWeight(rs.getInt("pondere_curs"));
+        subject.setLabWeight(rs.getInt("pondere_lab"));
+        subject.setSemWeight(rs.getInt("pondere_seminar"));
+    }
+
+    public void changeLabWeight(Subject subject) {
+        db.execute(subject.changeLabWeight());
+    }
+
+    public void changeClassWeight(Subject subject) {
+        db.execute(subject.changeClassWeight());
+    }
+
+    public void changeSemWeight(Subject subject) {
+        db.execute(subject.changeSemWeight());
+    }
 
 
 //    public void getStudents() {
