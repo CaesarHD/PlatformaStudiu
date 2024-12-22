@@ -33,7 +33,7 @@ public class Admin extends User
 
     }
 
-    public String filterUsers(String userType) throws SQLException
+    public String filterUser(String userType) throws SQLException
     {
         return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
     }
@@ -57,9 +57,5 @@ public class Admin extends User
                         "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
                         "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
     }
-
-    // ce mi place sa lucrez la proiect
-    //ce fain e
-    // sper sa nu terminam niciodata pt ca mi place prea mult!
 
 }
