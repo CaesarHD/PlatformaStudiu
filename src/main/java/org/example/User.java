@@ -16,7 +16,7 @@ public abstract class User {
 
     }
 
-    public User(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, DataBase db) {
+    public User(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
         this.CNP = CNP;
         this.firstName = firstName;
         this.secondName = secondName;
