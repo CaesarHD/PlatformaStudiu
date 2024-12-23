@@ -12,6 +12,7 @@ public class MainDarius {
 
             Admin admin = new Admin("5050118245033", "Darius", "SefuVost", "str. Dinamo, nr. 1", "0756992299", "popdarius1801@gmail.com", "DariusIban", 6969, "darius", "administrator");
             DBController dbController = new DBController(db);
+            dbController.searchUser(admin.searchUser("Popescu"));
 
 
             SwingUtilities.invokeLater(() -> new AdminUI(admin, dbController));
