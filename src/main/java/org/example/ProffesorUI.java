@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +32,8 @@ public class ProffesorUI extends UI {
     private JTable gradesTable;
     private DBController dbController;
     private JPanel displayPanel;
+    private Calendar calendar;
+    private MeetingsCalendar meetingsCalendar;
 
     Professor professor;
 
@@ -43,6 +46,7 @@ public class ProffesorUI extends UI {
         addProfileActionListener();
         addClassBookActionListener();
         addAllActivitiesActionListener();
+        addMeetingsActionListener();
     }
 
     private void initializeUI() {
@@ -91,6 +95,26 @@ public class ProffesorUI extends UI {
             throw new RuntimeException(ex);
         }
     });}
+
+    public void addMeetingsActionListener () {
+        meetings.addActionListener(e -> displayCalendar());
+    }
+
+    public void displayCalendar() {
+        displayPanel.removeAll();
+        displayPanel.setLayout(new GridLayout(1, 2, 0, 0));
+
+        LocalDate date = LocalDate.now();
+
+        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel);
+        meetingsCalendar = new MeetingsCalendar();
+
+        displayPanel.add(calendar);
+        displayPanel.add(meetingsCalendar);
+
+        displayPanel.revalidate();
+        displayPanel.repaint();
+    }
 
     public void displayClassButtons() throws SQLException {
         displayPanel.removeAll();
