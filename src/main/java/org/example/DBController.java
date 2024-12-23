@@ -133,4 +133,13 @@ public class DBController {
 //        this.db.execute("SELECT * from utilizatori where");
 //    }
 
+
+    public void searchUser(String query) throws SQLException
+    {
+        db.execute("use proiect");
+        db.execute(query);
+
+    }
+
+
 }
