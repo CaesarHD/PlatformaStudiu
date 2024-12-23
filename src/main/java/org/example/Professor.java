@@ -1,22 +1,33 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 public class Professor extends User{
 
-    int maxHour;
-    int minHour;
-    String department;
-    List<Subject> subjects;
+    private int maxHour;
+    private int minHour;
+    private String department;
+    private List<Subject> subjects;
+    private List<ProfessorActivity> professorActivities;
 
     public Professor() {
+        subjects = new ArrayList<>();
+        professorActivities = new ArrayList<>();
     }
 
     public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
+        subjects = new ArrayList<>();
+        professorActivities = new ArrayList<>();
     }
 
-    public String getSubject() {
+    public String selectSubjects() {
         return ("select * from profesori_materii where CNP_profesor = '" + this.CNP + "';");
+    }
+
+    public String selectProfessorActivities() {
+        return ("select * from activitati_profesori where CNP_profesor = '" + this.CNP + "';");
     }
 
     public void printSubjects() {
@@ -77,6 +88,14 @@ public class Professor extends User{
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public List<ProfessorActivity> getProfessorActivities() {
+        return professorActivities;
+    }
+
+    public void setProfessorActivities(List<ProfessorActivity> professorActivities) {
+        this.professorActivities = professorActivities;
     }
 }
 

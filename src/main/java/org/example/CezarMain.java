@@ -1,6 +1,5 @@
 package org.example;
 
-import java.util.List;
 import java.sql.SQLException;
 
 public class CezarMain {
@@ -11,11 +10,8 @@ public class CezarMain {
         DBController dbController = new DBController(db);
 
 
-        User user =  dbController.getUser(User.findUser("8400244911342", "Aci6MrX8LW"));
-        Professor professor = (Professor) user;
-        professor.setSubjects(dbController.getSubjects(professor.getSubject()));
-//        System.out.println(professor);
-//        professor.printSubjects();
+        Professor professor;
+        professor = dbController.initializeProfessor("2174897302000", "WZuxthqdob");
 
         ProffesorUI pUi = new ProffesorUI(professor, dbController);
         pUi.show();
