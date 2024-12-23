@@ -5,12 +5,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DBController {
     DataBase db;
 
     public DBController(DataBase db) {
         this.db = db;
+    }
+
+    public Professor initializeProfessor(String CNP, String password) throws SQLException {
+        User user = getUser(User.findUser(CNP, password));
+        Professor professor = (Professor) user;
+        getSubjectsFromDB(professor);
+        getProfessorActivityFromDB(professor);
+        return professor;
     }
 
     public User getUser(String query) throws SQLException {
@@ -78,10 +87,10 @@ public class DBController {
         professor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
     }
 
-    public List<Subject> getSubjects(String query) throws SQLException {
+    public void getSubjectsFromDB(Professor professor) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
-        ResultSet rs = stmt.executeQuery(query);
+        ResultSet rs = stmt.executeQuery(professor.selectSubjects());
         List<Subject> subjects = new ArrayList<>();
         while(rs.next()) {
             Subject subject = new Subject();
@@ -89,8 +98,28 @@ public class DBController {
             populateSubjectDetails(subject);
             subjects.add(subject);
         }
+        professor.setSubjects(subjects);
+    }
 
-        return subjects;
+    public void getProfessorActivityFromDB(Professor professor) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(professor.selectProfessorActivities());
+        while(rs.next()) {
+            ProfessorActivity professorActivity;
+            professorActivity = new ProfessorActivity();
+
+            professorActivity.setId(rs.getInt("id_activitate"));
+            professorActivity.setType(rs.getString("tip_activitate"));
+            professorActivity.setStartDate(rs.getDate("data_inceput"));
+            professorActivity.setEndDate(rs.getDate("data_final"));
+            professorActivity.setMaxNb(rs.getInt("nr_max_participanti"));
+            professorActivity.setDescription(rs.getString("descriere"));
+            getProfessorActivityClassId(professorActivity);
+            getProfessorActivityClassName(professorActivity);
+            getProfessorActivityStudents(professorActivity);
+            professor.getProfessorActivities().add(professorActivity);
+        }
     }
 
     private void populateSubjectDetails(Subject subject) {
@@ -128,6 +157,48 @@ public class DBController {
         db.execute(subject.changeSemWeight());
     }
 
+    public void getProfessorActivityClassId(ProfessorActivity professorActivity) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(professorActivity.selectClassId());
+        if (rs.next()) { // Verifică dacă există o înregistrare
+            professorActivity.setClassId(rs.getInt("id"));
+        } else {
+            System.out.println("Nu există înregistrări pentru id-ul specificat.");
+            professorActivity.setClassId(-1); // Sau o altă valoare implicită
+        }
+    }
+
+    public void getProfessorActivityClassName(ProfessorActivity professorActivity) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(professorActivity.selectClassName());
+        if (rs.next()) { // Verifică dacă există o înregistrare
+            professorActivity.setClassName(rs.getString("nume"));
+        } else {
+            System.out.println("Nu există înregistrări pentru id-ul specificat.");
+            professorActivity.setClassId(-1); // Sau o altă valoare implicită
+        }
+    }
+
+    public void getProfessorActivityStudents (ProfessorActivity professorActivity) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(professorActivity.selectStudentsandGrades());
+        while(rs.next()) {
+            Student student = new Student();
+            student.setCNP(rs.getString("CNP"));
+            student.setFirstName(rs.getString("prenume"));
+            student.setSecondName(rs.getString("nume"));
+            int grade = rs.getInt("nota");
+            professorActivity.getGrades().put(student, grade);
+            professorActivity.getStudents().add(student);
+        }
+    }
+
+    public void changeGrades(ProfessorActivity professorActivity, Student student) {
+        db.execute(professorActivity.changeGrade(student));
+    }
 
 //    public void getStudents() {
 //        this.db.execute("SELECT * from utilizatori where");

@@ -1,11 +1,15 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Subject {
     private int id;
     private String name;
     private int labWeight;
     private int semWeight;
     private int classWeight;
+
 
     public Subject() {
     }
@@ -18,8 +22,13 @@ public class Subject {
         this.classWeight = classWeight;
     }
 
+
     public static String getSubject(int id) {
         return ("select * from materii where id = '" + id + "';" );
+    }
+
+    public String getActivities() {
+        return "select * from activitati_profesori where id_materie = '" + this.id + "';";
     }
 
     public String changeLabWeight() {
