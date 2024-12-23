@@ -8,7 +8,8 @@ public class Admin extends User
     public Admin() {
     }
 
-    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
+    public Admin(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType)
+    {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
     }
 
@@ -56,5 +57,9 @@ public class Admin extends User
                         "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
                         "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
     }
+
+    // ce mi place sa lucrez la proiect
+    //ce fain e
+    // sper sa nu terminam niciodata pt ca mi place prea mult!
 
 }
