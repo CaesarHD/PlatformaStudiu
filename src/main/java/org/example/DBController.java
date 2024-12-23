@@ -111,8 +111,8 @@ public class DBController {
 
             professorActivity.setId(rs.getInt("id_activitate"));
             professorActivity.setType(rs.getString("tip_activitate"));
-            professorActivity.setStartDate(rs.getDate("data_inceput"));
-            professorActivity.setEndDate(rs.getDate("data_final"));
+            professorActivity.setStartDate(rs.getTimestamp("data_inceput"));
+            professorActivity.setEndDate(rs.getTimestamp("data_final"));
             professorActivity.setMaxNb(rs.getInt("nr_max_participanti"));
             professorActivity.setDescription(rs.getString("descriere"));
             getProfessorActivityClassId(professorActivity);

@@ -5,17 +5,19 @@ import jdk.jfr.Event;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class Calendar extends JPanel{
     public static final long serialVersionUID = 1L;
 
-    public Calendar (int year, int month, LocalDate selectedDay, JPanel mainPanel) {
+    public Calendar (int year, int month, LocalDate selectedDay, JPanel mainPanel, List<ProfessorActivity> meetings) {
         setLayout(new BorderLayout(30, 30));
         setBorder(BorderFactory.createEmptyBorder(40, 20, 30, 20));
         setBackground(Color.white);
@@ -36,12 +38,12 @@ public class Calendar extends JPanel{
             public void mouseClicked(MouseEvent e) {
                 mainPanel.removeAll();
                 if(month!=12) {
-                    mainPanel.add(new Calendar(year, month+1, selectedDay, mainPanel));
+                    mainPanel.add(new Calendar(year, month+1, selectedDay, mainPanel, meetings));
                 }
                 else{
-                    mainPanel.add(new Calendar(year+1, 1, selectedDay, mainPanel));
+                    mainPanel.add(new Calendar(year+1, 1, selectedDay, mainPanel, meetings));
                 }
-                mainPanel.add(new MeetingsCalendar());
+                mainPanel.add(new MeetingsCalendar(meetings));
                 mainPanel.revalidate();
             }
 
@@ -64,12 +66,12 @@ public class Calendar extends JPanel{
             public void mouseClicked(MouseEvent e) {
                 mainPanel.removeAll();
                 if(month!=1) {
-                    mainPanel.add(new Calendar(year, month-1, selectedDay, mainPanel));
+                    mainPanel.add(new Calendar(year, month-1, selectedDay, mainPanel, meetings));
                 }
                 else{
-                    mainPanel.add(new Calendar(year+1, 12, selectedDay, mainPanel));
+                    mainPanel.add(new Calendar(year+1, 12, selectedDay, mainPanel, meetings));
                 }
-                mainPanel.add(new MeetingsCalendar());
+                mainPanel.add(new MeetingsCalendar(meetings));
                 mainPanel.revalidate();
             }
             @Override
@@ -140,8 +142,8 @@ public class Calendar extends JPanel{
                 public void mouseClicked(MouseEvent e) {
                     mainPanel.removeAll();
                     LocalDate selected = LocalDate.of(year, month, day);
-                    mainPanel.add(new Calendar(year, month, selected, mainPanel));
-                    mainPanel.add(new MeetingsCalendar());
+                    mainPanel.add(new Calendar(year, month, selected, mainPanel, meetings));
+                    mainPanel.add(new MeetingsCalendar(meetings));
                     mainPanel.revalidate();
                 }
 

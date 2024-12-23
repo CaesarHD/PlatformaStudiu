@@ -106,8 +106,8 @@ public class ProffesorUI extends UI {
 
         LocalDate date = LocalDate.now();
 
-        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel);
-        meetingsCalendar = new MeetingsCalendar();
+        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel, professor.getProfessorActivities());
+        meetingsCalendar = new MeetingsCalendar(professor.getProfessorActivities());
 
         displayPanel.add(calendar);
         displayPanel.add(meetingsCalendar);

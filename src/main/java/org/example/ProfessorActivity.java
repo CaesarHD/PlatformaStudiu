@@ -1,11 +1,13 @@
 package org.example;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.*;
 
 public class ProfessorActivity {
     private int id;
-    private Date startDate;
-    private Date endDate;
+    private Timestamp startDate;
+    private Timestamp endDate;
     private String type;
     private int maxNb;
     private String className;
@@ -20,7 +22,7 @@ public class ProfessorActivity {
         grades = new HashMap<>();
     }
 
-    public ProfessorActivity(int id, Date startDate, Date endDate, String type, int maxNb, String description) {
+    public ProfessorActivity(int id, Timestamp startDate, Timestamp endDate, String type, int maxNb, String description) {
         this.id = id;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -33,6 +35,7 @@ public class ProfessorActivity {
 
     public String changeGrade(Student student) {
         return ("UPDATE note_activitati set nota = '" + this.getGrades().get(student) + "' where CNP_student = '" + student.getCNP() + "';");
+
     }
 
     public String selectStudentsandGrades() {
@@ -67,7 +70,7 @@ public class ProfessorActivity {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(Timestamp startDate) {
         this.startDate = startDate;
     }
 
@@ -75,7 +78,7 @@ public class ProfessorActivity {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(Timestamp endDate) {
         this.endDate = endDate;
     }
 
