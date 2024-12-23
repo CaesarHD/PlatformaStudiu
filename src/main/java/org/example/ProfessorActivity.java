@@ -31,7 +31,9 @@ public class ProfessorActivity {
         grades = new HashMap<>();
     }
 
-
+    public String changeGrade(Student student) {
+        return ("UPDATE note_activitati set nota = '" + this.getGrades().get(student) + "' where CNP_student = '" + student.getCNP() + "';");
+    }
 
     public String selectStudentsandGrades() {
         return ("select distinct nume, prenume, CNP, nota from note_activitati join proiect.utilizatori on note_activitati.CNP_student = utilizatori.CNP where id_activitate = '" + this.id + "';");

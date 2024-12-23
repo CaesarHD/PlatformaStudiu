@@ -196,6 +196,10 @@ public class DBController {
         }
     }
 
+    public void changeGrades(ProfessorActivity professorActivity, Student student) {
+        db.execute(professorActivity.changeGrade(student));
+    }
+
 //    public void getStudents() {
 //        this.db.execute("SELECT * from utilizatori where");
 //    }
