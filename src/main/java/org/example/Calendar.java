@@ -5,6 +5,8 @@ import jdk.jfr.Event;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,7 +19,10 @@ import java.util.ArrayList;
 public class Calendar extends JPanel{
     public static final long serialVersionUID = 1L;
 
-    public Calendar (int year, int month, LocalDate selectedDay, JPanel mainPanel, List<ProfessorActivity> meetings) {
+    public Calendar (int year, int month, LocalDateTime selectedDay, JPanel mainPanel, List<ProfessorActivity> meetings) {
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
         setLayout(new BorderLayout(30, 30));
         setBorder(BorderFactory.createEmptyBorder(40, 20, 30, 20));
         setBackground(Color.white);
@@ -40,10 +45,13 @@ public class Calendar extends JPanel{
                 if(month!=12) {
                     mainPanel.add(new Calendar(year, month+1, selectedDay, mainPanel, meetings));
                 }
+                else if(false) {
+                    //TO DO: daca in ziua curenta este vreo intalnire
+                }
                 else{
                     mainPanel.add(new Calendar(year+1, 1, selectedDay, mainPanel, meetings));
                 }
-                mainPanel.add(new MeetingsCalendar(meetings));
+                mainPanel.add(new MeetingsCalendar(meetings, selectedDay));
                 mainPanel.revalidate();
             }
 
@@ -71,7 +79,7 @@ public class Calendar extends JPanel{
                 else{
                     mainPanel.add(new Calendar(year+1, 12, selectedDay, mainPanel, meetings));
                 }
-                mainPanel.add(new MeetingsCalendar(meetings));
+                mainPanel.add(new MeetingsCalendar(meetings, selectedDay));
                 mainPanel.revalidate();
             }
             @Override
@@ -141,9 +149,11 @@ public class Calendar extends JPanel{
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     mainPanel.removeAll();
-                    LocalDate selected = LocalDate.of(year, month, day);
+
+                    //TODO: figure out how to get time parameters :D
+                    LocalDateTime selected = LocalDateTime.of(year, month, day, 0, 0,0 );
                     mainPanel.add(new Calendar(year, month, selected, mainPanel, meetings));
-                    mainPanel.add(new MeetingsCalendar(meetings));
+                    mainPanel.add(new MeetingsCalendar(meetings, selectedDay));
                     mainPanel.revalidate();
                 }
 

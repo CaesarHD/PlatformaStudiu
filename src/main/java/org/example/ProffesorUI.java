@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -104,10 +105,10 @@ public class ProffesorUI extends UI {
         displayPanel.removeAll();
         displayPanel.setLayout(new GridLayout(1, 2, 0, 0));
 
-        LocalDate date = LocalDate.now();
+        LocalDateTime date = LocalDateTime.now();
 
         calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel, professor.getProfessorActivities());
-        meetingsCalendar = new MeetingsCalendar(professor.getProfessorActivities());
+        meetingsCalendar = new MeetingsCalendar(professor.getProfessorActivities(), date);
 
         displayPanel.add(calendar);
         displayPanel.add(meetingsCalendar);

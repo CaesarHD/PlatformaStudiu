@@ -1,11 +1,11 @@
 package org.example;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class DBController {
     DataBase db;
@@ -111,8 +111,15 @@ public class DBController {
 
             professorActivity.setId(rs.getInt("id_activitate"));
             professorActivity.setType(rs.getString("tip_activitate"));
-            professorActivity.setStartDate(rs.getTimestamp("data_inceput"));
-            professorActivity.setEndDate(rs.getTimestamp("data_final"));
+
+            Instant startDate = Instant.ofEpochMilli(rs.getTimestamp("data_inceput").getTime());
+            LocalDateTime startLocalDate = LocalDateTime.ofInstant(startDate, ZoneOffset.UTC);
+            professorActivity.setStartLocalDate(startLocalDate);
+
+            Instant endDate = Instant.ofEpochMilli(rs.getTimestamp("data_final").getTime());
+            LocalDateTime endLocalDate = LocalDateTime.ofInstant(endDate, ZoneOffset.UTC);
+            professorActivity.setEndLocalDate(endLocalDate);
+
             professorActivity.setMaxNb(rs.getInt("nr_max_participanti"));
             professorActivity.setDescription(rs.getString("descriere"));
             getProfessorActivityClassId(professorActivity);

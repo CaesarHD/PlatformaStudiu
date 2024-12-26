@@ -1,31 +1,36 @@
 package org.example;
 
-import java.sql.Time;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ProfessorActivity {
     private int id;
-    private Timestamp startDate;
-    private Timestamp endDate;
+    private LocalDateTime dateStartTime;
+
+    private LocalDateTime dateEndTime;
+
     private String type;
     private int maxNb;
     private String className;
     private int classId;
     private String description;
-
     private List<Student> students;
-    private Map<Student, Integer> grades;
 
+    private Map<Student, Integer> grades;
     public ProfessorActivity() {
         students = new ArrayList<>();
         grades = new HashMap<>();
     }
 
-    public ProfessorActivity(int id, Timestamp startDate, Timestamp endDate, String type, int maxNb, String description) {
+    public ProfessorActivity(LocalDateTime startLocalDate) {
+        this.dateStartTime = startLocalDate;
+    }
+
+    public ProfessorActivity(int id, LocalDateTime startDate, LocalDateTime endDate, String type, int maxNb, String description) {
         this.id = id;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.dateStartTime = startDate;
+        this.dateEndTime = endDate;
         this.type = type;
         this.maxNb = maxNb;
         this.description = description;
@@ -66,20 +71,8 @@ public class ProfessorActivity {
         this.id = id;
     }
 
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Timestamp startDate) {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Timestamp endDate) {
-        this.endDate = endDate;
+    public LocalDateTime getStartDate() {
+        return dateStartTime;
     }
 
     public String getType() {
@@ -114,6 +107,38 @@ public class ProfessorActivity {
         return className;
     }
 
+    public LocalDateTime getStartLocalDate() {
+        return dateStartTime;
+    }
+
+    public void setStartLocalDate(LocalDateTime startLocalDate) {
+        this.dateStartTime = startLocalDate;
+    }
+
+    public String getStartDateString() {
+        return dateStartTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    }
+
+    public String getStartTimeToString() {
+        return dateStartTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    public void setStartLocalDateToString(String dateTime) {
+        this.dateStartTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    }
+
+    public void setStartLocalTimeToString(String dateTime) {
+        this.dateStartTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    public LocalDateTime getEndLocalDate() {
+        return dateEndTime;
+    }
+
+    public void setEndLocalDate(LocalDateTime dateEndTime) {
+        this.dateEndTime = dateEndTime;
+    }
+
     public int getClassId() {
         return classId;
     }
@@ -142,8 +167,8 @@ public class ProfessorActivity {
     public String toString() {
         return "ProfessorActivity{" +
                 "id=" + id +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
+                ", startDate=" + dateStartTime +
+                ", endDate=" + dateEndTime +
                 ", type='" + type + '\'' +
                 ", maxNb=" + maxNb +
                 ", className='" + className + '\'' +
