@@ -8,21 +8,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DBController {
-    DataBase db;
+    static DataBase db;
 
     public DBController(DataBase db) {
-        this.db = db;
+        DBController.db = db;
     }
 
-    public Professor initializeProfessor(String CNP, String password) throws SQLException {
+    public static void setDbConnection(DataBase newConnection) {
+        db = newConnection;
+    }
+
+    public static void execute(String sql) {
+        db.execute(sql);
+    }
+
+    public static Professor initializeProfessor(String CNP, String password) throws SQLException {
         User user = getUser(User.findUser(CNP, password));
         Professor professor = (Professor) user;
         getSubjectsFromDB(professor);
         getProfessorActivityFromDB(professor);
+        getMeetingsFromDB(professor);
         return professor;
     }
 
-    public User getUser(String query) throws SQLException {
+    public static User getUser(String query) throws SQLException {
         User user = null;
         db.execute("use proiect");
 
@@ -51,7 +60,7 @@ public class DBController {
         return user;
     }
 
-    private void populateUserFields(User user, ResultSet rs) throws SQLException {
+    private static void populateUserFields(User user, ResultSet rs) throws SQLException {
         user.setCNP(rs.getString("CNP"));
         user.setFirstName(rs.getString("prenume"));
         user.setSecondName(rs.getString("nume"));
@@ -66,7 +75,7 @@ public class DBController {
     }
 
 
-    public void getProffesorDetails(Professor professor) throws SQLException {
+    public static void getProffesorDetails(Professor professor) throws SQLException {
         db.execute("use proiect");
         String query = "SELECT * FROM detalii_profesori WHERE CNP = '" + professor.CNP + "';";
 
@@ -80,14 +89,14 @@ public class DBController {
         }
     }
 
-    private void populateProffesorFields(Professor professor, ResultSet rs) throws SQLException {
+    private static void populateProffesorFields(Professor professor, ResultSet rs) throws SQLException {
         professor.setCNP(rs.getString("CNP"));
         professor.setDepartment(rs.getString("departament"));
         professor.setMinHour(rs.getInt("numar_minim_ore_predate"));
         professor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
     }
 
-    public void getSubjectsFromDB(Professor professor) throws SQLException {
+    public static void getSubjectsFromDB(Professor professor) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
         ResultSet rs = stmt.executeQuery(professor.selectSubjects());
@@ -101,35 +110,62 @@ public class DBController {
         professor.setSubjects(subjects);
     }
 
-    public void getProfessorActivityFromDB(Professor professor) throws SQLException {
+    public static void getProfessorActivityFromDB(Professor professor) throws SQLException {
         db.execute("use proiect");
-        Statement stmt = db.getCon().createStatement();
-        ResultSet rs = stmt.executeQuery(professor.selectProfessorActivities());
-        while(rs.next()) {
-            ProfessorActivity professorActivity;
-            professorActivity = new ProfessorActivity();
+        ResultSet rs;
 
-            professorActivity.setId(rs.getInt("id_activitate"));
-            professorActivity.setType(rs.getString("tip_activitate"));
+        try (Statement stmt = db.getCon().createStatement()) {
+            rs = stmt.executeQuery(professor.selectProfessorActivities());
 
-            Instant startDate = Instant.ofEpochMilli(rs.getTimestamp("data_inceput").getTime());
-            LocalDateTime startLocalDate = LocalDateTime.ofInstant(startDate, ZoneOffset.UTC);
-            professorActivity.setStartLocalDate(startLocalDate);
+            while (rs.next()) {
+                ProfessorActivity professorActivity;
+                professorActivity = new ProfessorActivity();
 
-            Instant endDate = Instant.ofEpochMilli(rs.getTimestamp("data_final").getTime());
-            LocalDateTime endLocalDate = LocalDateTime.ofInstant(endDate, ZoneOffset.UTC);
-            professorActivity.setEndLocalDate(endLocalDate);
+                professorActivity.setId(rs.getInt("id_activitate"));
+                professorActivity.setType(rs.getString("tip_activitate"));
 
-            professorActivity.setMaxNb(rs.getInt("nr_max_participanti"));
-            professorActivity.setDescription(rs.getString("descriere"));
-            getProfessorActivityClassId(professorActivity);
-            getProfessorActivityClassName(professorActivity);
-            getProfessorActivityStudents(professorActivity);
-            professor.getProfessorActivities().add(professorActivity);
+                professorActivity.setMaxNb(rs.getInt("nr_max_participanti"));
+                professorActivity.setDescription(rs.getString("descriere"));
+                getProfessorActivityClassId(professorActivity);
+                getProfessorActivityClassName(professorActivity);
+                getProfessorActivityStudents(professorActivity);
+                professor.getProfessorActivities().add(professorActivity);
+            }
         }
     }
 
-    private void populateSubjectDetails(Subject subject) {
+    public static void getMeetingsFromDB(Professor professor) throws SQLException {
+        db.execute("use proiect");
+        ResultSet rs;
+
+        try (Statement stmt = db.getCon().createStatement()) {
+            rs = stmt.executeQuery(professor.selectMeetings());
+
+            while (rs.next()) {
+                Meeting meeting;
+                meeting = new Meeting();
+
+                meeting.setId(rs.getInt("id_activitate"));
+                meeting.setType(rs.getString("tip_activitate"));
+
+                Instant startDate = Instant.ofEpochMilli(rs.getTimestamp("data_inceput").getTime());
+                LocalDateTime startLocalDate = LocalDateTime.ofInstant(startDate, ZoneOffset.UTC);
+                meeting.setStartDate(startLocalDate);
+
+                Instant endDate = Instant.ofEpochMilli(rs.getTimestamp("data_final").getTime());
+                LocalDateTime endLocalDate = LocalDateTime.ofInstant(endDate, ZoneOffset.UTC);
+                meeting.setEndDate(endLocalDate);
+
+                meeting.setMaxNb(rs.getInt("nr_max_participanti"));
+                meeting.setDescription(rs.getString("descriere"));
+                getMeetingClassId(meeting);
+                getMeetingClassName(meeting);
+                professor.getMeetings().add(meeting);
+            }
+        }
+    }
+
+    private static void populateSubjectDetails(Subject subject) {
         db.execute("use proiect");
         String query = "SELECT * FROM materii WHERE id = '" + subject.getId() + "';";
 
@@ -145,7 +181,7 @@ public class DBController {
         }
     }
 
-    private void populateSubjectFields(Subject subject, ResultSet rs) throws SQLException {
+    private static void populateSubjectFields(Subject subject, ResultSet rs) throws SQLException {
         subject.setName(rs.getString("nume"));
         subject.setClassWeight(rs.getInt("pondere_curs"));
         subject.setLabWeight(rs.getInt("pondere_lab"));
@@ -164,11 +200,11 @@ public class DBController {
         db.execute(subject.changeSemWeight());
     }
 
-    public void getProfessorActivityClassId(ProfessorActivity professorActivity) throws SQLException {
+    public static void getProfessorActivityClassId(ProfessorActivity professorActivity) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
         ResultSet rs = stmt.executeQuery(professorActivity.selectClassId());
-        if (rs.next()) { // Verifică dacă există o înregistrare
+        if (rs.next()) {
             professorActivity.setClassId(rs.getInt("id"));
         } else {
             System.out.println("Nu există înregistrări pentru id-ul specificat.");
@@ -176,19 +212,43 @@ public class DBController {
         }
     }
 
-    public void getProfessorActivityClassName(ProfessorActivity professorActivity) throws SQLException {
+    public static void getMeetingClassId(Meeting meeting) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
-        ResultSet rs = stmt.executeQuery(professorActivity.selectClassName());
-        if (rs.next()) { // Verifică dacă există o înregistrare
-            professorActivity.setClassName(rs.getString("nume"));
+        ResultSet rs = stmt.executeQuery(meeting.selectClassId());
+        if (rs.next()) {
+            meeting.setClassId(rs.getInt("id"));
         } else {
             System.out.println("Nu există înregistrări pentru id-ul specificat.");
-            professorActivity.setClassId(-1); // Sau o altă valoare implicită
+            meeting.setClassId(-1); // Sau o altă valoare implicită
         }
     }
 
-    public void getProfessorActivityStudents (ProfessorActivity professorActivity) throws SQLException {
+    public static void getProfessorActivityClassName(ProfessorActivity professorActivity) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(professorActivity.selectClassName());
+        if (rs.next()) {
+            professorActivity.setClassName(rs.getString("nume"));
+        } else {
+            System.out.println("Nu există înregistrări pentru id-ul specificat.");
+            professorActivity.setClassId(-1);
+        }
+    }
+
+    public static void getMeetingClassName(Meeting meeting) throws SQLException {
+        db.execute("use proiect");
+        Statement stmt = db.getCon().createStatement();
+        ResultSet rs = stmt.executeQuery(meeting.selectClassName());
+        if (rs.next()) {
+            meeting.setClassName(rs.getString("nume"));
+        } else {
+            System.out.println("Nu există înregistrări pentru id-ul specificat.");
+            meeting.setClassId(-1);
+        }
+    }
+
+    public static void getProfessorActivityStudents (ProfessorActivity professorActivity) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
         ResultSet rs = stmt.executeQuery(professorActivity.selectStudentsandGrades());
@@ -203,8 +263,18 @@ public class DBController {
         }
     }
 
-    public void changeGrades(ProfessorActivity professorActivity, Student student) {
+    public static void deleteMeeting (Meeting meeting, Professor professor) throws SQLException {
+        db.execute("use proiect");
+        db.execute(meeting.deleteMeeting());
+        professor.getMeetings().remove(meeting);
+    }
+
+    public static void changeGrades(ProfessorActivity professorActivity, Student student) {
         db.execute(professorActivity.changeGrade(student));
+    }
+
+    public static void updateMeeting(Meeting meeting) {
+        db.execute(meeting.updateMeeting());
     }
 
 //    public void getStudents() {

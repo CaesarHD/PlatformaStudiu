@@ -2,11 +2,17 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MeetEditor extends JPanel {
-    public MeetEditor(ProfessorActivity meet) {
+    public MeetEditor(Meeting meet, MeetingCard meetingCard, JPanel parent, Professor professor) {
+
+        int year = meet.getStartDate().getYear();
+        int month = meet.getStartDate().getMonthValue();
 
         JFrame frame = new JFrame("Calendar");
         frame.setSize(700, 350);
@@ -17,7 +23,7 @@ public class MeetEditor extends JPanel {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 20, 20, 20));
         mainPanel.setBackground(Color.white);
 
-        JPanel center = new JPanel(new GridLayout(3, 2, 20, 20));
+        JPanel center = new JPanel(new GridLayout(4, 2, 20, 20));
         center.setBackground(Color.white);
 
         JLabel l1 = new JLabel("Title");
@@ -25,30 +31,67 @@ public class MeetEditor extends JPanel {
         l1.setHorizontalAlignment(JLabel.CENTER);
         center.add(l1);
 
-        JTextField title = new JTextField();
-        title.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        title.setHorizontalAlignment(JLabel.CENTER);
-        center.add(title);
+        List<String> options = new ArrayList<>();
+
+        for (Subject subject : professor.getSubjects()) {
+            options.add(subject.getName());
+        }
+
+        JComboBox<String> titleComboBox = new JComboBox<>(options.toArray(new String[0]));
+        titleComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
+        titleComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
+                return c;
+            }
+        });
+        center.add(titleComboBox);
+
+        options.clear();
 
         JLabel l2 = new JLabel("Type");
         l2.setFont(new Font("Helvectica", Font.PLAIN, 20));
         l2.setHorizontalAlignment(JLabel.CENTER);
         center.add(l2);
 
-        JTextField type = new JTextField();
-        type.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        type.setHorizontalAlignment(JLabel.CENTER);
-        center.add(type);
+        options.add("curs");
+        options.add("laborator");
+        options.add("seminar");
 
-        JLabel l3 = new JLabel("Time");
+        JComboBox<String> typeComboBox = new JComboBox<>(options.toArray(new String[0]));
+        typeComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
+        typeComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
+                return c;
+            }
+        });
+        center.add(typeComboBox);
+
+        JLabel l3 = new JLabel("Start Time");
         l3.setFont(new Font("Helvectica", Font.PLAIN, 20));
         l3.setHorizontalAlignment(JLabel.CENTER);
         center.add(l3);
 
-        JTextField time = new JTextField();
-        time.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        time.setHorizontalAlignment(JLabel.CENTER);
-        center.add(time);
+        JTextField startTime = new JTextField();
+        startTime.setFont(new Font("Helvectica", Font.PLAIN, 20));
+        startTime.setHorizontalAlignment(JLabel.CENTER);
+        center.add(startTime);
+
+        JLabel l4 = new JLabel("End Time");
+        l4.setFont(new Font("Helvectica", Font.PLAIN, 20));
+        l4.setHorizontalAlignment(JLabel.CENTER);
+        center.add(l4);
+
+        JTextField endTime = new JTextField();
+        endTime.setFont(new Font("Helvectica", Font.PLAIN, 20));
+        endTime.setHorizontalAlignment(JLabel.CENTER);
+        center.add(endTime);
+
 
         mainPanel.add(center, BorderLayout.CENTER);
 
@@ -67,30 +110,64 @@ public class MeetEditor extends JPanel {
         save.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         bottom.add(save);
 
-        time.setText(meet.getStartLocalDate().toString());
+        startTime.setText(meet.getStartDate().toLocalTime().toString());
+        endTime.setText(meet.getEndDate().toLocalTime().toString());
 
-        if(meet.getClassName() != null) {
-            title.setText(meet.getClassName());
-            type.setText(meet.getType());
+        if (meet.getClassName() != null) {
+//            save.setEnabled(true);
 
-            save.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if(title.getText().equals("")) {
-                        JOptionPane.showMessageDialog(null, "Title cannot be empty");
-                        return;
-                    }
-                    meet.setClassName(title.getText());
-                    meet.setType(type.getText());
-                    try{
-                        meet.setStartLocalDateToString(time.getText());
+            save.addActionListener(e -> {
 
-                    } catch (Exception exception) {
-                        JOptionPane.showMessageDialog(null, "Check time format");
-                        return;
-                    }
+                meet.setClassName((String)titleComboBox.getSelectedItem());
+
+                try {
+                    LocalDateTime parsedDate = LocalDateTime.parse(meet.getStartDate().toLocalDate() + "T" + startTime.getText(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    meet.setStartDate(parsedDate);
+                } catch (Exception ex) {
+                    System.err.printf("Could not parse Date: %s", ex);
+                    JOptionPane.showMessageDialog(null, "Time format not valid. Expected: hh:mm");
                 }
+                try {
+                    LocalDateTime parsedDate = LocalDateTime.parse(meet.getEndDate().toLocalDate() + "T" + endTime.getText(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    meet.setEndDate(parsedDate);
+                } catch (Exception ex) {
+                    System.err.printf("Could not parse Date: %s", ex);
+                    JOptionPane.showMessageDialog(null, "Time format not valid. Expected: hh:mm");
+                }
+
+                meet.setType((String)typeComboBox.getSelectedItem());
+
+                DBController.updateMeeting(meet);
+
+                SwingUtilities.invokeLater(() -> {
+                    parent.revalidate();
+                    parent.repaint();
+                    meetingCard.getTitle().setText((String) titleComboBox.getSelectedItem());
+                    meetingCard.getType().setText((String) typeComboBox.getSelectedItem());
+                    meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
+                    meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
+                    meetingCard.revalidate();
+                    meetingCard.repaint();
+                    frame.dispose();
+                });
             });
+
+
+            delete.addActionListener(e -> {
+                try {
+                    DBController.deleteMeeting(meet, professor);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                SwingUtilities.invokeLater(() -> {
+                    parent.add(new Calendar(year, month, meet.getStartDate(), parent, professor));
+                    parent.add(new MeetingCard(meet, parent, professor));
+                    parent.revalidate();
+                    frame.dispose();
+                });
+            });
+        } else {
+//            save.setEnabled(false);
         }
 
         mainPanel.add(bottom, BorderLayout.SOUTH);

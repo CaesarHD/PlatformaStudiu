@@ -19,11 +19,9 @@ public class DataBase {
     }
 
     public void execute(String query) {
-        try {
-            Statement st = con.createStatement();
+        try (Statement st = con.createStatement()) {
             st.execute("use proiect");
             st.execute(query);
-            st.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

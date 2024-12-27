@@ -1,15 +1,13 @@
 package org.example;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ProfessorActivity {
     private int id;
-    private LocalDateTime dateStartTime;
-
-    private LocalDateTime dateEndTime;
-
     private String type;
     private int maxNb;
     private String className;
@@ -18,25 +16,22 @@ public class ProfessorActivity {
     private List<Student> students;
 
     private Map<Student, Integer> grades;
+
     public ProfessorActivity() {
         students = new ArrayList<>();
         grades = new HashMap<>();
     }
 
-    public ProfessorActivity(LocalDateTime startLocalDate) {
-        this.dateStartTime = startLocalDate;
-    }
-
     public ProfessorActivity(int id, LocalDateTime startDate, LocalDateTime endDate, String type, int maxNb, String description) {
         this.id = id;
-        this.dateStartTime = startDate;
-        this.dateEndTime = endDate;
         this.type = type;
         this.maxNb = maxNb;
         this.description = description;
         students = new ArrayList<>();
         grades = new HashMap<>();
     }
+
+
 
     public String changeGrade(Student student) {
         return ("UPDATE note_activitati set nota = '" + this.getGrades().get(student) + "' where CNP_student = '" + student.getCNP() + "';");
@@ -47,7 +42,7 @@ public class ProfessorActivity {
         return ("select distinct nume, prenume, CNP, nota from note_activitati join proiect.utilizatori on note_activitati.CNP_student = utilizatori.CNP where id_activitate = '" + this.id + "';");
     }
 
-    public String selectClassName () {
+    public String selectClassName() {
         return ("SELECT materii.nume\n" +
                 "FROM materii\n" +
                 "JOIN activitati_profesori\n" +
@@ -55,7 +50,7 @@ public class ProfessorActivity {
                 "WHERE activitati_profesori.id_activitate = '" + this.id + "';");
     }
 
-    public String selectClassId () {
+    public String selectClassId() {
         return ("SELECT materii.id\n" +
                 "FROM materii\n" +
                 "JOIN activitati_profesori\n" +
@@ -69,10 +64,6 @@ public class ProfessorActivity {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public LocalDateTime getStartDate() {
-        return dateStartTime;
     }
 
     public String getType() {
@@ -107,38 +98,6 @@ public class ProfessorActivity {
         return className;
     }
 
-    public LocalDateTime getStartLocalDate() {
-        return dateStartTime;
-    }
-
-    public void setStartLocalDate(LocalDateTime startLocalDate) {
-        this.dateStartTime = startLocalDate;
-    }
-
-    public String getStartDateString() {
-        return dateStartTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-    }
-
-    public String getStartTimeToString() {
-        return dateStartTime.format(DateTimeFormatter.ofPattern("HH:mm"));
-    }
-
-    public void setStartLocalDateToString(String dateTime) {
-        this.dateStartTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-    }
-
-    public void setStartLocalTimeToString(String dateTime) {
-        this.dateStartTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("HH:mm"));
-    }
-
-    public LocalDateTime getEndLocalDate() {
-        return dateEndTime;
-    }
-
-    public void setEndLocalDate(LocalDateTime dateEndTime) {
-        this.dateEndTime = dateEndTime;
-    }
-
     public int getClassId() {
         return classId;
     }
@@ -167,8 +126,6 @@ public class ProfessorActivity {
     public String toString() {
         return "ProfessorActivity{" +
                 "id=" + id +
-                ", startDate=" + dateStartTime +
-                ", endDate=" + dateEndTime +
                 ", type='" + type + '\'' +
                 ", maxNb=" + maxNb +
                 ", className='" + className + '\'' +

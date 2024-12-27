@@ -11,14 +11,10 @@ import java.util.List;
 
 public class StudentUI {
 
-    private JFrame jFrame;
-    private JPanel mainPanel; // Panel to dynamically update content
-    private JMenuBar menuBar;
-    private JButton subjectsButton;
-    private JButton studentsGroupsButton;
-    private JButton gradesButton;
-    private Student student;
-    private DBController dbController;
+    private final JFrame jFrame;
+    private final JPanel mainPanel; // Panel to dynamically update content
+    private final Student student;
+    private final DBController dbController;
 
     public StudentUI(Student student, DBController dbController) {
         this.student = student;
@@ -31,14 +27,14 @@ public class StudentUI {
         jFrame.setLayout(new BorderLayout());
 
         // Initialize Menu Bar
-        menuBar = new JMenuBar();
+        JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Menu");
         menuBar.add(menu);
 
         // Initialize Buttons
-        subjectsButton = new JButton("My subjects");
-        studentsGroupsButton = new JButton("Students groups");
-        gradesButton = new JButton("Grades");
+        JButton subjectsButton = new JButton("My subjects");
+        JButton studentsGroupsButton = new JButton("Students groups");
+        JButton gradesButton = new JButton("Grades");
         menuBar.add(subjectsButton);
         menuBar.add(studentsGroupsButton);
         menuBar.add(gradesButton);
@@ -148,7 +144,7 @@ public class StudentUI {
             while (rs.next()) {
                 String subjectName = rs.getString("subject_name");  // Get subject name
                 String activityType = rs.getString("activity_type"); // Get activity type
-                Float grade = rs.getFloat("grade");                // Get grade (can be null)
+                float grade = rs.getFloat("grade");                // Get grade (can be null)
                 data.add(new Object[]{subjectName, activityType, grade != 0 ? grade : "N/A"}); // Handle null grades
             }
         }

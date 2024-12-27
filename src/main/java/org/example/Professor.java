@@ -10,16 +10,20 @@ public class Professor extends User{
     private String department;
     private List<Subject> subjects;
     private List<ProfessorActivity> professorActivities;
+    private List<Meeting> meetings;
+
 
     public Professor() {
         subjects = new ArrayList<>();
         professorActivities = new ArrayList<>();
+        meetings = new ArrayList<>();
     }
 
     public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
         subjects = new ArrayList<>();
         professorActivities = new ArrayList<>();
+        meetings = new ArrayList<>();
     }
 
     public String selectSubjects() {
@@ -28,6 +32,10 @@ public class Professor extends User{
 
     public String selectProfessorActivities() {
         return ("select * from activitati_profesori where CNP_profesor = '" + this.CNP + "';");
+    }
+
+    public String selectMeetings() {
+        return ("select * from programari where CNP_profesor = '" + this.CNP + "';");
     }
 
     public void printSubjects() {
@@ -92,6 +100,14 @@ public class Professor extends User{
 
     public List<ProfessorActivity> getProfessorActivities() {
         return professorActivities;
+    }
+
+    public List<Meeting> getMeetings() {
+        return meetings;
+    }
+
+    public void setMeetings(List<Meeting> meetings) {
+        this.meetings = meetings;
     }
 
     public void setProfessorActivities(List<ProfessorActivity> professorActivities) {

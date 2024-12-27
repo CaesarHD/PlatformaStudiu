@@ -5,17 +5,14 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
-import javax.xml.validation.Validator;
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ProffesorUI extends UI {
 
@@ -38,7 +35,7 @@ public class ProffesorUI extends UI {
 
     Professor professor;
 
-    public ProffesorUI(Professor professor, DBController dbController) {
+    public ProffesorUI(Professor professor) {
         initializeUI();
         this.dbController = dbController;
         this.professor = professor;
@@ -85,19 +82,21 @@ public class ProffesorUI extends UI {
         profile.addActionListener(e -> displayUserData());
     }
 
-    public void addAllActivitiesActionListener () {
+    public void addAllActivitiesActionListener() {
         allActivities.addActionListener(e -> displayActivities());
     }
 
-    public void addClassBookActionListener() {classBook.addActionListener(e -> {
-        try {
-            displayClassButtons();
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-    });}
+    public void addClassBookActionListener() {
+        classBook.addActionListener(e -> {
+            try {
+                displayClassButtons();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+    }
 
-    public void addMeetingsActionListener () {
+    public void addMeetingsActionListener() {
         meetings.addActionListener(e -> displayCalendar());
     }
 
@@ -107,8 +106,8 @@ public class ProffesorUI extends UI {
 
         LocalDateTime date = LocalDateTime.now();
 
-        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel, professor.getProfessorActivities());
-        meetingsCalendar = new MeetingsCalendar(professor.getProfessorActivities(), date);
+        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel, professor);
+        meetingsCalendar = new MeetingsCalendar(professor, date, displayPanel);
 
         displayPanel.add(calendar);
         displayPanel.add(meetingsCalendar);
@@ -121,7 +120,7 @@ public class ProffesorUI extends UI {
         displayPanel.removeAll();
         displayPanel.setLayout(new BoxLayout(displayPanel, BoxLayout.Y_AXIS));
 
-        for(ProfessorActivity professorActivity : professor.getProfessorActivities()){
+        for (ProfessorActivity professorActivity : professor.getProfessorActivities()) {
             JButton button = new JButton(professorActivity.getClassName() + " - " + professorActivity.getType());
             button.setFont(new Font("Arial", Font.BOLD, 20));
             displayPanel.add(button);
@@ -256,7 +255,7 @@ public class ProffesorUI extends UI {
     }
 
 
-    private Object[][] convertStudentsToData (ProfessorActivity professorActivity) {
+    private Object[][] convertStudentsToData(ProfessorActivity professorActivity) {
         Object[][] data = new Object[professorActivity.getStudents().size()][4];
         for (int i = 0; i < professorActivity.getStudents().size(); i++) {
             Student student = professorActivity.getStudents().get(i);
@@ -302,8 +301,6 @@ public class ProffesorUI extends UI {
         });
     }
 
-
-
     public void displayUserData() {
         displayPanel.removeAll();
 
@@ -348,8 +345,6 @@ public class ProffesorUI extends UI {
         displayPanel.revalidate();
         displayPanel.repaint();
     }
-
-
 
     private void clearPanel() {
         displayPanel.removeAll();
@@ -421,7 +416,6 @@ public class ProffesorUI extends UI {
                 int value;
 
                 try {
-                    // Try to convert the value to an int
                     value = Integer.parseInt(newValue.toString());
 
                     Subject subject = null;
@@ -449,9 +443,6 @@ public class ProffesorUI extends UI {
                 } catch (NumberFormatException ex) {
                     throw new IllegalArgumentException("Invalid input. Please enter a valid integer.");
                 }
-
-                // Update the corresponding Subject object
-
             }
         });
     }

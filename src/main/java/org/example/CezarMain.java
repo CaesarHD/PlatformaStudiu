@@ -1,7 +1,7 @@
 package org.example;
 
+import javax.swing.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.TimeZone;
 
 public class CezarMain {
@@ -11,12 +11,18 @@ public class CezarMain {
 
         DataBase db = new DataBase();
         db.connect("root", "root");
-        DBController dbController = new DBController(db);
+        DBController.setDbConnection(db);
 
         Professor professor;
-        professor = dbController.initializeProfessor("2174897302000", "WZuxthqdob");
+        professor = DBController.initializeProfessor("2174897302000", "WZuxthqdob");
 
-        ProffesorUI pUi = new ProffesorUI(professor, dbController);
+
+//        try {
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//        } catch (Exception e) {
+//            System.err.println("Failed to initialize LaF");
+//        }
+        ProffesorUI pUi = new ProffesorUI(professor);
         pUi.show();
 
     }
