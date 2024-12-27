@@ -7,6 +7,7 @@ public class Meeting {
     private int id;
     private String type;
     private int maxNb;
+    private int crtNb;
     private String className;
     private int classId;
     private String description;
@@ -20,17 +21,21 @@ public class Meeting {
 
     }
 
-    public Meeting(LocalDateTime startDate) {
+    public Meeting(LocalDateTime startDate, LocalDateTime endDate) {
         this.startDate = startDate;
+        this.endDate = endDate;
     }
 
-    public Meeting(int id, String type, int maxNb, String className, int classId, String description, List<Student> students) {
+    public Meeting(int id, String type, int maxNb, int crtNb, String className, int classId, String description, LocalDateTime startDate, LocalDateTime endDate, List<Student> students) {
         this.id = id;
         this.type = type;
         this.maxNb = maxNb;
+        this.crtNb = crtNb;
         this.className = className;
         this.classId = classId;
         this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.students = students;
     }
 
@@ -139,5 +144,13 @@ public class Meeting {
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    public int getCrtNb() {
+        return crtNb;
+    }
+
+    public void setCrtNb(int crtNb) {
+        this.crtNb = crtNb;
     }
 }

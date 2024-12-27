@@ -31,7 +31,7 @@ public class MeetingsCalendar extends JPanel {
         newMeetingBtn.setFont(new Font("Helvetica", Font.PLAIN, 20));
         newMeetingBtn.setBackground(Color.red);
         newMeetingBtn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        Meeting meeting = new Meeting(date);
+        Meeting meeting = new Meeting(date, date);
 
         //TODO: figure out where to add new MeetingCard to UI parent
         newMeetingBtn.addActionListener(e -> new MeetEditor(meeting, new MeetingCard(meeting, mainPanel, professor), mainPanel, professor));

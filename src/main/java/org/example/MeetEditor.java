@@ -2,6 +2,8 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +33,12 @@ public class MeetEditor extends JPanel {
         l1.setHorizontalAlignment(JLabel.CENTER);
         center.add(l1);
 
-        List<String> options = new ArrayList<>();
+        List<Subject> options = new ArrayList<>(professor.getSubjects());
 
-        for (Subject subject : professor.getSubjects()) {
-            options.add(subject.getName());
+        JComboBox<String> titleComboBox = new JComboBox<>();
+        for(Subject subject : options){
+            titleComboBox.addItem(subject.getName());
         }
-
-        JComboBox<String> titleComboBox = new JComboBox<>(options.toArray(new String[0]));
         titleComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
         titleComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -49,18 +50,15 @@ public class MeetEditor extends JPanel {
         });
         center.add(titleComboBox);
 
-        options.clear();
-
         JLabel l2 = new JLabel("Type");
         l2.setFont(new Font("Helvectica", Font.PLAIN, 20));
         l2.setHorizontalAlignment(JLabel.CENTER);
         center.add(l2);
 
-        options.add("curs");
-        options.add("laborator");
-        options.add("seminar");
-
-        JComboBox<String> typeComboBox = new JComboBox<>(options.toArray(new String[0]));
+        JComboBox<String> typeComboBox = new JComboBox<>();
+        typeComboBox.addItem("curs");
+        typeComboBox.addItem("laborator");
+        typeComboBox.addItem("seminar");
         typeComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
         typeComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -118,8 +116,6 @@ public class MeetEditor extends JPanel {
 
             save.addActionListener(e -> {
 
-                meet.setClassName((String)titleComboBox.getSelectedItem());
-
                 try {
                     LocalDateTime parsedDate = LocalDateTime.parse(meet.getStartDate().toLocalDate() + "T" + startTime.getText(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     meet.setStartDate(parsedDate);
@@ -136,6 +132,7 @@ public class MeetEditor extends JPanel {
                 }
 
                 meet.setType((String)typeComboBox.getSelectedItem());
+                meet.setClassName((String)titleComboBox.getSelectedItem());
 
                 DBController.updateMeeting(meet);
 
@@ -159,15 +156,49 @@ public class MeetEditor extends JPanel {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
+                SwingUtilities.invokeLater(frame::dispose);
+            });
+        } else {
+            delete.setVisible(false);
+            save.addActionListener(e -> {
+
+                try {
+                    LocalDateTime parsedDate = LocalDateTime.parse(meet.getStartDate().toLocalDate() + "T" + startTime.getText(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    meet.setStartDate(parsedDate);
+                } catch (Exception ex) {
+                    System.err.printf("Could not parse Date: %s", ex);
+                    JOptionPane.showMessageDialog(null, "Time format not valid. Expected: hh:mm");
+                }
+                try {
+                    LocalDateTime parsedDate = LocalDateTime.parse(meet.getEndDate().toLocalDate() + "T" + endTime.getText(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    meet.setEndDate(parsedDate);
+                } catch (Exception ex) {
+                    System.err.printf("Could not parse Date: %s", ex);
+                    JOptionPane.showMessageDialog(null, "Time format not valid. Expected: hh:mm");
+                }
+
+                meet.setType((String)typeComboBox.getSelectedItem());
+                meet.setClassName((String)titleComboBox.getSelectedItem());
+                meet.setClassId(options.get(titleComboBox.getItemCount() - 1).getId());
+
+                DBController.createNewMeeting(professor, meet);
+
                 SwingUtilities.invokeLater(() -> {
-                    parent.add(new Calendar(year, month, meet.getStartDate(), parent, professor));
-                    parent.add(new MeetingCard(meet, parent, professor));
+                    meetingCard.getTitle().setText((String) titleComboBox.getSelectedItem());
+                    meetingCard.getType().setText((String) typeComboBox.getSelectedItem());
+                    meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
+                    meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
+                    meetingCard.revalidate();
+                    meetingCard.repaint();
+
+                    parent.removeAll();
+                    parent.add(new Calendar(year, month, meet.getStartDate(), mainPanel, professor));
+                    parent.add(new MeetingsCalendar(professor, meet.getStartDate(), mainPanel));
                     parent.revalidate();
+                    parent.repaint();
                     frame.dispose();
                 });
             });
-        } else {
-//            save.setEnabled(false);
         }
 
         mainPanel.add(bottom, BorderLayout.SOUTH);

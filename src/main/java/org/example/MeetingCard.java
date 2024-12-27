@@ -11,9 +11,10 @@ public class MeetingCard extends JPanel {
     private final JLabel startTime;
     private final JLabel endTime;
     private final JLabel type;
+    private final JLabel data;
 
     public MeetingCard(Meeting meeting, JPanel mainPanel, Professor professor) {
-        setLayout(new GridLayout(4, 1));
+        setLayout(new GridLayout(5, 1));
         this.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(10, 10, 10, 10),
                 BorderFactory.createMatteBorder(0, 10, 0, 0, Color.CYAN)
@@ -68,6 +69,12 @@ public class MeetingCard extends JPanel {
         endTime.setFont(new Font("Helvetica", Font.PLAIN, 28));
         endTime.setForeground(Color.darkGray);
         this.add(endTime);
+
+        data = new JLabel("In data de: " + meeting.getStartDate().toLocalDate().toString());
+        data.setBorder(BorderFactory.createEmptyBorder(5, 15, 4, 5));
+        data.setFont(new Font("Helvetica", Font.PLAIN, 28));
+        data.setForeground(Color.darkGray);
+        this.add(data);
     }
 
 
@@ -85,5 +92,9 @@ public class MeetingCard extends JPanel {
 
     public JLabel getType() {
         return type;
+    }
+
+    public JLabel getData() {
+        return data;
     }
 }

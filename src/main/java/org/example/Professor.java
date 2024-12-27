@@ -26,6 +26,14 @@ public class Professor extends User{
         meetings = new ArrayList<>();
     }
 
+    public String insertMeeting(Meeting meeting) {
+        return "INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)\n" +
+                "VALUES\n" +
+                "('" + meeting.getType() + "', '" + meeting.getStartDate() + "', ' " +
+                meeting.getEndDate() + "', " + meeting.getMaxNb() +  " , '" + meeting.getDescription() + "', '" + this.CNP + "', " +
+                meeting.getClassId() + ");\n";
+    }
+
     public String selectSubjects() {
         return ("select * from profesori_materii where CNP_profesor = '" + this.CNP + "';");
     }

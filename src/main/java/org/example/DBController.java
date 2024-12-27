@@ -158,7 +158,7 @@ public class DBController {
 
                 meeting.setMaxNb(rs.getInt("nr_max_participanti"));
                 meeting.setDescription(rs.getString("descriere"));
-                getMeetingClassId(meeting);
+                meeting.setClassId(rs.getInt("id_materie"));
                 getMeetingClassName(meeting);
                 professor.getMeetings().add(meeting);
             }
@@ -212,18 +212,6 @@ public class DBController {
         }
     }
 
-    public static void getMeetingClassId(Meeting meeting) throws SQLException {
-        db.execute("use proiect");
-        Statement stmt = db.getCon().createStatement();
-        ResultSet rs = stmt.executeQuery(meeting.selectClassId());
-        if (rs.next()) {
-            meeting.setClassId(rs.getInt("id"));
-        } else {
-            System.out.println("Nu există înregistrări pentru id-ul specificat.");
-            meeting.setClassId(-1); // Sau o altă valoare implicită
-        }
-    }
-
     public static void getProfessorActivityClassName(ProfessorActivity professorActivity) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
@@ -267,6 +255,11 @@ public class DBController {
         db.execute("use proiect");
         db.execute(meeting.deleteMeeting());
         professor.getMeetings().remove(meeting);
+    }
+
+    public static void createNewMeeting (Professor professor, Meeting newMeeting){
+        db.execute("use proiect");
+        db.execute(professor.insertMeeting(newMeeting));
     }
 
     public static void changeGrades(ProfessorActivity professorActivity, Student student) {
