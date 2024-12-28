@@ -157,6 +157,7 @@ public class DBController {
                 meeting.setEndDate(endLocalDate);
 
                 meeting.setMaxNb(rs.getInt("nr_max_participanti"));
+                meeting.setCrtNb(rs.getInt("nr_participanti"));
                 meeting.setDescription(rs.getString("descriere"));
                 meeting.setClassId(rs.getInt("id_materie"));
                 getMeetingClassName(meeting);

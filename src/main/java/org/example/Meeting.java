@@ -44,7 +44,8 @@ public class Meeting {
                 "SET \n" +
                 "    tip_activitate = '" + this.type + "',\n" +
                 "    data_inceput = '" + this.startDate + "',\n" +
-                "    data_final = '" + this.endDate + "'\n" +
+                "    data_final = '" + this.endDate + "',\n" +
+                "    nr_max_participanti = " + this.maxNb + "\n" +
                 "WHERE \n" +
                 "    id_activitate = " + this.id + ";";
     }

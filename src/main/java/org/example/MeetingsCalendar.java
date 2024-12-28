@@ -2,6 +2,7 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,12 @@ public class MeetingsCalendar extends JPanel {
         //TODO: figure out where to add new MeetingCard to UI parent
         newMeetingBtn.addActionListener(e -> new MeetEditor(meeting, new MeetingCard(meeting, mainPanel, professor), mainPanel, professor));
         add(newMeetingBtn, BorderLayout.SOUTH);
+
+        if (date.toLocalDate().isBefore(LocalDate.now())) {
+            newMeetingBtn.setVisible(false);
+        } else {
+            newMeetingBtn.setVisible(true);
+        }
     }
 
 

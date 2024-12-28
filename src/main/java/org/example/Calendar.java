@@ -2,6 +2,8 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.time.LocalDate;
@@ -13,6 +15,7 @@ import java.util.List;
 
 public class Calendar extends JPanel {
     public static final String HELVETICA = "Helvetica";
+    public final JButton todayBtn = new JButton("Today");
 
     public Calendar(int year, int month, LocalDateTime selectedDay, JPanel mainPanel, Professor professor) {
 
@@ -182,6 +185,22 @@ public class Calendar extends JPanel {
 
 
         add(days, BorderLayout.CENTER);
+
+
+        todayBtn.setFont(new Font("Helvetica", Font.PLAIN, 20));
+        todayBtn.setBackground(Color.DARK_GRAY);
+        todayBtn.setForeground(Color.WHITE);
+        todayBtn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(todayBtn, BorderLayout.SOUTH);
+
+        todayBtn.addActionListener(e -> {
+            LocalDateTime today = LocalDateTime.now();
+            mainPanel.removeAll();
+            mainPanel.add(new Calendar(today.getYear(), today.getMonthValue(), today, mainPanel, professor));
+            mainPanel.add(new MeetingsCalendar(professor, today, mainPanel));
+            mainPanel.revalidate();
+        });
+
     }
 
     public boolean hasMeeting(List<Meeting> meetings, int year, int month, int i) {
