@@ -45,7 +45,8 @@ public class Meeting {
                 "    tip_activitate = '" + this.type + "',\n" +
                 "    data_inceput = '" + this.startDate + "',\n" +
                 "    data_final = '" + this.endDate + "',\n" +
-                "    nr_max_participanti = " + this.maxNb + "\n" +
+                "    nr_max_participanti = " + this.maxNb + ",\n" +
+                "    descriere = '" + this.description + "'\n" +
                 "WHERE \n" +
                 "    id_activitate = " + this.id + ";";
     }

@@ -4,10 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.List;
 
 public class MeetingCard extends JPanel {
     private final JLabel title;
+    private final JLabel description;
     private final JLabel startTime;
     private final JLabel endTime;
     private final JLabel type;
@@ -15,8 +15,8 @@ public class MeetingCard extends JPanel {
     private final JLabel maxStudents;
     private final JLabel crtStudentsNb;
 
-    public MeetingCard(Meeting meeting, JPanel mainPanel, Professor professor) {
-        setLayout(new GridLayout(7, 1));
+    public MeetingCard(Meeting meeting, JPanel mainPanel, Professor professor, JPanel cardList) {
+        setLayout(new GridLayout(8, 1));
         this.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(10, 10, 10, 10),
                 BorderFactory.createMatteBorder(0, 10, 0, 0, Color.CYAN)
@@ -28,7 +28,7 @@ public class MeetingCard extends JPanel {
         this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                new MeetEditor(meeting, self, mainPanel, professor);
+                new MeetEditor(meeting, self, mainPanel, professor, cardList);
             }
 
             @Override
@@ -56,9 +56,15 @@ public class MeetingCard extends JPanel {
 
         type = new JLabel(meeting.getType());
         type.setBorder(BorderFactory.createEmptyBorder(5, 15, 4, 15));
-        type.setFont(new Font("Helvetica", Font.PLAIN, 35));
+        type.setFont(new Font("Helvetica", Font.BOLD, 35));
         type.setForeground(Color.darkGray);
         this.add(type);
+
+        description = new JLabel(meeting.getDescription());
+        description.setBorder(BorderFactory.createEmptyBorder(5, 15, 4, 15));
+        description.setFont(new Font("Helvetica", Font.PLAIN, 28));
+        description.setForeground(Color.darkGray);
+        this.add(description);
 
         startTime = new JLabel("Incepe la: " + meeting.getStartDate().toLocalTime().toString());
         startTime.setBorder(BorderFactory.createEmptyBorder(2, 15, 1, 5));
@@ -120,5 +126,9 @@ public class MeetingCard extends JPanel {
 
     public JLabel getCrtStudentsNb() {
         return crtStudentsNb;
+    }
+
+    public JLabel getDescription() {
+        return description;
     }
 }

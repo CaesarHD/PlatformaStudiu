@@ -93,7 +93,7 @@ public class DBController {
         professor.setCNP(rs.getString("CNP"));
         professor.setDepartment(rs.getString("departament"));
         professor.setMinHour(rs.getInt("numar_minim_ore_predate"));
-        professor.setMaxHour(rs.getInt("numar_maxim_ore_predate")); // Assuming there's a setMaxHour method
+        professor.setMaxHour(rs.getInt("numar_maxim_ore_predate"));
     }
 
     public static void getSubjectsFromDB(Professor professor) throws SQLException {
@@ -270,11 +270,6 @@ public class DBController {
     public static void updateMeeting(Meeting meeting) {
         db.execute(meeting.updateMeeting());
     }
-
-//    public void getStudents() {
-//        this.db.execute("SELECT * from utilizatori where");
-//    }
-
 
     public void searchUser(String query) throws SQLException
     {

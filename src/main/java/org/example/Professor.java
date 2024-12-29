@@ -3,7 +3,7 @@ package org.example;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-public class Professor extends User{
+public class Professor extends User {
 
     private int maxHour;
     private int minHour;
@@ -30,7 +30,7 @@ public class Professor extends User{
         return "INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)\n" +
                 "VALUES\n" +
                 "('" + meeting.getType() + "', '" + meeting.getStartDate() + "', ' " +
-                meeting.getEndDate() + "', " + meeting.getMaxNb() +  " , '" + meeting.getDescription() + "', '" + this.CNP + "', " +
+                meeting.getEndDate() + "', " + meeting.getMaxNb() + " , '" + meeting.getDescription() + "', '" + this.CNP + "', " +
                 meeting.getClassId() + ");\n";
     }
 
@@ -47,7 +47,7 @@ public class Professor extends User{
     }
 
     public void printSubjects() {
-        for(Subject s : subjects){
+        for (Subject s : subjects) {
             System.out.println(s);
         }
     }
@@ -59,8 +59,6 @@ public class Professor extends User{
     public void setSubjects(List<Subject> subjects) {
         this.subjects = subjects;
     }
-
-
 
     @Override
     public String toString() {
@@ -82,24 +80,12 @@ public class Professor extends User{
                 '}';
     }
 
-    public int getMaxHour() {
-        return maxHour;
-    }
-
     public void setMaxHour(int maxHour) {
         this.maxHour = maxHour;
     }
 
-    public int getMinHour() {
-        return minHour;
-    }
-
     public void setMinHour(int minHour) {
         this.minHour = minHour;
-    }
-
-    public String getDepartment() {
-        return department;
     }
 
     public void setDepartment(String department) {
@@ -113,13 +99,4 @@ public class Professor extends User{
     public List<Meeting> getMeetings() {
         return meetings;
     }
-
-    public void setMeetings(List<Meeting> meetings) {
-        this.meetings = meetings;
-    }
-
-    public void setProfessorActivities(List<ProfessorActivity> professorActivities) {
-        this.professorActivities = professorActivities;
-    }
 }
-

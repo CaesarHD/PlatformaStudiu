@@ -22,17 +22,6 @@ public class ProfessorActivity {
         grades = new HashMap<>();
     }
 
-    public ProfessorActivity(int id, LocalDateTime startDate, LocalDateTime endDate, String type, int maxNb, String description) {
-        this.id = id;
-        this.type = type;
-        this.maxNb = maxNb;
-        this.description = description;
-        students = new ArrayList<>();
-        grades = new HashMap<>();
-    }
-
-
-
     public String changeGrade(Student student) {
         return ("UPDATE note_activitati set nota = '" + this.getGrades().get(student) + "' where CNP_student = '" + student.getCNP() + "';");
 
@@ -98,20 +87,12 @@ public class ProfessorActivity {
         return className;
     }
 
-    public int getClassId() {
-        return classId;
-    }
-
     public void setClassId(int classId) {
         this.classId = classId;
     }
 
     public List<Student> getStudents() {
         return students;
-    }
-
-    public void setStudents(List<Student> students) {
-        this.students = students;
     }
 
     public Map<Student, Integer> getGrades() {

@@ -2,17 +2,14 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 public class MeetEditor extends JPanel {
-    public MeetEditor(Meeting meet, MeetingCard meetingCard, JPanel parent, Professor professor) {
+    public MeetEditor(Meeting meet, MeetingCard meetingCard, JPanel parent, Professor professor, JPanel cardList) {
 
         int year = meet.getStartDate().getYear();
         int month = meet.getStartDate().getMonthValue();
@@ -26,7 +23,7 @@ public class MeetEditor extends JPanel {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 20, 20, 20));
         mainPanel.setBackground(Color.white);
 
-        JPanel center = new JPanel(new GridLayout(5, 2, 20, 20));
+        JPanel center = new JPanel(new GridLayout(6, 2, 20, 20));
         center.setBackground(Color.white);
 
         JLabel l1 = new JLabel("Title");
@@ -101,6 +98,16 @@ public class MeetEditor extends JPanel {
         maxStudents.setHorizontalAlignment(JLabel.CENTER);
         center.add(maxStudents);
 
+        JLabel l6 = new JLabel("Descriere");
+        l6.setFont(new Font("Helvectica", Font.PLAIN, 20));
+        l6.setHorizontalAlignment(JLabel.CENTER);
+        center.add(l6);
+
+        JTextField description = new JTextField();
+        description.setFont(new Font("Helvectica", Font.PLAIN, 20));
+        description.setHorizontalAlignment(JLabel.CENTER);
+        center.add(description);
+
         mainPanel.add(center, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new GridLayout(1, 2, 20, 20));
@@ -121,6 +128,7 @@ public class MeetEditor extends JPanel {
         startTime.setText(meet.getStartDate().toLocalTime().toString());
         endTime.setText(meet.getEndDate().toLocalTime().toString());
         maxStudents.setText("" + meet.getMaxNb());
+        description.setText(meet.getDescription());
 
         if (meet.getClassName() != null) {
 //            save.setEnabled(true);
@@ -151,7 +159,7 @@ public class MeetEditor extends JPanel {
                                     meet.setType((String)typeComboBox.getSelectedItem());
                                     meet.setClassName((String)titleComboBox.getSelectedItem());
                                     meet.setClassId(options.get(titleComboBox.getItemCount() - 1).getId());
-
+                                    meet.setDescription(description.getText());
                                     meet.setMaxNb(Integer.parseInt(maxStudents.getText()));
 
                                     DBController.updateMeeting(meet);
@@ -163,6 +171,7 @@ public class MeetEditor extends JPanel {
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
                                         meetingCard.getMaxStudents().setText("Nr maxim studenti: " + maxStudents.getText());
                                         meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
+                                        meetingCard.getDescription().setText(meet.getDescription());
                                         meetingCard.revalidate();
                                         meetingCard.repaint();
 
@@ -190,10 +199,15 @@ public class MeetEditor extends JPanel {
             delete.addActionListener(e -> {
                 try {
                     DBController.deleteMeeting(meet, professor);
+                    cardList.remove(meetingCard);
+                    SwingUtilities.invokeLater(() -> {
+                        parent.revalidate();
+                        parent.repaint();
+                        frame.dispose();
+                    });
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-                SwingUtilities.invokeLater(frame::dispose);
             });
         } else {
             delete.setVisible(false);
@@ -223,7 +237,7 @@ public class MeetEditor extends JPanel {
                                     meet.setType((String)typeComboBox.getSelectedItem());
                                     meet.setClassName((String)titleComboBox.getSelectedItem());
                                     meet.setClassId(options.get(titleComboBox.getItemCount() - 1).getId());
-
+                                    meet.setDescription(description.getText());
                                     meet.setMaxNb(Integer.parseInt(maxStudents.getText()));
 
                                     DBController.createNewMeeting(professor, meet);
@@ -235,12 +249,13 @@ public class MeetEditor extends JPanel {
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
                                         meetingCard.getMaxStudents().setText("Nr maxim studenti: " + maxStudents.getText());
                                         meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
-                                        meetingCard.revalidate();
-                                        meetingCard.repaint();
+                                        meetingCard.getDescription().setText(meet.getDescription());
 
-                                        parent.removeAll();
-                                        parent.add(new Calendar(year, month, meet.getStartDate(), mainPanel, professor));
-                                        parent.add(new MeetingsCalendar(professor, meet.getStartDate(), mainPanel));
+//                                        parent.removeAll();
+//                                        parent.add(new Calendar(year, month, meet.getStartDate(), mainPanel, professor));
+//                                        parent.add(new MeetingsCalendar(professor, meet.getStartDate(), mainPanel));
+                                        cardList.add(meetingCard);
+
                                         parent.revalidate();
                                         parent.repaint();
                                         frame.dispose();
@@ -254,7 +269,7 @@ public class MeetEditor extends JPanel {
                     } catch (IllegalArgumentException ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
-                } catch (Exception ex) {
+                } catch (Exception ex ) {
                     System.err.printf("Could not parse Date: %s", ex);
                     JOptionPane.showMessageDialog(null, "Time format not valid. Expected: hh:mm");
                 }
