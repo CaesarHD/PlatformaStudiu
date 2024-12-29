@@ -1,18 +1,20 @@
 package org.example;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ProfessorActivity {
     private int id;
-    private Date startDate;
-    private Date endDate;
     private String type;
     private int maxNb;
     private String className;
     private int classId;
     private String description;
-
     private List<Student> students;
+
     private Map<Student, Integer> grades;
 
     public ProfessorActivity() {
@@ -20,26 +22,16 @@ public class ProfessorActivity {
         grades = new HashMap<>();
     }
 
-    public ProfessorActivity(int id, Date startDate, Date endDate, String type, int maxNb, String description) {
-        this.id = id;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.type = type;
-        this.maxNb = maxNb;
-        this.description = description;
-        students = new ArrayList<>();
-        grades = new HashMap<>();
-    }
-
     public String changeGrade(Student student) {
         return ("UPDATE note_activitati set nota = '" + this.getGrades().get(student) + "' where CNP_student = '" + student.getCNP() + "';");
+
     }
 
     public String selectStudentsandGrades() {
         return ("select distinct nume, prenume, CNP, nota from note_activitati join proiect.utilizatori on note_activitati.CNP_student = utilizatori.CNP where id_activitate = '" + this.id + "';");
     }
 
-    public String selectClassName () {
+    public String selectClassName() {
         return ("SELECT materii.nume\n" +
                 "FROM materii\n" +
                 "JOIN activitati_profesori\n" +
@@ -47,7 +39,7 @@ public class ProfessorActivity {
                 "WHERE activitati_profesori.id_activitate = '" + this.id + "';");
     }
 
-    public String selectClassId () {
+    public String selectClassId() {
         return ("SELECT materii.id\n" +
                 "FROM materii\n" +
                 "JOIN activitati_profesori\n" +
@@ -61,22 +53,6 @@ public class ProfessorActivity {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
     }
 
     public String getType() {
@@ -111,20 +87,12 @@ public class ProfessorActivity {
         return className;
     }
 
-    public int getClassId() {
-        return classId;
-    }
-
     public void setClassId(int classId) {
         this.classId = classId;
     }
 
     public List<Student> getStudents() {
         return students;
-    }
-
-    public void setStudents(List<Student> students) {
-        this.students = students;
     }
 
     public Map<Student, Integer> getGrades() {
@@ -139,8 +107,6 @@ public class ProfessorActivity {
     public String toString() {
         return "ProfessorActivity{" +
                 "id=" + id +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
                 ", type='" + type + '\'' +
                 ", maxNb=" + maxNb +
                 ", className='" + className + '\'' +

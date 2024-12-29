@@ -5,21 +5,22 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
-import javax.xml.validation.Validator;
 import java.awt.*;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ProffesorUI extends UI {
 
     private final JButton classes = new JButton("Classes");
-    private final JButton currentDay = new JButton("Current Day");
     private final JButton meetings = new JButton("Meetings");
     private final JButton allActivities = new JButton("All Activities");
     private final JButton classBook = new JButton("Class Book");
@@ -27,22 +28,17 @@ public class ProffesorUI extends UI {
     private final JButton logOut = new JButton("Log Out");
     private final JButton downloadToFile = new JButton("Download to file");
     private JTable classTable;
-    private JTable activitiesTable;
     private final List<JButton> classButtons = new ArrayList<>();
     private JTable gradesTable;
     private DBController dbController;
     private JPanel displayPanel;
-    private Calendar calendar;
-    private MeetingsCalendar meetingsCalendar;
 
     Professor professor;
 
-    public ProffesorUI(Professor professor, DBController dbController) {
+    public ProffesorUI(Professor professor) {
         initializeUI();
-        this.dbController = dbController;
         this.professor = professor;
         addClassesActionListeners();
-        addCurrentDayActionListener();
         addProfileActionListener();
         addClassBookActionListener();
         addAllActivitiesActionListener();
@@ -60,10 +56,28 @@ public class ProffesorUI extends UI {
 
     private JPanel createButtonsPanel() {
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(7, 1));
+        buttonsPanel.setLayout(new GridLayout(6, 1));
         buttonsPanel.setBackground(Color.LIGHT_GRAY);
+
+        classes.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        classes.setBackground(Color.lightGray);
+
+        meetings.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        meetings.setBackground(Color.lightGray);
+
+        allActivities.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        allActivities.setBackground(Color.lightGray);
+
+        classBook.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        classBook.setBackground(Color.lightGray);
+
+        profile.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        profile.setBackground(Color.lightGray);
+
+        logOut.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        logOut.setBackground(Color.lightGray);
+
         buttonsPanel.add(classes);
-        buttonsPanel.add(currentDay);
         buttonsPanel.add(meetings);
         buttonsPanel.add(allActivities);
         buttonsPanel.add(classBook);
@@ -76,27 +90,25 @@ public class ProffesorUI extends UI {
         classes.addActionListener(e -> displayCoursesTable());
     }
 
-    public void addCurrentDayActionListener() {
-        currentDay.addActionListener(e -> clearPanel());
-    }
-
     public void addProfileActionListener() {
         profile.addActionListener(e -> displayUserData());
     }
 
-    public void addAllActivitiesActionListener () {
+    public void addAllActivitiesActionListener() {
         allActivities.addActionListener(e -> displayActivities());
     }
 
-    public void addClassBookActionListener() {classBook.addActionListener(e -> {
-        try {
-            displayClassButtons();
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-    });}
+    public void addClassBookActionListener() {
+        classBook.addActionListener(e -> {
+            try {
+                displayClassButtons();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+    }
 
-    public void addMeetingsActionListener () {
+    public void addMeetingsActionListener() {
         meetings.addActionListener(e -> displayCalendar());
     }
 
@@ -104,10 +116,10 @@ public class ProffesorUI extends UI {
         displayPanel.removeAll();
         displayPanel.setLayout(new GridLayout(1, 2, 0, 0));
 
-        LocalDate date = LocalDate.now();
+        LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
 
-        calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel);
-        meetingsCalendar = new MeetingsCalendar();
+        Calendar calendar = new Calendar(date.getYear(), date.getMonthValue(), date, displayPanel, professor);
+        MeetingsCalendar meetingsCalendar = new MeetingsCalendar(professor, date, displayPanel);
 
         displayPanel.add(calendar);
         displayPanel.add(meetingsCalendar);
@@ -118,19 +130,39 @@ public class ProffesorUI extends UI {
 
     public void displayClassButtons() throws SQLException {
         displayPanel.removeAll();
-        displayPanel.setLayout(new BoxLayout(displayPanel, BoxLayout.Y_AXIS));
+        displayPanel.setLayout(new BorderLayout());
 
-        for(ProfessorActivity professorActivity : professor.getProfessorActivities()){
-            JButton button = new JButton(professorActivity.getClassName() + " - " + professorActivity.getType());
-            button.setFont(new Font("Arial", Font.BOLD, 20));
-            displayPanel.add(button);
-            displayPanel.add(Box.createVerticalStrut(10));
+        JPanel classBookPanel = new JPanel();
+        classBookPanel.setLayout(new BoxLayout(classBookPanel, BoxLayout.Y_AXIS));
+        classBookPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        for (ProfessorActivity professorActivity : professor.getProfessorActivities()) {
+            JButton button = getJButton(professorActivity);
+
+            classBookPanel.add(button);
+            classBookPanel.add(Box.createVerticalStrut(10));
             classButtons.add(button);
             createActivityActionListener(button, professorActivity);
         }
 
+        JScrollPane scrollPane = new JScrollPane(classBookPanel);
+        displayPanel.add(scrollPane, BorderLayout.CENTER);
+
         displayPanel.revalidate();
         displayPanel.repaint();
+    }
+
+    private static JButton getJButton(ProfessorActivity professorActivity) {
+        JButton button = new JButton(professorActivity.getClassName() + " - " + professorActivity.getType());
+        button.setBackground(Color.LIGHT_GRAY);
+        button.setFont(new Font("Arial", Font.BOLD, 20));
+        button.setPreferredSize(new Dimension(300, 60));
+
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(20, 10, 20, 10),
+                BorderFactory.createMatteBorder(0, 0, 0, 0, Color.CYAN)
+        ));
+        return button;
     }
 
 
@@ -139,60 +171,47 @@ public class ProffesorUI extends UI {
     }
 
     public void displayClassBook(ProfessorActivity professorActivity) {
-        // Clear the panel
         displayPanel.removeAll();
 
-        // Use BorderLayout for the main panel
         displayPanel.setLayout(new BorderLayout());
 
-        // Create a panel for the header with vertical alignment
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
-        // Set equal spacing around the button using EmptyBorder
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0)); // Top, Left, Bottom, Right padding
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
-        // Configure the button
-        downloadToFile.setPreferredSize(new Dimension(300, 70)); // Button size
-        downloadToFile.setFont(new Font("Arial", Font.BOLD, 20)); // Slightly larger font
-        downloadToFile.setAlignmentX(JComponent.CENTER_ALIGNMENT); // Center horizontally
+        downloadToFile.setPreferredSize(new Dimension(300, 70));
+        downloadToFile.setFont(new Font("Arial", Font.BOLD, 20));
+        downloadToFile.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
-        // Add the button to the header panel
         headerPanel.add(downloadToFile);
 
-        // Add the header panel to the top of the display panel
         displayPanel.add(headerPanel, BorderLayout.SOUTH);
 
-        // Define column names and data for the table
         String[] columnNames = {"FirstName", "SecondName", "CNP", "Grade"};
         Object[][] data = convertStudentsToData(professorActivity);
 
-        // Create and configure the table
         gradesTable = new JTable(new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 3; // Only "Grade" column is editable
+                return column == 3;
             }
         });
 
         addGradesTableEditListener(professorActivity);
 
-        // Wrap the table in a scroll pane
         JScrollPane scrollPane = new JScrollPane(gradesTable);
 
-        // Adjust table appearance
         gradesTable.setFont(new Font("Arial", Font.PLAIN, 20));
         gradesTable.setRowHeight(40);
         JTableHeader tableHeader = gradesTable.getTableHeader();
         tableHeader.setFont(new Font("Arial", Font.BOLD, 30));
 
-        // Add the table (inside its scroll pane) to the center of the display panel
         displayPanel.add(scrollPane, BorderLayout.CENTER);
 
         addDownloadToFileButtonListener(gradesTable, "gradesTable.txt");
-
-        // Refresh the panel
+        
         displayPanel.revalidate();
         displayPanel.repaint();
     }
@@ -202,48 +221,85 @@ public class ProffesorUI extends UI {
     }
 
     public static void saveTableToTextFile(JTable table) {
-        // Show the file save dialog
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save Table Data");
 
-        // Set file filter to only allow .txt files
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text Files", "txt"));
 
         int userChoice = fileChooser.showSaveDialog(null);
 
         if (userChoice == JFileChooser.APPROVE_OPTION) {
-            // Get the selected file
             File selectedFile = fileChooser.getSelectedFile();
 
-            // If the user didn't add a file extension, append .txt
             if (!selectedFile.getName().endsWith(".txt")) {
                 selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
             }
 
-            // Save the JTable to the selected file
             writeTableToFile(table, selectedFile);
         }
     }
 
-    // Function to write JTable data to the given file
+    public static void saveMeetingsToTextFile(List<Meeting> meetings) throws IOException {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Meetings");
+
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Meetings Files", "txt"));
+
+        int userChoice = fileChooser.showSaveDialog(null);
+
+        if (userChoice == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (!selectedFile.getName().endsWith(".txt")) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
+            }
+
+            writeMeetingsToFile(meetings, selectedFile);
+        }
+    }
+
+    public static void writeMeetingsToFile(List<Meeting> meetings, File file) throws IOException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Meeting meeting : meetings) {
+                writer.write("ClassName: " + meeting.getClassName());
+                writer.newLine();
+                writer.write("Type: " + meeting.getType());
+                writer.newLine();
+                writer.write("MaxNb: " + meeting.getMaxNb());
+                writer.newLine();
+                writer.write("CrtNb: " + meeting.getCrtNb());
+                writer.newLine();
+                writer.write("Description: " + (meeting.getDescription() != null ? meeting.getDescription() : "N/A"));
+                writer.newLine();
+                writer.write("StartDate: " + meeting.getStartDate().format(formatter));
+                writer.newLine();
+                writer.write("EndDate: " + meeting.getEndDate().format(formatter));
+                writer.newLine();
+                writer.newLine();
+            }
+        }
+    }
+
+
+
     public static void writeTableToFile(JTable table, File file) {
         try (FileWriter writer = new FileWriter(file)) {
             TableModel model = table.getModel();
             int rowCount = model.getRowCount();
             int columnCount = model.getColumnCount();
 
-            // Write column names
             for (int i = 0; i < columnCount; i++) {
                 writer.append(model.getColumnName(i));
-                if (i < columnCount - 1) writer.append("\t"); // tab separator
+                if (i < columnCount - 1) writer.append("\t");
             }
             writer.append('\n');
 
-            // Write data rows
             for (int row = 0; row < rowCount; row++) {
                 for (int col = 0; col < columnCount; col++) {
                     writer.append(model.getValueAt(row, col).toString());
-                    if (col < columnCount - 1) writer.append("\t"); // tab separator
+                    if (col < columnCount - 1) writer.append("\t");
                 }
                 writer.append('\n');
             }
@@ -255,7 +311,7 @@ public class ProffesorUI extends UI {
     }
 
 
-    private Object[][] convertStudentsToData (ProfessorActivity professorActivity) {
+    private Object[][] convertStudentsToData(ProfessorActivity professorActivity) {
         Object[][] data = new Object[professorActivity.getStudents().size()][4];
         for (int i = 0; i < professorActivity.getStudents().size(); i++) {
             Student student = professorActivity.getStudents().get(i);
@@ -275,24 +331,22 @@ public class ProffesorUI extends UI {
                 int row = e.getFirstRow();
                 int column = e.getColumn();
 
-                // Get the new value of the cell
                 Object newValue = tableModel.getValueAt(row, column);
                 Object CNP = tableModel.getValueAt(row, 2);
 
-                Integer value = null;
+                int value;
 
                 try {
-                    // Try to convert the value to an int
                     value = Integer.parseInt(newValue.toString());
                     Student student = null;
                     for (Student s : professorActivity.getStudents()) {
-                        if (s.getCNP().equals(CNP)) { // Assuming Name is unique and used as an identifier
+                        if (s.getCNP().equals(CNP)) {
                             student = s;
                             break;
                         }
                     }
                     professorActivity.getGrades().put(student, value);
-                    dbController.changeGrades(professorActivity, student);
+                    DBController.changeGrades(professorActivity, student);
                 } catch (NumberFormatException ex) {
                     throw new IllegalArgumentException("Invalid input. Please enter a valid integer.");
                 }
@@ -301,20 +355,16 @@ public class ProffesorUI extends UI {
         });
     }
 
-
-
     public void displayUserData() {
         displayPanel.removeAll();
 
-        // Set layout to center the components
         displayPanel.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = 0;
-        constraints.gridy = GridBagConstraints.RELATIVE; // Position components vertically
+        constraints.gridy = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.fill = GridBagConstraints.NONE;
 
-        // Create JLabel components with larger font
         JLabel firstNameLabel = new JLabel("Prenume: " + professor.firstName);
         JLabel secondNameLabel = new JLabel("Nume: " + professor.secondName);
         JLabel CNPLabel = new JLabel("CNP: " + professor.CNP);
@@ -324,7 +374,7 @@ public class ProffesorUI extends UI {
         JLabel IBANLabel = new JLabel("Iban: " + professor.iban);
         JLabel contractNumberLabel = new JLabel("Numar de contract: " + professor.contractNumber);
 
-        Font largeFont = new Font("Arial", Font.BOLD, 35); // Define larger font
+        Font largeFont = new Font("Arial", Font.BOLD, 35);
         firstNameLabel.setFont(largeFont);
         secondNameLabel.setFont(largeFont);
         CNPLabel.setFont(largeFont);
@@ -334,7 +384,6 @@ public class ProffesorUI extends UI {
         IBANLabel.setFont(largeFont);
         contractNumberLabel.setFont(largeFont);
 
-        // Add components to the panel with constraints
         displayPanel.add(firstNameLabel, constraints);
         displayPanel.add(secondNameLabel, constraints);
         displayPanel.add(CNPLabel, constraints);
@@ -343,12 +392,9 @@ public class ProffesorUI extends UI {
         displayPanel.add(phoneNumberLabel, constraints);
         displayPanel.add(IBANLabel, constraints);
         displayPanel.add(contractNumberLabel, constraints);
-        // Revalidate and repaint panel to reflect changes
         displayPanel.revalidate();
         displayPanel.repaint();
     }
-
-
 
     private void clearPanel() {
         displayPanel.removeAll();
@@ -357,12 +403,10 @@ public class ProffesorUI extends UI {
     }
 
     private void displayCoursesTable() {
-        // Clear the existing content in the displayPanel
         displayPanel.removeAll();
 
         createTable(professor.getSubjects());
 
-        // Revalidate and repaint to make sure the table is displayed properly
         displayPanel.revalidate();
         displayPanel.repaint();
     }
@@ -371,7 +415,6 @@ public class ProffesorUI extends UI {
         String[] columnNames = {"Name", "Lab Weight", "Sem Weight", "Class Weight"};
         Object[][] data = convertSubjectsToData(subjects);
 
-        // Initialize the global classTable here
         classTable = new JTable(new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -383,7 +426,6 @@ public class ProffesorUI extends UI {
 
         JScrollPane scrollPane = new JScrollPane(classTable);
 
-        // Adjust table appearance
         classTable.setFont(new Font("Arial", Font.PLAIN, 20));
         classTable.setRowHeight(40);
         JTableHeader tableHeader = classTable.getTableHeader();
@@ -413,19 +455,17 @@ public class ProffesorUI extends UI {
                 int row = e.getFirstRow();
                 int column = e.getColumn();
 
-                // Get the new value of the cell
                 Object newValue = tableModel.getValueAt(row, column);
                 Object id = tableModel.getValueAt(row, 0);
 
                 int value;
 
                 try {
-                    // Try to convert the value to an int
                     value = Integer.parseInt(newValue.toString());
 
                     Subject subject = null;
                     for (Subject s : professor.getSubjects()) {
-                        if (id.equals(s.getName())) { // Assuming Name is unique and used as an identifier
+                        if (id.equals(s.getName())) {
                             subject = s;
                             break;
                         }
@@ -448,9 +488,6 @@ public class ProffesorUI extends UI {
                 } catch (NumberFormatException ex) {
                     throw new IllegalArgumentException("Invalid input. Please enter a valid integer.");
                 }
-
-                // Update the corresponding Subject object
-
             }
         });
     }
@@ -458,55 +495,43 @@ public class ProffesorUI extends UI {
     public void displayActivities() {
         displayPanel.removeAll();
 
-        // Use BorderLayout for the main panel
         displayPanel.setLayout(new BorderLayout());
 
-        // Create a panel for the header with vertical alignment
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
-        // Set equal spacing around the button using EmptyBorder
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0)); // Top, Left, Bottom, Right padding
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
-        // Configure the button
-        downloadToFile.setPreferredSize(new Dimension(300, 70)); // Button size
-        downloadToFile.setFont(new Font("Arial", Font.BOLD, 20)); // Slightly larger font
-        downloadToFile.setAlignmentX(JComponent.CENTER_ALIGNMENT); // Center horizontally
+        downloadToFile.setPreferredSize(new Dimension(300, 70));
+        downloadToFile.setFont(new Font("Arial", Font.BOLD, 20));
+        downloadToFile.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
-        // Add the button to the header panel
         headerPanel.add(downloadToFile);
 
-        // Add the header panel to the top of the display panel
         displayPanel.add(headerPanel, BorderLayout.SOUTH);
 
-        // Define column names and data for the table
         String[] columnNames = {"Activity name", "Activity type", "Description", "Max number of students"};
         Object[][] data = convertActivityToData(professor.getProfessorActivities());
 
-        // Create and configure the table
-        activitiesTable = new JTable(new DefaultTableModel(data, columnNames) {
+        JTable activitiesTable = new JTable(new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         });
 
-        // Wrap the table in a scroll pane
         JScrollPane scrollPane = new JScrollPane(activitiesTable);
 
-        // Adjust table appearance
         activitiesTable.setFont(new Font("Arial", Font.PLAIN, 20));
         activitiesTable.setRowHeight(40);
         JTableHeader tableHeader = activitiesTable.getTableHeader();
         tableHeader.setFont(new Font("Arial", Font.BOLD, 30));
 
-        // Add the table (inside its scroll pane) to the center of the display panel
         displayPanel.add(scrollPane, BorderLayout.CENTER);
 
         addDownloadToFileButtonListener(activitiesTable, "gradesTable.txt");
 
-        // Refresh the panel
         displayPanel.revalidate();
         displayPanel.repaint();
     }

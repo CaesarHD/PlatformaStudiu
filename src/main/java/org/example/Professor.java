@@ -3,23 +3,35 @@ package org.example;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-public class Professor extends User{
+public class Professor extends User {
 
     private int maxHour;
     private int minHour;
     private String department;
     private List<Subject> subjects;
     private List<ProfessorActivity> professorActivities;
+    private List<Meeting> meetings;
+
 
     public Professor() {
         subjects = new ArrayList<>();
         professorActivities = new ArrayList<>();
+        meetings = new ArrayList<>();
     }
 
     public Professor(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
         subjects = new ArrayList<>();
         professorActivities = new ArrayList<>();
+        meetings = new ArrayList<>();
+    }
+
+    public String insertMeeting(Meeting meeting) {
+        return "INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)\n" +
+                "VALUES\n" +
+                "('" + meeting.getType() + "', '" + meeting.getStartDate() + "', ' " +
+                meeting.getEndDate() + "', " + meeting.getMaxNb() + " , '" + meeting.getDescription() + "', '" + this.CNP + "', " +
+                meeting.getClassId() + ");\n";
     }
 
     public String selectSubjects() {
@@ -30,8 +42,12 @@ public class Professor extends User{
         return ("select * from activitati_profesori where CNP_profesor = '" + this.CNP + "';");
     }
 
+    public String selectMeetings() {
+        return ("select * from programari where CNP_profesor = '" + this.CNP + "';");
+    }
+
     public void printSubjects() {
-        for(Subject s : subjects){
+        for (Subject s : subjects) {
             System.out.println(s);
         }
     }
@@ -43,8 +59,6 @@ public class Professor extends User{
     public void setSubjects(List<Subject> subjects) {
         this.subjects = subjects;
     }
-
-
 
     @Override
     public String toString() {
@@ -66,24 +80,12 @@ public class Professor extends User{
                 '}';
     }
 
-    public int getMaxHour() {
-        return maxHour;
-    }
-
     public void setMaxHour(int maxHour) {
         this.maxHour = maxHour;
     }
 
-    public int getMinHour() {
-        return minHour;
-    }
-
     public void setMinHour(int minHour) {
         this.minHour = minHour;
-    }
-
-    public String getDepartment() {
-        return department;
     }
 
     public void setDepartment(String department) {
@@ -94,8 +96,7 @@ public class Professor extends User{
         return professorActivities;
     }
 
-    public void setProfessorActivities(List<ProfessorActivity> professorActivities) {
-        this.professorActivities = professorActivities;
+    public List<Meeting> getMeetings() {
+        return meetings;
     }
 }
-
