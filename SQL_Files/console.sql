@@ -1,16 +1,6 @@
 create database proiect;
 use proiect;
 
-create table if not exists activitati_studenti
-(
-    data                     datetime    null,
-    numar_ore                int         null,
-    numar_minim_participanti int         null,
-    timp_expirare            datetime    null,
-    id_activitate            int         auto_increment
-        primary key,
-    nume                     varchar(30) null
-);
 
 create table if not exists materii
 (
@@ -27,14 +17,34 @@ create table if not exists materii
 create table if not exists grupuri_studenti
 (
     id_materie    int         null,
-    id_activitate int         null,
     id_grup       int         auto_increment
         primary key,
-    constraint grupuri_studenti_id_activitate_fk
-        foreign key (id_activitate) references activitati_studenti (id_activitate),
     constraint grupuri_studenti_materii_id_fk
         foreign key (id_materie) references materii (id)
 );
+
+create table if not exists activitati_studenti
+(
+    data                     datetime    null,
+    numar_ore                int         null,
+    numar_minim_participanti int         null,
+    id_grup                  int         null,
+    timp_expirare            datetime    null,
+    id_activitate            int         auto_increment
+        primary key,
+    nume                     varchar(30) null,
+
+# drop index activitati_studenti_grupuri_studenti_id_grup_fk on activitati_studenti;
+
+# alter table activitati_studenti
+#     add
+     constraint activitati_studenti_grupuri_studenti_id_grup_fk
+        foreign key (id_grup) references grupuri_studenti (id_grup)
+
+# alter table activitati_studenti
+#     drop foreign key activitati_studenti_grupuri_studenti_id_grup_fk;
+);
+
 
 create table if not exists utilizatori
 (
@@ -158,6 +168,16 @@ create table if not exists studenti_grupuri_studenti
         foreign key (id_grup) references grupuri_studenti (id_grup)
 );
 
+CREATE TABLE IF NOT EXISTS group_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_grup INT NOT NULL,
+    sender VARCHAR(50) NOT NULL, -- The sender's name or identifier
+    message TEXT NOT NULL,       -- The message content
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_grup) REFERENCES grupuri_studenti (id_grup) ON DELETE CASCADE
+);
+
+
 create definer = root@localhost trigger delete_user
     after delete
     on utilizatori
@@ -170,13 +190,13 @@ BEGIN
 
     DELETE FROM materii_studenti WHERE CNP_student = OLD.CNP;
 
-    DELETE FROM activitati_studenti
-    WHERE id_activitate IN (
-        SELECT gs.id_activitate
-        FROM grupuri_studenti gs
-        JOIN studenti_grupuri_studenti sgs ON gs.id_grup = sgs.id_grup
-        WHERE sgs.CNP_student = OLD.CNP
-    );
+#     DELETE FROM activitati_studenti
+#     WHERE id_activitate IN (
+#         SELECT gs.id_activitate
+#         FROM grupuri_studenti gs
+#         JOIN studenti_grupuri_studenti sgs ON gs.id_grup = sgs.id_grup
+#         WHERE sgs.CNP_student = OLD.CNP
+#     );
 
     DELETE FROM detalii_studenti WHERE CNP = OLD.CNP;
 
@@ -270,6 +290,15 @@ ADD CONSTRAINT materii_studenti_profesor_id_fk
     FOREIGN KEY (CNP_profesor)
     REFERENCES detalii_profesori(CNP)
     ON DELETE CASCADE;
+#
+# drop index activitati_studenti_grupuri_studenti_id_grup_fk on activitati_studenti;
+
+# alter table activitati_studenti
+#     add constraint activitati_studenti_grupuri_studenti_id_grup_fk
+#         foreign key (id_grup) references grupuri_studenti (id_grup);
+
+alter table activitati_studenti
+    drop foreign key activitati_studenti_grupuri_studenti_id_grup_fk;
 
 DELIMITER $$
 
@@ -672,6 +701,7 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1948434079530', '3951032160081', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '2174897302000', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '2174897302000', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '0611494230499', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2944677451359', '9636398095255', 7, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3392736662265', '4490531059273', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 1, 0);
@@ -755,22 +785,22 @@ VALUES
 ('curs', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
 ('seminar', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
 
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-01-28 23:37:40', 7, 44, '2024-02-05 23:37:40', 1, 'Cybersecurity Talk');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-05-31 08:04:47', 5, 29, '2024-06-09 08:04:47', 2, 'Algorithms Bootcamp');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-07-19 15:17:25', 6, 50, '2024-08-18 15:17:25', 3, 'Networking Basics');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-10-01 13:44:10', 1, 44, '2024-10-07 13:44:10', 4, 'Coding Camp');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-05-21 04:28:12', 1, 34, '2024-05-28 04:28:12', 5, 'Cloud Computing Seminar');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-03-11 14:58:13', 7, 10, '2024-03-28 14:58:13', 6, 'Workshop AI');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-09-12 02:29:08', 8, 9, '2024-09-28 02:29:08', 7, 'Cloud Computing Seminar');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-12-21 19:08:27', 4, 28, '2025-01-20 19:08:27', 8, 'Workshop AI');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-07-18 12:54:13', 7, 23, '2024-07-24 12:54:13', 9, 'Database Optimization');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-11-10 13:49:59', 7, 32, '2024-11-30 13:49:59', 10, 'HCI Workshop');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-01-28 23:37:40', 7, 44, 1, '2024-02-05 23:37:40', 1, 'Cybersecurity Talk');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-05-31 08:04:47', 5, 29, 1, '2024-06-09 08:04:47', 2, 'Algorithms Bootcamp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-07-19 15:17:25', 6, 50, 2, '2024-08-18 15:17:25', 3, 'Networking Basics');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-10-01 13:44:10', 1, 44, 2, '2024-10-07 13:44:10', 4, 'Coding Camp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-05-21 04:28:12', 1, 34, 3, '2024-05-28 04:28:12', 5, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-03-11 14:58:13', 7, 10, 3, '2024-03-28 14:58:13', 6, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-09-12 02:29:08', 8, 9,  4, '2024-09-28 02:29:08', 7, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-12-21 19:08:27', 4, 28, 4, '2025-01-20 19:08:27', 8, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-07-18 12:54:13', 7, 23, 5, '2024-07-24 12:54:13', 9, 'Database Optimization');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-11-10 13:49:59', 7, 32, 5,'2024-11-30 13:49:59', 10, 'HCI Workshop');
 
-INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (1, 4, 1);
-INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (2, 1, 2);
-INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (3, 8, 3);
-INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (4, 9, 4);
-INSERT INTO grupuri_studenti (id_materie, id_activitate, id_grup) VALUES (5, 6, 5);
+INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (1,  1);
+INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (2,  2);
+INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (3,  3);
+INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (4,  4);
+INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (5,  5);
 
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0042217620436', 3);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('0276964342825', 3);
@@ -789,6 +819,7 @@ INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1928611476
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('1948434079530', 1);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2264098827430', 3);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2404023608380', 1);
+INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2404023608380', 2);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('2944677451359', 2);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('3392736662265', 4);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('3646944547942', 5);
@@ -889,6 +920,10 @@ INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
 (5.0,  '2404023608380', 2),
 (5.0,  '2404023608380', 3),
 
+(7.0,  '2404023608380', 4),
+(10.0,  '2404023608380', 5),
+(9.0,  '2404023608380', 15),
+
 (7.0,  '3646944547942', 1),
 (8.0,  '3646944547942', 2),
 (9.0,  '3646944547942', 3),
@@ -932,7 +967,80 @@ SELECT nota
 #     SELECT nota
 #     FROM note_activitati where id_activitate = 1 and CNP_student = '2404023608380';
 
+# SELECT m.nume, ms.nota_finala
+# FROM materii_studenti ms
+# JOIN materii m ON ms.id_materie = m.id
+# WHERE ms.CNP_student = '2404023608380';
+#
+# SELECT
+#     m.nume AS subject_name,
+#     ap.tip_activitate AS activity_type,
+#     na.nota AS grade
+# FROM
+#     materii m
+# JOIN
+#     activitati_profesori ap ON m.id = ap.id_materie
+# LEFT JOIN
+#     note_activitati na ON ap.id_activitate = na.id_activitate
+# WHERE
+#     na.CNP_student = '2404023608380';
+#
+# SELECT
+#     m.nume AS subject_name
+# FROM
+#     studenti_grupuri_studenti sgs
+# JOIN
+#     grupuri_studenti gs ON sgs.id_grup = gs.id_grup
+# JOIN
+#     materii m ON gs.id_materie = m.id
+# WHERE
+#     sgs.CNP_student = '1948434079530';
+#
+# DELETE FROM utilizatori WHERE CNP='0042217620436';
+#
+# SELECT
+#     u.nume AS last_name,
+#     u.prenume AS first_name,
+#     u.email AS email
+# FROM
+#     studenti_grupuri_studenti sgs
+# JOIN
+#     detalii_studenti ds ON sgs.CNP_student = ds.CNP
+# JOIN
+#     utilizatori u ON ds.CNP = u.CNP
+# WHERE
+#     sgs.id_grup = 1; -- Replace YOUR_GROUP_ID with the ID of the group
 
-DELETE FROM utilizatori WHERE CNP='0042217620436';
 
 
+# DELETE FROM materii_studenti
+# WHERE CNP_student = '2404023608380' AND id_materie = 2;
+#
+# DELETE na
+# FROM note_activitati na
+# JOIN activitati_profesori ap ON na.id_activitate = ap.id_activitate
+# WHERE na.CNP_student = '2404023608380' AND ap.id_materie = 2;
+
+# DELETE FROM studenti_grupuri_studenti
+# WHERE CNP_student = '2404023608380' AND id_grup = 1;
+
+# SELECT m.nume AS subject_name, gs.id_grup AS group_id
+#                 FROM studenti_grupuri_studenti sgs
+#                 JOIN grupuri_studenti gs ON sgs.id_grup = gs.id_grup
+#                 JOIN materii m ON gs.id_materie = m.id
+#
+#
+# SELECT DISTINCT m.nume AS subject_name
+# # FROM grupuri_studenti gs
+# # JOIN materii m ON gs.id_materie = m.id;
+# #
+
+
+
+# SELECT m.nume AS subject_name
+# FROM materii m
+# WHERE m.id NOT IN (
+#     SELECT ms.id_materie
+#     FROM materii_studenti ms
+#     WHERE ms.CNP_student = '2404023608380'
+# );

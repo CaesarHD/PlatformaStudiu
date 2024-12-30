@@ -1,5 +1,9 @@
 package org.example;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -225,6 +229,18 @@ public class DBController {
         }
     }
 
+//    public void getStudents() {
+//        this.db.execute("SELECT * from utilizatori where");
+//    }
+    public void saveMessage(int groupId, String sender, String message) throws SQLException {
+        String query = "INSERT INTO group_messages (id_grup, sender, message) VALUES (?, ?, ?)";
+        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, groupId);
+            stmt.setString(2, sender);
+            stmt.setString(3, message);
+            stmt.executeUpdate();
+        }
+    }
     public static void getMeetingClassName(Meeting meeting) throws SQLException {
         db.execute("use proiect");
         Statement stmt = db.getCon().createStatement();
@@ -279,4 +295,19 @@ public class DBController {
     }
 
 
+    public List<String[]> getMessagesForGroup(int groupId) throws SQLException {
+        List<String[]> messages = new ArrayList<>();
+        String query = "SELECT sender, message, timestamp FROM group_messages WHERE id_grup = ? ORDER BY timestamp ASC";
+        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, groupId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String sender = rs.getString("sender");
+                String message = rs.getString("message");
+                String timestamp = rs.getString("timestamp");
+                messages.add(new String[]{sender, message, timestamp});
+            }
+        }
+        return messages;
+    }
 }
