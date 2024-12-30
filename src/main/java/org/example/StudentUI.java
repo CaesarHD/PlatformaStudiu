@@ -23,11 +23,10 @@ public class StudentUI {
     JButton availableCoursesButton;
 
     private Student student;
-    private DBController dbController;
 
-    public StudentUI(Student student, DBController dbController) {
+
+    public StudentUI(Student student) {
         this.student = student;
-        this.dbController = dbController;
 
         // Initialize JFrame
         jFrame = new JFrame("StudyPlatform");
@@ -127,7 +126,7 @@ public class StudentUI {
         String query = student.getSubjectsAndGrades();
 
         // Execute the query and fetch results
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 int subjectId = rs.getInt("subject_id");
@@ -178,7 +177,7 @@ public class StudentUI {
         String query = student.getAllGrades(); // Use the method from Student class to get the query
 
         // Execute the query and fetch results
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String subjectName = rs.getString("subject_name");  // Get subject name
@@ -246,7 +245,7 @@ public class StudentUI {
         List<Object[]> groups = new ArrayList<>();
         String query = student.getStudentGroups();
         // Execute the query and fetch results
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String subjectName = rs.getString("subject_name"); // Get subject name
@@ -295,7 +294,7 @@ public class StudentUI {
         String query = student.getAllStudentsForThisGroup(groupId);
 
         // Execute the query and fetch results
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String firstName = rs.getString("first_name");
@@ -312,7 +311,7 @@ public class StudentUI {
     private void leaveCourse(int subjectId, String subjectName) throws SQLException {
         // Delete from materii_studenti
         String deleteFromMateriiStudenti = "DELETE FROM materii_studenti WHERE CNP_student = ? AND id_materie = ?";
-        try (PreparedStatement stmt = dbController.db.getCon().prepareStatement(deleteFromMateriiStudenti)) {
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(deleteFromMateriiStudenti)) {
             stmt.setString(1, student.getCNP());
             stmt.setInt(2, subjectId);
             stmt.executeUpdate();
@@ -323,7 +322,7 @@ public class StudentUI {
                 "FROM note_activitati na " +
                 "JOIN activitati_profesori ap ON na.id_activitate = ap.id_activitate " +
                 "WHERE na.CNP_student = ? AND ap.id_materie = ?";
-        try (PreparedStatement stmt = dbController.db.getCon().prepareStatement(deleteFromNoteActivitati)) {
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(deleteFromNoteActivitati)) {
             stmt.setString(1, student.getCNP());
             stmt.setInt(2, subjectId);
             stmt.executeUpdate();
@@ -373,7 +372,7 @@ public class StudentUI {
 
         // Load existing messages
         try {
-            List<String[]> messages = dbController.getMessagesForGroup(groupId);
+            List<String[]> messages = DBController.getMessagesForGroup(groupId);
             for (String[] message : messages) {
                 String sender = message[0];
                 String content = message[1];
@@ -388,7 +387,7 @@ public class StudentUI {
             String message = inputField.getText().trim();
             if (!message.isEmpty()) {
                 try {
-                    dbController.saveMessage(groupId, student.getFirstName() + " " + student.getSecondName(), message);
+                    DBController.saveMessage(groupId, student.getFirstName() + " " + student.getSecondName(), message);
                     chatArea.append("[Now] You: " + message + "\n");
                     inputField.setText("");
                 } catch (SQLException ex) {
@@ -506,7 +505,7 @@ public class StudentUI {
         try {
             // Delete the student from the group
             String query = "DELETE FROM studenti_grupuri_studenti WHERE CNP_student = ? AND id_grup = ?";
-            try (PreparedStatement stmt = dbController.db.getCon().prepareStatement(query)) {
+            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
                 stmt.setString(1, student.getCNP());
                 stmt.setInt(2, groupId);
                 stmt.executeUpdate();
@@ -577,7 +576,7 @@ public class StudentUI {
                 "    WHERE CNP_student = '" + student.getCNP() + "'" +
                 ")";
 
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String subjectName = rs.getString("subject_name");
@@ -640,7 +639,7 @@ public class StudentUI {
 
     private void joinGroup(int groupId) throws SQLException {
         String query = "INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES (?, ?)";
-        try (PreparedStatement stmt = dbController.db.getCon().prepareStatement(query)) {
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setString(1, student.getCNP());
             stmt.setInt(2, groupId);
             stmt.executeUpdate();
@@ -662,7 +661,7 @@ public class StudentUI {
                 "    WHERE ms.CNP_student = '" + student.getCNP() + "'" +
                 ")";
 
-        try (Statement stmt = dbController.db.getCon().createStatement();
+        try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String courseName = rs.getString("course_name");
@@ -767,7 +766,7 @@ public class StudentUI {
 
     private void enrollInCourse(int courseId) throws SQLException {
         String query = "INSERT INTO materii_studenti (CNP_student, id_materie) VALUES (?, ?)";
-        try (PreparedStatement stmt = dbController.db.getCon().prepareStatement(query)) {
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setString(1, student.getCNP());
             stmt.setInt(2, courseId);
             stmt.executeUpdate();

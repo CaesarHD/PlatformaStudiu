@@ -22,12 +22,10 @@ public class AdminUI extends Component
     private JButton addUserButton;
 
     private Admin admin;
-    private DBController dbController;
 
-    public AdminUI(Admin admin, DBController dbController) {
+
+    public AdminUI(Admin admin) {
         this.admin = admin;
-        this.dbController = dbController;
-
 
         jFrame = new JFrame("Admin Panel");
         jFrame.setSize(800, 600);
@@ -81,7 +79,7 @@ public class AdminUI extends Component
             if (confirm == JOptionPane.YES_OPTION)
             {
                 jFrame.dispose();
-                new LogInUI(dbController.getDatabase());
+                new LogInUI();
             }
         });
 
@@ -170,7 +168,7 @@ public class AdminUI extends Component
                     User newUser = new User(cnp, firstName, secondName, address, phoneNumber, email, iban,
                             parsedContractNumber, password, userType);
 
-                    dbController.addUser(admin, newUser); // Apel DBController
+                    DBController.addUser(admin, newUser); // Apel DBController
                     JOptionPane.showMessageDialog(jFrame, "User added successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -207,7 +205,7 @@ public class AdminUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide a valid CNP!");
             } else {
                 try {
-                    dbController.deleteUser(admin, cnp);
+                    DBController.deleteUser(admin, cnp);
                     JOptionPane.showMessageDialog(jFrame, "User deleted successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -264,7 +262,7 @@ public class AdminUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide valid inputs!");
             } else {
                 try {
-                    dbController.updateUser(admin, cnp, field, value); 
+                    DBController.updateUser(admin, cnp, field, value);
                     JOptionPane.showMessageDialog(jFrame, "User updated successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -300,7 +298,7 @@ public class AdminUI extends Component
             String name = JOptionPane.showInputDialog("Enter name: ");
             String firstname = JOptionPane.showInputDialog("Enter firstname: ");
             try {
-                ResultSet rs = dbController.searchUser(admin, name,firstname);
+                ResultSet rs = DBController.searchUser(admin, name,firstname);
                 StringBuilder results = new StringBuilder();
 
 
@@ -360,7 +358,7 @@ public class AdminUI extends Component
         filterButton.addActionListener(e -> {
             String userType = JOptionPane.showInputDialog("Enter user type:").trim();
             try {
-                ResultSet rs = dbController.filterUser(admin, userType);
+                ResultSet rs = DBController.filterUser(admin, userType);
                 StringBuilder results = new StringBuilder();
 
                 while (rs.next()) {
@@ -415,7 +413,7 @@ public class AdminUI extends Component
     private void displayStudentsForCourse(int courseId)
     {
         try {
-            ResultSet rs = dbController.getStudentsForCourse(admin, courseId);
+            ResultSet rs = DBController.getStudentsForCourse(admin, courseId);
             StringBuilder result = new StringBuilder("All students enrolled:\n");
 
             while (rs.next()) {
@@ -465,7 +463,7 @@ public class AdminUI extends Component
 
             try {
                 int idMaterie = Integer.parseInt(idMaterieStr);
-                dbController.assignProfessor(admin, profCNP, idMaterie);
+                DBController.assignProfessor(admin, profCNP, idMaterie);
                 JOptionPane.showMessageDialog(null, "The professor was assigned to the course successfully. ");
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "The id has to be a valid number. ");
@@ -506,7 +504,7 @@ public class AdminUI extends Component
             }
 
             try {
-                ResultSet rs = dbController.searchCourseByName(admin, courseName);
+                ResultSet rs = DBController.searchCourseByName(admin, courseName);
                 List<Integer> courseIds = new ArrayList<>();
                 StringBuilder result = new StringBuilder();
 

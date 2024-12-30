@@ -22,12 +22,10 @@ public class SuperAdministratorUI extends Component
     private JButton addUserButton;
 
     private SuperAdministrator sadmin;
-    private DBController dbController;
 
-    public SuperAdministratorUI(SuperAdministrator sadmin, DBController dbController) {
+
+    public SuperAdministratorUI(SuperAdministrator sadmin) {
         this.sadmin = sadmin;
-        this.dbController = dbController;
-
 
         jFrame = new JFrame("Super-Administrator Panel");
         jFrame.setSize(800, 600);
@@ -80,7 +78,7 @@ public class SuperAdministratorUI extends Component
 
             if (confirm == JOptionPane.YES_OPTION) {
                 jFrame.dispose();
-                new LogInUI(dbController.getDatabase());
+                new LogInUI();
             }
         });
         jFrame.setVisible(true);
@@ -168,7 +166,7 @@ public class SuperAdministratorUI extends Component
                     User newUser = new User(cnp, firstName, secondName, address, phoneNumber, email, iban,
                             parsedContractNumber, password, userType);
 
-                    dbController.addUser2(sadmin, newUser);
+                    DBController.addUser2(sadmin, newUser);
                     JOptionPane.showMessageDialog(jFrame, "User added successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -205,7 +203,7 @@ public class SuperAdministratorUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide a valid CNP!");
             } else {
                 try {
-                    dbController.deleteUser2(sadmin, cnp);
+                    DBController.deleteUser2(sadmin, cnp);
                     JOptionPane.showMessageDialog(jFrame, "User deleted successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -262,7 +260,7 @@ public class SuperAdministratorUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide valid inputs!");
             } else {
                 try {
-                    dbController.updateUser2(sadmin, cnp, field, value);
+                    DBController.updateUser2(sadmin, cnp, field, value);
                     JOptionPane.showMessageDialog(jFrame, "User updated successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -298,7 +296,7 @@ public class SuperAdministratorUI extends Component
             String name = JOptionPane.showInputDialog("Enter name: ");
             String firstname = JOptionPane.showInputDialog("Enter firstname: ");
             try {
-                ResultSet rs = dbController.searchUser2(sadmin, name,firstname);
+                ResultSet rs = DBController.searchUser2(sadmin, name,firstname);
                 StringBuilder results = new StringBuilder();
 
 
@@ -358,7 +356,7 @@ public class SuperAdministratorUI extends Component
         filterButton.addActionListener(e -> {
             String userType = JOptionPane.showInputDialog("Enter user type:").trim();
             try {
-                ResultSet rs = dbController.filterUser2(sadmin, userType);
+                ResultSet rs = DBController.filterUser2(sadmin, userType);
                 StringBuilder results = new StringBuilder();
 
                 while (rs.next()) {
@@ -413,7 +411,7 @@ public class SuperAdministratorUI extends Component
     private void displayStudentsForCourse(int courseId)
     {
         try {
-            ResultSet rs = dbController.getStudentsForCourse2(sadmin, courseId);
+            ResultSet rs = DBController.getStudentsForCourse2(sadmin, courseId);
             StringBuilder result = new StringBuilder("All students enrolled:\n");
 
             while (rs.next()) {
@@ -463,7 +461,7 @@ public class SuperAdministratorUI extends Component
 
             try {
                 int idMaterie = Integer.parseInt(idMaterieStr);
-                dbController.assignProfessor2(sadmin, profCNP, idMaterie);
+                DBController.assignProfessor2(sadmin, profCNP, idMaterie);
                 JOptionPane.showMessageDialog(null, "The professor was assigned to the course successfully. ");
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "The id has to be a valid number. ");
@@ -504,7 +502,7 @@ public class SuperAdministratorUI extends Component
             }
 
             try {
-                ResultSet rs = dbController.searchCourseByName2(sadmin, courseName);
+                ResultSet rs = DBController.searchCourseByName2(sadmin, courseName);
                 List<Integer> courseIds = new ArrayList<>();
                 StringBuilder result = new StringBuilder();
 

@@ -18,7 +18,7 @@ public class AdelinMain {
         // Ensure the retrieved user is a Student
         if (user instanceof Student student) {
             // Initialize the UI with the student and the database controller
-            new StudentUI(student, dbController);
+            new StudentUI(student);
         } else {
             System.out.println("Error: Retrieved user is not a Student.");
         }

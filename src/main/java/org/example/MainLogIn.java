@@ -10,7 +10,7 @@ public class MainLogIn {
             System.out.println("Connecting to the database...");
             db.connect("root", "root");
 
-            new LogInUI(db);
+            new LogInUI();
 
         } catch (Exception e) {
 

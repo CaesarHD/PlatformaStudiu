@@ -16,17 +16,13 @@ public class LogInUI {
     private JButton loginButton;
     private JLabel imageLabel;
 
-    private DataBase db;
 
-    public LogInUI(DataBase db) {
-        this.db = db;
-        db.execute("USE proiect");
+    public LogInUI() {
+
+
         initUI();
     }
 
-    public LogInUI() {
-        this(new DataBase());
-    }
 
     private void initUI() {
         frame = new JFrame("Login Panel - StudyPlatform");
@@ -107,7 +103,7 @@ public class LogInUI {
 
         String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE CNP = ? AND parola = ?";
 
-        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setString(1, cnp);
             stmt.setString(2, password);
 
@@ -131,11 +127,11 @@ public class LogInUI {
      * Retrieves the user data (all fields) from the database table `utilizatori` based on the provided CNP.
      */
     private ResultSet getUserDataFromDB(String cnp) throws SQLException {
-        db.execute("use proiect");
+        DBController.db.execute("use proiect");
 
         String query = "SELECT CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, parola, tip_utilizator FROM utilizatori WHERE CNP = ?";
 
-        PreparedStatement pstmt = db.getCon().prepareStatement(query);
+        PreparedStatement pstmt = DBController.db.getCon().prepareStatement(query);
         pstmt.setString(1, cnp);
 
         return pstmt.executeQuery();
@@ -180,7 +176,7 @@ public class LogInUI {
                                 resultSet.getString("parola"),
                                 resultSet.getString("tip_utilizator")
                         );
-                        new StudentUI(student, new DBController(db));
+                        new StudentUI(student);
                     }
                     case "professor" -> {
                         Professor professor = new Professor(
@@ -195,7 +191,7 @@ public class LogInUI {
                                 resultSet.getString("parola"),
                                 resultSet.getString("tip_utilizator")
                         );
-                        new ProffesorUI(professor, new DBController(db));
+                        new ProffesorUI(professor);
                     }
                     case "administrator" -> {
                         Admin admin = new Admin(
@@ -210,7 +206,7 @@ public class LogInUI {
                                 resultSet.getString("parola"),
                                 resultSet.getString("tip_utilizator")
                         );
-                        new AdminUI(admin, new DBController(db));
+                        new AdminUI(admin);
                     }
                     case "super-administrator" -> {
                         SuperAdministrator sadmin = new SuperAdministrator(
@@ -225,7 +221,7 @@ public class LogInUI {
                                 resultSet.getString("parola"),
                                 resultSet.getString("tip_utilizator")
                         );
-                        new SuperAdministratorUI(sadmin, new DBController(db));
+                        new SuperAdministratorUI(sadmin);
                     }
                     default -> JOptionPane.showMessageDialog(frame, "Unknown user type!", "Error", JOptionPane.ERROR_MESSAGE);
                 }

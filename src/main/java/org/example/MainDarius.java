@@ -16,7 +16,7 @@ public class MainDarius {
 
 
            // SwingUtilities.invokeLater(() -> new AdminUI(admin, dbController));
-            SwingUtilities.invokeLater(() -> new SuperAdministratorUI(sadmin, dbController));
+            SwingUtilities.invokeLater(() -> new SuperAdministratorUI(sadmin));
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error starting application: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

@@ -232,7 +232,7 @@ public class DBController {
 //    public void getStudents() {
 //        this.db.execute("SELECT * from utilizatori where");
 //    }
-    public void saveMessage(int groupId, String sender, String message) throws SQLException {
+    public static void saveMessage(int groupId, String sender, String message) throws SQLException {
         String query = "INSERT INTO group_messages (id_grup, sender, message) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
             stmt.setInt(1, groupId);
@@ -291,7 +291,7 @@ public class DBController {
 //    }
     // functii pt admin
 
-    public void addUser(Admin admin, User user) throws SQLException {
+    public static void addUser(Admin admin, User user) throws SQLException {
 
         if (!user.getUserType().equalsIgnoreCase("student") &&
                 !user.getUserType().equalsIgnoreCase("profesor")) {
@@ -299,9 +299,9 @@ public class DBController {
         }
 
         String query = admin.addUser();
-        this.db.execute("use proiect");
+        db.execute("use proiect");
 
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query)) {
 
             pstmt.setString(1, user.getCNP());
             pstmt.setString(2, user.getSecondName());
@@ -320,12 +320,12 @@ public class DBController {
         }
     }
 
-    public void deleteUser(Admin admin, String CNP) throws SQLException {
-        this.db.execute("use proiect");
+    public static void deleteUser(Admin admin, String CNP) throws SQLException {
+        db.execute("use proiect");
 
 
         String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
-        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+        try (PreparedStatement checkPstmt = db.getCon().prepareStatement(checkQuery)) {
             checkPstmt.setString(1, CNP);
             ResultSet rs = checkPstmt.executeQuery();
 
@@ -343,7 +343,7 @@ public class DBController {
 
 
         String query = admin.deleteUser(); // Modificăm `deleteUser` din Admin să returneze un query cu parametri
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query)) {
             pstmt.setString(1, CNP);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -351,12 +351,12 @@ public class DBController {
         }
     }
 
-    public void updateUser(Admin admin, String CNP, String field, String newValue) throws SQLException {
-        this.db.execute("use proiect");
+    public static void updateUser(Admin admin, String CNP, String field, String newValue) throws SQLException {
+        db.execute("use proiect");
 
 
         String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
-        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+        try (PreparedStatement checkPstmt = db.getCon().prepareStatement(checkQuery)) {
             checkPstmt.setString(1, CNP);
             ResultSet rs = checkPstmt.executeQuery();
 
@@ -374,7 +374,7 @@ public class DBController {
 
 
         String query = admin.updateUser();
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query)) {
             pstmt.setString(1, newValue);
             pstmt.setString(2, CNP);
             pstmt.setString(3, field); // Aici presupunem că field este parametrizat în query
@@ -384,50 +384,50 @@ public class DBController {
         }
     }
 
-    public ResultSet searchUser(Admin admin, String name, String lastName) throws SQLException {
+    public static ResultSet searchUser(Admin admin, String name, String lastName) throws SQLException {
         String query = admin.searchUser();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, "%" + name + "%");
         pstmt.setString(2, "%" + lastName + "%");
         return pstmt.executeQuery();
     }
 
-    public ResultSet filterUser(Admin admin, String userType) throws SQLException {
+    public static ResultSet filterUser(Admin admin, String userType) throws SQLException {
         String query = admin.filterUser();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, userType);
         return pstmt.executeQuery();
     }
 
-    public void assignProfessor(Admin admin, String profCNP, int id) throws SQLException {
+    public static void assignProfessor(Admin admin, String profCNP, int id) throws SQLException {
         String query = admin.assignProfessor();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, profCNP);
         pstmt.setInt(2, id);
         pstmt.executeUpdate();
         pstmt.close();
     }
 
-    public ResultSet searchCourseByName(Admin admin, String courseName) throws SQLException {
+    public static ResultSet searchCourseByName(Admin admin, String courseName) throws SQLException {
         String query = admin.searchCourseByName();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, "%" + courseName + "%");
         return pstmt.executeQuery();
     }
 
-    public ResultSet getStudentsForCourse(Admin admin, int courseId) throws SQLException {
+    public static ResultSet getStudentsForCourse(Admin admin, int courseId) throws SQLException {
         String query = admin.getStudentsForCourseQuery();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setInt(1, courseId);
         return pstmt.executeQuery();
     }
 
-    public List<String[]> getMessagesForGroup(int groupId) throws SQLException {
+    public static List<String[]> getMessagesForGroup(int groupId) throws SQLException {
         List<String[]> messages = new ArrayList<>();
         String query = "SELECT sender, message, timestamp FROM group_messages WHERE id_grup = ? ORDER BY timestamp ASC";
         try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
@@ -445,12 +445,12 @@ public class DBController {
 
     // functii pt super admin
 
-    public void addUser2(SuperAdministrator sadmin, User user) throws SQLException
+    public static void addUser2(SuperAdministrator sadmin, User user) throws SQLException
     {
         String query = sadmin.addUser2();
-        this.db.execute("use proiect");
+        db.execute("use proiect");
 
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query))
         {
             pstmt.setString(1, user.getCNP());
             pstmt.setString(2, user.getSecondName());
@@ -470,12 +470,12 @@ public class DBController {
         }
     }
 
-    public void deleteUser2(SuperAdministrator sadmin, String CNP) throws SQLException
+    public static void deleteUser2(SuperAdministrator sadmin, String CNP) throws SQLException
     {
-        this.db.execute("use proiect");
+        db.execute("use proiect");
 
         String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
-        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+        try (PreparedStatement checkPstmt = db.getCon().prepareStatement(checkQuery)) {
             checkPstmt.setString(1, CNP);
             ResultSet rs = checkPstmt.executeQuery();
 
@@ -495,7 +495,7 @@ public class DBController {
 
 
         String query = sadmin.deleteUser2();
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query))
         {
             pstmt.setString(1, CNP);
             pstmt.executeUpdate();
@@ -504,12 +504,12 @@ public class DBController {
         }
     }
 
-    public void updateUser2(SuperAdministrator sadmin, String CNP, String field, String newValue) throws SQLException
+    public static void updateUser2(SuperAdministrator sadmin, String CNP, String field, String newValue) throws SQLException
     {
-        this.db.execute("use proiect");
+        db.execute("use proiect");
 
         String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
-        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery))
+        try (PreparedStatement checkPstmt = db.getCon().prepareStatement(checkQuery))
         {
             checkPstmt.setString(1, CNP);
             ResultSet rs = checkPstmt.executeQuery();
@@ -528,7 +528,7 @@ public class DBController {
 
 
         String query = sadmin.updateUser2();
-        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        try (PreparedStatement pstmt = db.getCon().prepareStatement(query))
         {
             pstmt.setString(1, newValue);
             pstmt.setString(2, CNP);
@@ -540,50 +540,50 @@ public class DBController {
         }
     }
 
-    public ResultSet searchUser2(SuperAdministrator sadmin, String name, String lastName) throws SQLException
+    public static ResultSet searchUser2(SuperAdministrator sadmin, String name, String lastName) throws SQLException
     {
         String query = sadmin.searchUser2();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, "%" + name + "%");
         pstmt.setString(2, "%" + lastName + "%");
         return pstmt.executeQuery();
     }
 
-    public ResultSet filterUser2(SuperAdministrator sadmin, String userType) throws SQLException
+    public static ResultSet filterUser2(SuperAdministrator sadmin, String userType) throws SQLException
     {
         String query = sadmin.filterUser2();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, userType);
         return pstmt.executeQuery();
     }
 
-    public void assignProfessor2(SuperAdministrator sadmin, String profCNP, int id) throws SQLException
+    public static void assignProfessor2(SuperAdministrator sadmin, String profCNP, int id) throws SQLException
     {
         String query = sadmin.assignProfessor2();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, profCNP);
         pstmt.setInt(2, id);
         pstmt.executeUpdate();
         pstmt.close();
     }
 
-    public ResultSet searchCourseByName2(SuperAdministrator sadmin, String courseName) throws SQLException
+    public static ResultSet searchCourseByName2(SuperAdministrator sadmin, String courseName) throws SQLException
     {
         String query = sadmin.searchCourseByName2();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setString(1, "%" + courseName + "%");
         return pstmt.executeQuery();
     }
 
-    public ResultSet getStudentsForCourse2(SuperAdministrator sadmin, int courseId) throws SQLException
+    public static ResultSet getStudentsForCourse2(SuperAdministrator sadmin, int courseId) throws SQLException
     {
         String query = sadmin.getStudentsForCourseQuery2();
-        this.db.execute("use proiect");
-        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        db.execute("use proiect");
+        PreparedStatement pstmt = db.getCon().prepareStatement(query);
         pstmt.setInt(1, courseId);
         return pstmt.executeQuery();
     }
