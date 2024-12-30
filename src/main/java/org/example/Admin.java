@@ -13,48 +13,47 @@ public class Admin extends User
     }
 
 
-    public String deleteUser(String CNP)
-    {
-        return "DELETE FROM utilizatori WHERE CNP = '" + CNP + "'";
-
+    public String addUser() {
+        return "INSERT INTO utilizatori (CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, parola, tip_utilizator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
 
-    public String updateUser(String CNP,String field, String newValue)
-    {
-        return "UPDATE utilizatori SET " + field + " = '" + newValue + "' WHERE CNP = '" + CNP + "';";
-
+    public String deleteUser() {
+        return "DELETE FROM utilizatori WHERE CNP = ? AND (tip_utilizator = 'student' OR tip_utilizator = 'profesor')";
     }
 
-    public String searchUser(String name) throws SQLException
-    {
-
-       return "SELECT * FROM utilizatori WHERE nume LIKE '%" + name + "%';";
-
+    public String updateUser() {
+        return "UPDATE utilizatori SET ? = ? WHERE CNP = ? AND (tip_utilizator = 'student' OR tip_utilizator = 'profesor')";
     }
 
-    public String filterUser(String userType) throws SQLException
+    public String searchUser()
     {
-        return "SELECT * FROM utilizatori WHERE tip_utilizator = '" + userType + "';";
+        return "SELECT cnp, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator " +
+                "FROM utilizatori WHERE nume LIKE ? AND prenume LIKE ?;";
     }
 
-    public String assignProfessor(String profCNP,int id)
-    {
-        return "INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('" + profCNP + "', " + id + ");";
+    public String filterUser() {
+        return "SELECT cnp, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, tip_utilizator " +
+                "FROM utilizatori WHERE tip_utilizator = ?;";
     }
 
-    public String searchCourseByName(String materie) throws SQLException
-    {
+    public String assignProfessor() {
+        return "INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES (?, ?);";
+    }
+
+    public String searchCourseByName() {
         return "SELECT m.id, m.nume, u.nume AS nume_profesor, u.prenume AS prenume_profesor " +
-                        "FROM materii m " + "JOIN profesori_materii pm ON m.id = pm.id_materie " +
-                        "JOIN utilizatori u ON pm.CNP_profesor = u.CNP " +
-                        "WHERE m.nume LIKE '%" + materie + "%';";
+                "FROM materii m " +
+                "JOIN profesori_materii pm ON m.id = pm.id_materie " +
+                "JOIN utilizatori u ON pm.CNP_profesor = u.CNP " +
+                "WHERE m.nume LIKE ?;";
     }
 
-    public String listStudents(int id) throws  SQLException
-    {
-        return "SELECT u.nume, u.prenume " + "FROM studenti_grupuri_studenti sgs " +
-                        "JOIN utilizatori u ON sgs.CNP_student = u.CNP " +
-                        "WHERE sgs.id_grup IN (SELECT id_grup FROM grupuri_studenti WHERE id_activitate = " + id + ");";
+    public String getStudentsForCourseQuery() {
+        return "SELECT u.nume, u.prenume " +
+                "FROM materii_studenti sm " +
+                "JOIN utilizatori u ON sm.CNP_student = u.CNP " +
+                "WHERE sm.id_materie = ?;";
     }
+
 
 }

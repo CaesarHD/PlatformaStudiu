@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminUI extends Component
+public class SuperAdministratorUI extends Component
 {
     private JFrame jFrame;
     private JPanel mainPanel;
@@ -21,15 +21,15 @@ public class AdminUI extends Component
     private JButton logoutButton;
     private JButton addUserButton;
 
-    private Admin admin;
+    private SuperAdministrator sadmin;
     private DBController dbController;
 
-    public AdminUI(Admin admin, DBController dbController) {
-        this.admin = admin;
+    public SuperAdministratorUI(SuperAdministrator sadmin, DBController dbController) {
+        this.sadmin = sadmin;
         this.dbController = dbController;
 
 
-        jFrame = new JFrame("Admin Panel");
+        jFrame = new JFrame("Super-Administrator Panel");
         jFrame.setSize(800, 600);
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.setLayout(new BorderLayout());
@@ -78,13 +78,11 @@ public class AdminUI extends Component
                     "Log Out Confirmation",
                     JOptionPane.YES_NO_OPTION);
 
-            if (confirm == JOptionPane.YES_OPTION)
-            {
+            if (confirm == JOptionPane.YES_OPTION) {
                 jFrame.dispose();
                 new LogInUI(dbController.getDatabase());
             }
         });
-
         jFrame.setVisible(true);
     }
 
@@ -170,7 +168,7 @@ public class AdminUI extends Component
                     User newUser = new User(cnp, firstName, secondName, address, phoneNumber, email, iban,
                             parsedContractNumber, password, userType);
 
-                    dbController.addUser(admin, newUser); // Apel DBController
+                    dbController.addUser2(sadmin, newUser);
                     JOptionPane.showMessageDialog(jFrame, "User added successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -207,7 +205,7 @@ public class AdminUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide a valid CNP!");
             } else {
                 try {
-                    dbController.deleteUser(admin, cnp);
+                    dbController.deleteUser2(sadmin, cnp);
                     JOptionPane.showMessageDialog(jFrame, "User deleted successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -264,7 +262,7 @@ public class AdminUI extends Component
                 JOptionPane.showMessageDialog(jFrame, "Please provide valid inputs!");
             } else {
                 try {
-                    dbController.updateUser(admin, cnp, field, value); 
+                    dbController.updateUser2(sadmin, cnp, field, value);
                     JOptionPane.showMessageDialog(jFrame, "User updated successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {
@@ -300,7 +298,7 @@ public class AdminUI extends Component
             String name = JOptionPane.showInputDialog("Enter name: ");
             String firstname = JOptionPane.showInputDialog("Enter firstname: ");
             try {
-                ResultSet rs = dbController.searchUser(admin, name,firstname);
+                ResultSet rs = dbController.searchUser2(sadmin, name,firstname);
                 StringBuilder results = new StringBuilder();
 
 
@@ -337,7 +335,7 @@ public class AdminUI extends Component
     private void displayFilterUserPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel typeLabel = new JLabel("Press 'Filter' to enter an user type (e.g., professor, administrator):");
-       // JTextField typeField = new JTextField();
+        // JTextField typeField = new JTextField();
         JButton filterButton = new JButton("Filter");
         JButton cancelButton = new JButton("Cancel");
 
@@ -360,7 +358,7 @@ public class AdminUI extends Component
         filterButton.addActionListener(e -> {
             String userType = JOptionPane.showInputDialog("Enter user type:").trim();
             try {
-                ResultSet rs = dbController.filterUser(admin, userType);
+                ResultSet rs = dbController.filterUser2(sadmin, userType);
                 StringBuilder results = new StringBuilder();
 
                 while (rs.next()) {
@@ -393,7 +391,7 @@ public class AdminUI extends Component
     }
 
     private JTable buildUserTable(ResultSet resultSet) throws SQLException, SQLException {
-
+        // Extragem coloanele și datele din ResultSet
         String[] columns = {"CNP", "First Name", "Second Name", "User Type"};
         List<String[]> data = new ArrayList<>();
 
@@ -407,7 +405,7 @@ public class AdminUI extends Component
             data.add(row);
         }
 
-
+        // Construim JTable
         String[][] dataArray = data.toArray(new String[0][]);
         return new JTable(dataArray, columns);
     }
@@ -415,7 +413,7 @@ public class AdminUI extends Component
     private void displayStudentsForCourse(int courseId)
     {
         try {
-            ResultSet rs = dbController.getStudentsForCourse(admin, courseId);
+            ResultSet rs = dbController.getStudentsForCourse2(sadmin, courseId);
             StringBuilder result = new StringBuilder("All students enrolled:\n");
 
             while (rs.next()) {
@@ -434,7 +432,7 @@ public class AdminUI extends Component
         }
     }
 
-
+    // Assign Professor Panel
     private void displayAssignProfessorPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 1));
         JLabel cnpLabel = new JLabel(" Press 'Assign' and enter the CNP of the professor and the ID of the course:");
@@ -465,7 +463,7 @@ public class AdminUI extends Component
 
             try {
                 int idMaterie = Integer.parseInt(idMaterieStr);
-                dbController.assignProfessor(admin, profCNP, idMaterie);
+                dbController.assignProfessor2(sadmin, profCNP, idMaterie);
                 JOptionPane.showMessageDialog(null, "The professor was assigned to the course successfully. ");
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "The id has to be a valid number. ");
@@ -506,7 +504,7 @@ public class AdminUI extends Component
             }
 
             try {
-                ResultSet rs = dbController.searchCourseByName(admin, courseName);
+                ResultSet rs = dbController.searchCourseByName2(sadmin, courseName);
                 List<Integer> courseIds = new ArrayList<>();
                 StringBuilder result = new StringBuilder();
 

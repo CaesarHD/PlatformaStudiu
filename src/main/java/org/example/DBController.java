@@ -286,14 +286,146 @@ public class DBController {
     public static void updateMeeting(Meeting meeting) {
         db.execute(meeting.updateMeeting());
     }
+//    public void getStudents() {
+//        this.db.execute("SELECT * from utilizatori where");
+//    }
+    // functii pt admin
 
-    public void searchUser(String query) throws SQLException
-    {
-        db.execute("use proiect");
-        db.execute(query);
+    public void addUser(Admin admin, User user) throws SQLException {
 
+        if (!user.getUserType().equalsIgnoreCase("student") &&
+                !user.getUserType().equalsIgnoreCase("profesor")) {
+            throw new IllegalArgumentException("Only users of type 'student' or 'profesor' can be added!");
+        }
+
+        String query = admin.addUser();
+        this.db.execute("use proiect");
+
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+
+            pstmt.setString(1, user.getCNP());
+            pstmt.setString(2, user.getSecondName());
+            pstmt.setString(3, user.getFirstName());
+            pstmt.setString(4, user.getAddress());
+            pstmt.setString(5, user.getPhoneNumber());
+            pstmt.setString(6, user.getEmail());
+            pstmt.setString(7, user.getIban());
+            pstmt.setInt(8, user.getContractNumber());
+            pstmt.setString(9, user.getPassword());
+            pstmt.setString(10, user.getUserType());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error adding user: " + e.getMessage());
+        }
     }
 
+    public void deleteUser(Admin admin, String CNP) throws SQLException {
+        this.db.execute("use proiect");
+
+
+        String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
+        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+            checkPstmt.setString(1, CNP);
+            ResultSet rs = checkPstmt.executeQuery();
+
+            if (rs.next()) {
+                String userType = rs.getString("tip_utilizator");
+                if (userType.equalsIgnoreCase("administrator") || userType.equalsIgnoreCase("super-administrator")) {
+                    throw new SecurityException("You cannot delete users of type 'administrator' or 'super-administrator'!");
+                }
+            } else {
+                throw new IllegalArgumentException("No user found with the given CNP!");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking user type: " + e.getMessage());
+        }
+
+
+        String query = admin.deleteUser(); // Modificăm `deleteUser` din Admin să returneze un query cu parametri
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+            pstmt.setString(1, CNP);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting user: " + e.getMessage());
+        }
+    }
+
+    public void updateUser(Admin admin, String CNP, String field, String newValue) throws SQLException {
+        this.db.execute("use proiect");
+
+
+        String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
+        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+            checkPstmt.setString(1, CNP);
+            ResultSet rs = checkPstmt.executeQuery();
+
+            if (rs.next()) {
+                String userType = rs.getString("tip_utilizator");
+                if (userType.equalsIgnoreCase("administrator") || userType.equalsIgnoreCase("super-administrator")) {
+                    throw new SecurityException("You cannot update users of type 'administrator' or 'super-administrator'!");
+                }
+            } else {
+                throw new IllegalArgumentException("No user found with the given CNP!");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking user type: " + e.getMessage());
+        }
+
+
+        String query = admin.updateUser();
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query)) {
+            pstmt.setString(1, newValue);
+            pstmt.setString(2, CNP);
+            pstmt.setString(3, field); // Aici presupunem că field este parametrizat în query
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating user: " + e.getMessage());
+        }
+    }
+
+    public ResultSet searchUser(Admin admin, String name, String lastName) throws SQLException {
+        String query = admin.searchUser();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, "%" + name + "%");
+        pstmt.setString(2, "%" + lastName + "%");
+        return pstmt.executeQuery();
+    }
+
+    public ResultSet filterUser(Admin admin, String userType) throws SQLException {
+        String query = admin.filterUser();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, userType);
+        return pstmt.executeQuery();
+    }
+
+    public void assignProfessor(Admin admin, String profCNP, int id) throws SQLException {
+        String query = admin.assignProfessor();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, profCNP);
+        pstmt.setInt(2, id);
+        pstmt.executeUpdate();
+        pstmt.close();
+    }
+
+    public ResultSet searchCourseByName(Admin admin, String courseName) throws SQLException {
+        String query = admin.searchCourseByName();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, "%" + courseName + "%");
+        return pstmt.executeQuery();
+    }
+
+    public ResultSet getStudentsForCourse(Admin admin, int courseId) throws SQLException {
+        String query = admin.getStudentsForCourseQuery();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setInt(1, courseId);
+        return pstmt.executeQuery();
+    }
 
     public List<String[]> getMessagesForGroup(int groupId) throws SQLException {
         List<String[]> messages = new ArrayList<>();
@@ -310,4 +442,150 @@ public class DBController {
         }
         return messages;
     }
+
+    // functii pt super admin
+
+    public void addUser2(SuperAdministrator sadmin, User user) throws SQLException
+    {
+        String query = sadmin.addUser2();
+        this.db.execute("use proiect");
+
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        {
+            pstmt.setString(1, user.getCNP());
+            pstmt.setString(2, user.getSecondName());
+            pstmt.setString(3, user.getFirstName());
+            pstmt.setString(4, user.getAddress());
+            pstmt.setString(5, user.getPhoneNumber());
+            pstmt.setString(6, user.getEmail());
+            pstmt.setString(7, user.getIban());
+            pstmt.setInt(8, user.getContractNumber());
+            pstmt.setString(9, user.getPassword());
+            pstmt.setString(10, user.getUserType());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e)
+        {
+            throw new RuntimeException("Error adding user: " + e.getMessage());
+        }
+    }
+
+    public void deleteUser2(SuperAdministrator sadmin, String CNP) throws SQLException
+    {
+        this.db.execute("use proiect");
+
+        String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
+        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery)) {
+            checkPstmt.setString(1, CNP);
+            ResultSet rs = checkPstmt.executeQuery();
+
+            if (rs.next())
+            {
+                String userType = rs.getString("tip_utilizator");
+                if ( userType.equalsIgnoreCase("super-administrator"))
+                {
+                    throw new SecurityException("You cannot delete users of type 'super-administrator'!");
+                }
+            } else {
+                throw new IllegalArgumentException("No user found with the given CNP!");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking user type: " + e.getMessage());
+        }
+
+
+        String query = sadmin.deleteUser2();
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        {
+            pstmt.setString(1, CNP);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting user: " + e.getMessage());
+        }
+    }
+
+    public void updateUser2(SuperAdministrator sadmin, String CNP, String field, String newValue) throws SQLException
+    {
+        this.db.execute("use proiect");
+
+        String checkQuery = "SELECT tip_utilizator FROM utilizatori WHERE CNP = ?";
+        try (PreparedStatement checkPstmt = this.db.getCon().prepareStatement(checkQuery))
+        {
+            checkPstmt.setString(1, CNP);
+            ResultSet rs = checkPstmt.executeQuery();
+
+            if (rs.next()) {
+                String userType = rs.getString("tip_utilizator");
+                if (userType.equalsIgnoreCase("super-administrator")) {
+                    throw new SecurityException("You cannot update users of type 'super-administrator' !");
+                }
+            } else {
+                throw new IllegalArgumentException("No user found with the given CNP!");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking user type: " + e.getMessage());
+        }
+
+
+        String query = sadmin.updateUser2();
+        try (PreparedStatement pstmt = this.db.getCon().prepareStatement(query))
+        {
+            pstmt.setString(1, newValue);
+            pstmt.setString(2, CNP);
+            pstmt.setString(3, field);
+            pstmt.executeUpdate();
+        } catch (SQLException e)
+        {
+            throw new RuntimeException("Error updating user: " + e.getMessage());
+        }
+    }
+
+    public ResultSet searchUser2(SuperAdministrator sadmin, String name, String lastName) throws SQLException
+    {
+        String query = sadmin.searchUser2();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, "%" + name + "%");
+        pstmt.setString(2, "%" + lastName + "%");
+        return pstmt.executeQuery();
+    }
+
+    public ResultSet filterUser2(SuperAdministrator sadmin, String userType) throws SQLException
+    {
+        String query = sadmin.filterUser2();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, userType);
+        return pstmt.executeQuery();
+    }
+
+    public void assignProfessor2(SuperAdministrator sadmin, String profCNP, int id) throws SQLException
+    {
+        String query = sadmin.assignProfessor2();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, profCNP);
+        pstmt.setInt(2, id);
+        pstmt.executeUpdate();
+        pstmt.close();
+    }
+
+    public ResultSet searchCourseByName2(SuperAdministrator sadmin, String courseName) throws SQLException
+    {
+        String query = sadmin.searchCourseByName2();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setString(1, "%" + courseName + "%");
+        return pstmt.executeQuery();
+    }
+
+    public ResultSet getStudentsForCourse2(SuperAdministrator sadmin, int courseId) throws SQLException
+    {
+        String query = sadmin.getStudentsForCourseQuery2();
+        this.db.execute("use proiect");
+        PreparedStatement pstmt = this.db.getCon().prepareStatement(query);
+        pstmt.setInt(1, courseId);
+        return pstmt.executeQuery();
+    }
+
 }

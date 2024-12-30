@@ -1,6 +1,6 @@
 package org.example;
 
-public abstract class User {
+public class User {
     String CNP;
     String firstName;
     String secondName;
