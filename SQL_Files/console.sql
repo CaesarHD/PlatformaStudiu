@@ -65,9 +65,7 @@ create table if not exists detalii_profesori
 
 create table if not exists activitati_profesori
 (
-    data_inceput        datetime    null,
     tip_activitate      enum('curs', 'laborator', 'seminar'),
-    data_final          datetime    null,
     id_activitate       int         auto_increment
         primary key,
     nr_max_participanti int         null,
@@ -78,6 +76,25 @@ create table if not exists activitati_profesori
         foreign key (CNP_profesor) references detalii_profesori (CNP)
             on delete cascade,
     constraint activitati_profesori_materii_id_fk
+        foreign key (id_materie) references materii (id)
+);
+
+create table if not exists programari
+(
+    tip_activitate      enum('curs', 'laborator', 'seminar'),
+    id_activitate       int         auto_increment
+        primary key,
+    data_inceput        datetime    null,
+    data_final        datetime    null,
+    nr_max_participanti int         null,
+    nr_participanti     int         null,
+    descriere           text        null,
+    CNP_profesor        varchar(13) null,
+    id_materie          int         null,
+    constraint programari_detalii_profesori_CNP_fk
+        foreign key (CNP_profesor) references detalii_profesori (CNP)
+            on delete cascade,
+    constraint programari_materii_id_fk
         foreign key (id_materie) references materii (id)
 );
 
@@ -717,25 +734,26 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9847606272399', '9636398095255', 7, 0);
 
 
-INSERT INTO activitati_profesori (data_inceput, tip_activitate, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)
+
+INSERT INTO activitati_profesori (tip_activitate, nr_max_participanti, descriere, CNP_profesor, id_materie)
 VALUES
-('2024-01-10 09:00:00', 'seminar', '2024-01-10 12:00:00', 25, 'Seminar de informatica avansata', '2174897302000', 1),
-('2024-01-10 09:00:00', 'curs', '2024-01-10 12:00:00', 100, 'Curs informatica avansata', '2174897302000', 1),
-('2024-01-10 09:00:00', 'laborator', '2024-01-10 12:00:00', 25, 'Laborator de informatica avansata', '2174897302000', 1),
-('2024-02-15 14:00:00', 'laborator', '2024-02-15 16:30:00', 20, 'Workshop despre metode moderne de predare', '0611494230499', 2),
-('2024-03-05 10:00:00', 'curs', '2024-03-05 11:30:00', 30, 'Introducere in matematica discreta', '3252625163261', 3),
-('2024-03-10 08:30:00', 'laborator', '2024-03-10 11:00:00', 15, 'Laborator de programare in Python', '3951032160081', 4),
-('2024-04-01 13:00:00', 'curs', '2024-04-01 17:00:00', 50, 'Conferinta despre inteligenta artificiala', '4490531059273', 5),
-('2024-04-20 09:00:00', 'curs', '2024-04-20 11:00:00', 40, 'Analiza matematica - Limite si continuitati', '0407404275263', 6),
-('2024-05-10 15:00:00', 'seminar', '2024-05-10 17:00:00', 20, 'Seminar despre metode numerice', '5584397183497', 7),
-('2024-06-05 10:30:00', 'curs', '2024-06-05 13:00:00', 25, 'Workshop: Algoritmi de sortare eficienti', '9403029209133', 8),
-('2024-07-01 11:00:00', 'curs', '2024-07-01 13:00:00', 10, 'Laborator de fizica - Optica', '9741169600624', 9),
-('2024-08-15 09:00:00', 'laborator', '2024-08-15 13:00:00', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
-('2024-09-10 08:00:00', 'seminar', '2024-09-10 10:00:00', 35, 'Bazele statisticii', '9242738541942', 3),
-('2024-10-05 10:00:00', 'seminar', '2024-10-05 12:00:00', 30, 'Seminar de chimie organica', '5969849093080', 2),
-('2024-11-20 14:00:00', 'laborator', '2024-11-20 16:00:00', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
-('2024-12-01 15:30:00', 'curs', '2024-12-01 18:00:00', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
-('2024-12-20 09:30:00', 'seminar', '2024-12-20 12:30:00', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
+('seminar', 25, 'Seminar de informatica avansata', '2174897302000', 1),
+('curs', 100, 'Curs informatica avansata', '2174897302000', 1),
+('laborator', 25, 'Laborator de informatica avansata', '2174897302000', 1),
+('laborator', 20, 'Workshop despre metode moderne de predare', '0611494230499', 2),
+('curs', 30, 'Introducere in matematica discreta', '3252625163261', 3),
+('laborator', 15, 'Laborator de programare in Python', '3951032160081', 4),
+('curs', 50, 'Conferinta despre inteligenta artificiala', '4490531059273', 5),
+('curs', 40, 'Analiza matematica - Limite si continuitati', '0407404275263', 6),
+('seminar', 20, 'Seminar despre metode numerice', '5584397183497', 7),
+('curs', 25, 'Workshop: Algoritmi de sortare eficienti', '9403029209133', 8),
+('curs', 10, 'Laborator de fizica - Optica', '9741169600624', 9),
+('laborator', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
+('seminar', 35, 'Bazele statisticii', '9242738541942', 3),
+('seminar', 30, 'Seminar de chimie organica', '5969849093080', 2),
+('laborator', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
+('curs', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
+('seminar', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
 
 INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-01-28 23:37:40', 7, 44, '2024-02-05 23:37:40', 1, 'Cybersecurity Talk');
 INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, timp_expirare, id_activitate, nume) VALUES ('2024-05-31 08:04:47', 5, 29, '2024-06-09 08:04:47', 2, 'Algorithms Bootcamp');
@@ -784,6 +802,83 @@ INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4615961056
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4749549800221', 5);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4752196142176', 4);
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4911360347795', 5);
+
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-02 09:00:00', '2025-01-02 11:00:00', 50, 45, 'Introducere in programare', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-03 10:00:00', '2025-01-03 12:30:00', 25, 20, 'Laborator Java pentru incepatori', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-05 14:00:00', '2025-01-05 16:00:00', 40, 35, 'Seminar: Structuri de date', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-06 08:30:00', '2025-01-06 10:30:00', 60, 55, 'Baze de date pentru incepatori', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-07 09:30:00', '2025-01-07 11:00:00', 20, 18, 'Laborator Python: Proiecte practice', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-08 15:00:00', '2025-01-08 17:00:00', 30, 28, 'Seminar: Algoritmi de cautare', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-09 10:00:00', '2025-01-09 12:00:00', 50, 45, 'Curs avansat: Programare orientata pe obiecte', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-10 13:00:00', '2025-01-10 15:30:00', 25, 22, 'Laborator: Proiecte complexe in C++', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-11 14:00:00', '2025-01-11 16:00:00', 35, 30, 'Seminar: Metode eficiente de sortare', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-12 09:00:00', '2025-01-12 11:00:00', 50, 48, 'Introducere in analiza algoritmilor', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-13 10:30:00', '2025-01-13 12:30:00', 20, 19, 'Laborator: Implementare structuri de date', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-14 15:00:00', '2025-01-14 17:00:00', 40, 36, 'Seminar: Introducere in machine learning', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-15 11:00:00', '2025-01-15 13:00:00', 70, 65, 'Curs avansat: Sisteme distribuite', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-16 10:00:00', '2025-01-16 12:00:00', 30, 28, 'Laborator: Dezvoltare aplicatii mobile', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-17 14:00:00', '2025-01-17 16:00:00', 45, 40, 'Seminar: Introducere in cybersecurity', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-18 09:30:00', '2025-01-18 11:30:00', 50, 50, 'Curs: Proiectare aplicatii scalabile', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('laborator', '2025-01-19 13:00:00', '2025-01-19 15:30:00', 25, 24, 'Laborator: Dezvoltare backend cu Node.js', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('seminar', '2025-01-20 15:00:00', '2025-01-20 17:00:00', 30, 28, 'Seminar: Analiza proiectelor software', '2174897302000', 1);
+
+INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+VALUES
+('curs', '2025-01-21 10:00:00', '2025-01-21 12:00:00', 60, 55, 'Curs: Tehnologii emergente', '2174897302000', 1);
 
 
 
@@ -839,4 +934,5 @@ SELECT nota
 
 
 DELETE FROM utilizatori WHERE CNP='0042217620436';
+
 
