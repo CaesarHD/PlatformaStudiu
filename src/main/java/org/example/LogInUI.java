@@ -174,7 +174,9 @@ public class LogInUI {
                                 resultSet.getString("IBAN"),
                                 resultSet.getInt("numar_contract"),
                                 resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator")
+                                resultSet.getString("tip_utilizator"),
+                                resultSet.getInt("yearOfStudies"),
+                                resultSet.getInt("nrHoursSustained")
                         );
                         new StudentUI(student);
                     }

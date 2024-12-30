@@ -8,37 +8,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Student extends User{
-    private int year_of_studies;
-    private int nr_hours_sustained;
+    private int yearOfStudies;
+    private int nrHoursSustained;
 
     public Student() {
 
     }
 
-    public Student(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType) {
+    public Student(String CNP, String firstName, String secondName, String address, String phoneNumber, String email, String iban, int contractNumber, String password, String userType, int yearOfStudies, int nrHoursSustained) {
         super(CNP, firstName, secondName, address, phoneNumber, email, iban, contractNumber, password, userType);
-        this.year_of_studies = contractNumber;
-        this.nr_hours_sustained = contractNumber;
+        this.yearOfStudies = yearOfStudies;
+        this.nrHoursSustained = nrHoursSustained;
     }
-    public int getYear_of_studies() {
-        return year_of_studies;
+//    public int getYearOfStudies() {
+//        return yearOfStudies;
+//    }
+    public void setYearOfStudies(int year_of_studies) {
+        this.yearOfStudies = year_of_studies;
     }
-    public void setYear_of_studies(int year_of_studies) {
-        this.year_of_studies = year_of_studies;
-    }
-    public int getNr_hours_sustained() {
-        return nr_hours_sustained;
-    }
-    public void setNr_hours_sustained(int nr_hours_sustained) {
-        this.nr_hours_sustained = nr_hours_sustained;
+//    public int getNrHoursSustained() {
+//        return nrHoursSustained;
+//    }
+    public void setNrHoursSustained(int nr_hours_sustained) {
+        this.nrHoursSustained = nr_hours_sustained;
     }
 
-    public String getSubjectsFinalGrade() {
-        return  "SELECT m.nume, ms.nota_finala FROM materii_studenti ms " +
-                "JOIN materii m ON ms.id_materie = m.id " +
-                "WHERE ms.CNP_student = '" + this.CNP + "';";
-
+    public String getYearOfStudies() {
+        return ("select an_de_studiu from detalii_studenti where CNP = '" + this.CNP + "';");
     }
+
+    public String getNrHoursSustained() {
+        return ("select numar_ore_sustinute from detalii_studenti where CNP = '" + this.CNP + "';");
+    }
+
 
     public String getAllGrades() {
         return "SELECT m.nume AS subject_name, ap.tip_activitate AS activity_type, na.nota AS grade FROM materii m " +

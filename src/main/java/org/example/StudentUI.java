@@ -20,6 +20,10 @@ public class StudentUI {
     private JButton studentsGroupsButton;
     private JButton gradesButton;
     private JButton availableGroupsButton;
+    private JButton profileButton;
+    private JButton logoutButton;
+
+
     JButton availableCoursesButton;
 
     private Student student;
@@ -45,13 +49,16 @@ public class StudentUI {
         gradesButton = new JButton("Grades");
         availableGroupsButton = new JButton("Available Groups");
         availableCoursesButton = new JButton("Available Courses");
+        profileButton = new JButton("Profile");
+        logoutButton = new JButton("Log Out");
 
         menuBar.add(subjectsButton);
         menuBar.add(studentsGroupsButton);
         menuBar.add(gradesButton);
         menuBar.add(availableGroupsButton);
         menuBar.add(availableCoursesButton);
-
+        menuBar.add(profileButton);
+        menuBar.add(logoutButton);
 
         // Wrap the Menu Bar in a JPanel
         JPanel menuPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -70,6 +77,8 @@ public class StudentUI {
         studentsGroupsButton.addActionListener(e -> displayGroupsTable());
         availableGroupsButton.addActionListener(e -> displayAvailableGroups());
         availableCoursesButton.addActionListener(e -> displayAvailableCourses());
+        profileButton.addActionListener(e -> displayProfileDetails());
+        logoutButton.addActionListener(e -> handleLogout());
 
         // Show JFrame
         jFrame.setVisible(true);
@@ -765,18 +774,148 @@ public class StudentUI {
     }
 
     private void enrollInCourse(int courseId) throws SQLException {
-        String query = "INSERT INTO materii_studenti (CNP_student, id_materie) VALUES (?, ?)";
-        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
-            stmt.setString(1, student.getCNP());
-            stmt.setInt(2, courseId);
-            stmt.executeUpdate();
-        }
+        String query = "SELECT pm.CNP_profesor FROM profesori_materii pm LEFT JOIN materii_studenti ms " +
+                "ON pm.CNP_profesor = ms.CNP_profesor AND pm.id_materie = ms.id_materie " +
+                "WHERE pm.id_materie = " + courseId +
+                " GROUP BY pm.CNP_profesor ORDER BY COUNT(ms.CNP_student) ASC LIMIT 1;";
 
-        JOptionPane.showMessageDialog(jFrame, "Successfully enrolled in the course!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            if (rs.next()) {
+                String professorCNP = rs.getString("CNP_profesor");
+
+                // Insert the student enrollment with a default value for nota_finala
+                String insertQuery = """
+                INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala)
+                VALUES (?, ?, ?, ?);
+            """;
+
+                try (PreparedStatement insertStmt = DBController.db.getCon().prepareStatement(insertQuery)) {
+                    insertStmt.setString(1, student.getCNP());
+                    insertStmt.setString(2, professorCNP);
+                    insertStmt.setInt(3, courseId);
+                    insertStmt.setInt(4, 0); // Default value for nota_finala
+                    insertStmt.executeUpdate();
+
+                    JOptionPane.showMessageDialog(jFrame, "Successfully enrolled in the course!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(jFrame, "No available professor found for this course.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(jFrame, "Error enrolling in the course: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            throw e;
+        }
 
         // Refresh available courses table
         displayAvailableCourses();
     }
 
 
+
+
+    public int fetchYearOfStudies() {
+        int yearOfStudies = -1; // Default value in case of no data found or errors
+        String query = student.getYearOfStudies(); // Get the SQL query
+
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                yearOfStudies = rs.getInt("an_de_studiu");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching year of studies: " + e.getMessage());
+        }
+
+        return yearOfStudies;
+    }
+
+    public int fetchNrHoursSustained() {
+        int hoursSustained = -1; // Default value in case of no data found or errors
+        String query = student.getNrHoursSustained(); // Get the SQL query
+
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                hoursSustained = rs.getInt("numar_ore_sustinute");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching number of hours sustained: " + e.getMessage());
+        }
+
+        return hoursSustained;
+    }
+
+
+    private void displayProfileDetails() {
+        // Clear the main panel
+        mainPanel.removeAll();
+
+        // Fetch student details
+        String[] columnNames = {"Field", "Value"};
+        Object[][] data = {
+                {"CNP", student.getCNP()},
+                {"First Name", student.getFirstName()},
+                {"Last Name", student.getSecondName()},
+                {"Address", student.getAddress()},
+                {"Phone Number", student.getPhoneNumber()},
+                {"Email", student.getEmail()},
+                {"IBAN", student.getIban()},
+                {"Contract Number", student.getContractNumber()},
+                {"Year of Studies", fetchYearOfStudies()},
+                {"Hours Sustained", fetchNrHoursSustained()},
+        };
+
+        // Create a JTable to display the details
+        JTable table = new JTable(data, columnNames);
+        table.setRowHeight(30);
+
+        // Add the table to the main panel
+        mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        // Create a panel for the GIF and static image
+        JPanel gifPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Center-align with padding
+        gifPanel.setOpaque(false); // Make it transparent to avoid background conflicts
+
+        // Load the static and animated images
+        ImageIcon staticGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.png"); // Update path
+        ImageIcon animatedGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.gif"); // Update path
+
+        // Create a JLabel for the static image
+        JLabel gifLabel = new JLabel(staticGif);
+
+        // Add MouseListener to switch between static and animated GIFs
+        gifLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                gifLabel.setIcon(animatedGif); // Switch to animated GIF on hover
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                gifLabel.setIcon(staticGif); // Revert to static image on mouse exit
+            }
+        });
+
+        // Add the label to the panel
+        gifPanel.add(gifLabel);
+
+        // Add the GIF panel below the table
+        mainPanel.add(gifPanel, BorderLayout.SOUTH);
+
+        // Refresh the main panel
+        mainPanel.revalidate();
+        mainPanel.repaint();
+
+    }
+
+    private void handleLogout() {
+        int confirm = JOptionPane.showConfirmDialog(jFrame, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            jFrame.dispose(); // Close the current frame
+            // Optionally redirect to the login page or exit the program
+            // new LoginUI(); // Uncomment if you have a LoginUI class
+        }
+    }
 }

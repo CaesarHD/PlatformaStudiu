@@ -46,6 +46,7 @@ create table if not exists activitati_studenti
 );
 
 
+
 create table if not exists utilizatori
 (
     CNP            varchar(13)                                                          not null
@@ -665,7 +666,7 @@ INSERT INTO materii (nume, id, pondere_curs, pondere_lab, pondere_seminar) VALUE
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0127150807876', 10);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0407404275263', 6);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0611494230499', 2);
-INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('2174897302000', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9242738541942', 1);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3252625163261', 3);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3951032160081', 4);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('4104733170501', 10);
@@ -676,7 +677,7 @@ INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('5969849093080'
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8286157437721', 5);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8400244911342', 4);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8425289091609', 3);
-INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9242738541942', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('2174897302000', 1);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9403029209133', 8);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9442879290479', 7);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9636398095255', 6);
@@ -699,12 +700,12 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1756162041010', '4490531059273', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1928611476860', '0407404275263', 6, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1948434079530', '3951032160081', 10, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '2174897302000', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '9242738541942', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '0611494230499', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2944677451359', '9636398095255', 7, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3392736662265', '4490531059273', 5, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3831706449480', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4095341157595', '0127150807876', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4213051539788', '9403029209133', 8, 0);
@@ -718,7 +719,7 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5040578352938', '9403029209133', 8, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5079758056055', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5109973862646', '5415821131183', 5, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5143749520421', '3252625163261', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5143749520421', '3252625163261', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5372828678163', '4490531059273', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5755486704549', '2174897302000', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5781429640621', '0611494230499', 2, 0);
@@ -740,11 +741,11 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7091952483698', '0611494230499', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7436910111097', '3951032160081', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7452736860806', '9442879290479', 7, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7463636496480', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7463636496480', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7473326800017', '0611494230499', 2, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7520316043481', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7520316043481', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7685738248381', '0127150807876', 10, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7808352501289', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7808352501289', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8088635380514', '3951032160081', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8105937318451', '8425289091609', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8417432772807', '8400244911342', 4, 0);
@@ -753,7 +754,7 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8816367931388', '0127150807876', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8829126950914', '8286157437721', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8981395793520', '9403029209133', 8, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8995884772089', '3252625163261', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8995884772089', '3252625163261', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9480683926228', '2174897302000', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9484723178453', '9636398095255', 7, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9623779137893', '5969849093080', 2, 0);
@@ -767,9 +768,12 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 
 INSERT INTO activitati_profesori (tip_activitate, nr_max_participanti, descriere, CNP_profesor, id_materie)
 VALUES
-('seminar', 25, 'Seminar de informatica avansata', '2174897302000', 1),
-('curs', 100, 'Curs informatica avansata', '2174897302000', 1),
-('laborator', 25, 'Laborator de informatica avansata', '2174897302000', 1),
+('seminar', 25, 'Seminar seria B de informatica avansata', '2174897302000', 1),
+('curs', 100, 'Curs seria B', '2174897302000', 1),
+('laborator', 25, 'Laborator seria B de informatica avansata', '2174897302000', 1),
+('curs', 150, 'Curs seria A', '9242738541942', 1),
+('curs', 25, 'Laborator seria A', '9242738541942', 1),
+('seminar', 50, 'Seminar seria A', '9242738541942', 1),
 ('laborator', 20, 'Workshop despre metode moderne de predare', '0611494230499', 2),
 ('curs', 30, 'Introducere in matematica discreta', '3252625163261', 3),
 ('laborator', 15, 'Laborator de programare in Python', '3951032160081', 4),
@@ -781,6 +785,7 @@ VALUES
 ('laborator', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
 ('seminar', 35, 'Bazele statisticii', '9242738541942', 3),
 ('seminar', 30, 'Seminar de chimie organica', '5969849093080', 2),
+('curs', 30, 'Seminar de chimie organica', '5969849093080', 2),
 ('laborator', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
 ('curs', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
 ('seminar', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
@@ -920,9 +925,9 @@ INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
 (5.0,  '2404023608380', 2),
 (5.0,  '2404023608380', 3),
 
-(7.0,  '2404023608380', 4),
-(10.0,  '2404023608380', 5),
-(9.0,  '2404023608380', 15),
+(7.0,  '2404023608380', 18),
+(10.0,  '2404023608380', 7),
+(9.0,  '2404023608380', 17),
 
 (7.0,  '3646944547942', 1),
 (8.0,  '3646944547942', 2),
@@ -935,6 +940,10 @@ INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
 
 SELECT nota
     FROM note_activitati where id_activitate = 1 and CNP_student = '2404023608380';
+
+alter table activitati_studenti
+    add constraint activitati_studenti_grupuri_studenti_id_grup_fk
+        foreign key (id_grup) references grupuri_studenti (id_grup);
 
 # UPDATE materii_studenti
 #     SET nota_finala = ROUND(
@@ -1044,3 +1053,11 @@ SELECT nota
 #     FROM materii_studenti ms
 #     WHERE ms.CNP_student = '2404023608380'
 # );
+SELECT pm.CNP_profesor
+FROM profesori_materii pm
+LEFT JOIN materii_studenti ms
+    ON pm.CNP_profesor = ms.CNP_profesor AND pm.id_materie = ms.id_materie
+WHERE pm.id_materie = 1
+GROUP BY pm.CNP_profesor
+ORDER BY COUNT(ms.CNP_student) ASC
+LIMIT 1;
