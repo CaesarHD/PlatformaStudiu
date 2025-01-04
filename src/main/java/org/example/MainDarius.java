@@ -15,7 +15,7 @@ public class MainDarius {
             DBController dbController = new DBController(db);
 
 
-           // SwingUtilities.invokeLater(() -> new AdminUI(admin, dbController));
+          // SwingUtilities.invokeLater(() -> new AdminUI(admin));
             SwingUtilities.invokeLater(() -> new SuperAdministratorUI(sadmin));
         } catch (Exception e) {
             e.printStackTrace();

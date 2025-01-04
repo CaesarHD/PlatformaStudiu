@@ -614,4 +614,26 @@ public class DBController {
         return pstmt.executeQuery();
     }
 
+    public static String retrieveUserType(String cnp, String password) {
+        String userType = null;
+        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE CNP = ? AND parola = ?";
+
+        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+            stmt.setString(1, cnp);
+            stmt.setString(2, password);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    userType = rs.getString("tip_utilizator");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error while retrieving user type: " + e.getMessage(), e);
+        }
+
+        return userType;
+    }
+
+
+
 }
