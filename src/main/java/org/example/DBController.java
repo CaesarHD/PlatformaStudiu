@@ -149,7 +149,7 @@ public class DBController {
                 Meeting meeting;
                 meeting = new Meeting();
 
-                meeting.setId(rs.getInt("id_activitate"));
+                meeting.setId(rs.getInt("id_programare"));
                 meeting.setType(rs.getString("tip_activitate"));
 
                 Instant startDate = Instant.ofEpochMilli(rs.getTimestamp("data_inceput").getTime());

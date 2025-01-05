@@ -1,4 +1,0 @@
-FirstName	SecondName	CNP	Grade
-Mihai	Stancu	2404023608380	9
-Maria	Ionescu	3646944547942	7
-Mihai	Stancu	5143749520421	10

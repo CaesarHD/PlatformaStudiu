@@ -4,10 +4,14 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +24,11 @@ public class StudentUI {
     private JButton studentsGroupsButton;
     private JButton gradesButton;
     private JButton availableGroupsButton;
-    JButton availableCoursesButton;
+    private JButton profileButton;
+    private JButton logoutButton;
+    private JButton meetingsButton;
+    private JButton availableMeetingsButton;
+    private JButton availableCoursesButton;
 
     private Student student;
 
@@ -45,62 +53,75 @@ public class StudentUI {
         gradesButton = new JButton("Grades");
         availableGroupsButton = new JButton("Available Groups");
         availableCoursesButton = new JButton("Available Courses");
+        profileButton = new JButton("Profile");
+        logoutButton = new JButton("Log Out");
+        meetingsButton = new JButton("Meetings");
+        availableMeetingsButton = new JButton("Available Meetings");
 
         menuBar.add(subjectsButton);
-        menuBar.add(studentsGroupsButton);
         menuBar.add(gradesButton);
+        menuBar.add(meetingsButton);
+        menuBar.add(availableMeetingsButton);
+        menuBar.add(studentsGroupsButton);
         menuBar.add(availableGroupsButton);
         menuBar.add(availableCoursesButton);
+        menuBar.add(profileButton);
+        menuBar.add(logoutButton);
 
-
-        // Wrap the Menu Bar in a JPanel
         JPanel menuPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         menuPanel.add(menuBar);
 
-        // Add the Menu Panel to the Frame at the Top
         jFrame.add(menuPanel, BorderLayout.NORTH);
 
-        // Initialize Main Panel (Initially Empty)
         mainPanel = new JPanel(new BorderLayout());
         jFrame.add(mainPanel, BorderLayout.CENTER);
 
-        // Add Action Listeners
         subjectsButton.addActionListener(e -> displaySubjectsTable());
         gradesButton.addActionListener(e -> displayGradesTable());
         studentsGroupsButton.addActionListener(e -> displayGroupsTable());
         availableGroupsButton.addActionListener(e -> displayAvailableGroups());
         availableCoursesButton.addActionListener(e -> displayAvailableCourses());
+        profileButton.addActionListener(e -> displayProfileDetails());
+        logoutButton.addActionListener(e -> handleLogout());
+        meetingsButton.addActionListener(e -> displayMeetingsTable());
+        availableMeetingsButton.addActionListener(e -> displayAvailableMeetingsTable());
 
-        // Show JFrame
         jFrame.setVisible(true);
     }
 
 
     private void displaySubjectsTable() {
         try {
-            // Fetch subjects, final grades, and IDs
+            // Clear the main panel
+            mainPanel.removeAll();
+
+            // Panel for search functionality
+            JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JTextField searchField = new JTextField(20);
+            JButton searchButton = new JButton("Search");
+            searchPanel.add(new JLabel("Search by Subject: "));
+            searchPanel.add(searchField);
+            searchPanel.add(searchButton);
+
+            // Fetch subjects and grades
             List<Object[]> subjectsAndGrades = fetchSubjectsAndGradesFromDatabase();
 
-            // Create Table Model with Three Columns: "Subjects", "Final Grade", and "Actions"
+            // Create Table Model
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return column == 2; // Only "Actions" column is editable
                 }
             };
-            tableModel.addColumn("Subjects");       // Column 1
-            tableModel.addColumn("Final Grade");    // Column 2
-            tableModel.addColumn("Actions");        // Column 3
+            tableModel.addColumn("Subjects");
+            tableModel.addColumn("Final Grade");
+            tableModel.addColumn("Actions");
 
-            // Add rows to the table model
+            // Populate the table model
             for (Object[] row : subjectsAndGrades) {
-                String subjectName = (String) row[0];
-                int finalGrade = (int) row[1];
-                int subjectId = (int) row[2];
-                tableModel.addRow(new Object[]{subjectName, finalGrade, "Leave"}); // Add "Leave" button
+                tableModel.addRow(new Object[]{row[0], row[1], "Leave"});
             }
 
-            // Create JTable with the model
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
@@ -108,8 +129,12 @@ public class StudentUI {
             table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
             table.getColumn("Actions").setCellEditor(new LeaveButtonEditor(new JCheckBox(), subjectsAndGrades));
 
-            // Clear previous content in the main panel and add the new table
-            mainPanel.removeAll();
+            // Search functionality
+            searchButton.addActionListener(e -> filterTable(searchField.getText(), tableModel, subjectsAndGrades));
+            searchField.addActionListener(e -> filterTable(searchField.getText(), tableModel, subjectsAndGrades));
+
+            // Add components to the main panel
+            mainPanel.add(searchPanel, BorderLayout.NORTH);
             mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
             // Refresh the panel
@@ -119,6 +144,17 @@ public class StudentUI {
             JOptionPane.showMessageDialog(jFrame, "Error fetching subjects and grades: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void filterTable(String query, DefaultTableModel tableModel, List<Object[]> data) {
+        tableModel.setRowCount(0); // Clear existing rows
+        for (Object[] row : data) {
+            String subjectName = (String) row[0];
+            if (subjectName.toLowerCase().contains(query.toLowerCase())) {
+                tableModel.addRow(new Object[]{row[0], row[1], "Leave"});
+            }
+        }
+    }
+
 
 
     private List<Object[]> fetchSubjectsAndGradesFromDatabase() throws SQLException {
@@ -195,34 +231,39 @@ public class StudentUI {
             // Fetch group data
             List<Object[]> groups = fetchGroupsWithIdsFromDatabase();
 
-            // Create Table Model with Four Columns: "Subject", "View Members", "Chat", and "Leave"
+            // Create Table Model with Five Columns: "Subject", "View Members", "Chat", "Activities", and "Leave"
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return column >= 1; // Allow editing only for the "Actions" columns
                 }
             };
-            tableModel.addColumn("Subject");       // Column for subject names
+            tableModel.addColumn("Subject");       // Column for group names
             tableModel.addColumn("View Members"); // Column for "View Members" button
             tableModel.addColumn("Chat");         // Column for "Chat" button
+            tableModel.addColumn("Activities");   // Column for "Activities" button
             tableModel.addColumn("Leave");        // Column for "Leave" button
 
             // Add rows to the table model
             for (Object[] group : groups) {
                 String subjectName = (String) group[0];
                 int groupId = (int) group[1];
-                tableModel.addRow(new Object[]{subjectName, "View Members", "Chat", "Leave"}); // Add placeholder buttons
+                tableModel.addRow(new Object[]{subjectName, "View Members", "Chat", "Activities", "Leave"});
             }
 
-            // Create JTable with the model
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
-            // Set custom renderer and editor for the "View Members", "Chat", and "Leave" columns
+            // Set custom renderer and editor for the "View Members," "Chat," "Activities," and "Leave" columns
             table.getColumn("View Members").setCellRenderer(new ButtonRenderer());
             table.getColumn("View Members").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "View Members"));
+
             table.getColumn("Chat").setCellRenderer(new ButtonRenderer());
             table.getColumn("Chat").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "Chat"));
+
+            table.getColumn("Activities").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Activities").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "Activities"));
+
             table.getColumn("Leave").setCellRenderer(new ButtonRenderer());
             table.getColumn("Leave").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "Leave"));
 
@@ -238,6 +279,7 @@ public class StudentUI {
             JOptionPane.showMessageDialog(jFrame, "Error fetching groups: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
 
 
@@ -457,7 +499,7 @@ public class StudentUI {
         private String label;
         private boolean clicked;
         private List<Object[]> groups;
-        private String actionType; // "View Members", "Chat", or "Leave"
+        private String actionType; // "View Members," "Chat," "Activities," or "Leave"
 
         public GroupActionButtonEditor(JCheckBox checkBox, List<Object[]> groups, String actionType) {
             super(checkBox);
@@ -488,6 +530,7 @@ public class StudentUI {
                 switch (actionType) {
                     case "View Members" -> displayGroupMembers(groupId); // Show members of the group
                     case "Chat" -> enterGroupChat(groupId);              // Enter group chat
+                    case "Activities" -> displayActivitiesTable(groupId); // Show activities of the group
                     case "Leave" -> leaveGroup(groupId);                // Leave the group
                 }
             }
@@ -501,25 +544,317 @@ public class StudentUI {
         }
     }
 
-    private void leaveGroup(int groupId) {
+    private void displayActivitiesTable(int groupId) {
         try {
-            // Delete the student from the group
-            String query = "DELETE FROM studenti_grupuri_studenti WHERE CNP_student = ? AND id_grup = ?";
-            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
-                stmt.setString(1, student.getCNP());
-                stmt.setInt(2, groupId);
-                stmt.executeUpdate();
+            // Fetch activities for the selected group
+            List<Object[]> activities = fetchActivitiesForGroupWithEnrollment(groupId);
+
+            DefaultTableModel tableModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 6 || column == 7; // Only "Download" and "Enroll" columns are editable
+                }
+            };
+
+            // Add column headers
+            tableModel.addColumn("Activity Name");
+            tableModel.addColumn("Date");
+            tableModel.addColumn("Hours");
+            tableModel.addColumn("Minimum Participants");
+            tableModel.addColumn("Current Participants");
+            tableModel.addColumn("Expiration Time");
+            tableModel.addColumn("Download");
+            tableModel.addColumn("Enroll");
+            tableModel.addColumn("Status"); // New column for the cancellation message
+
+            // Populate the table with activity data
+            for (Object[] activity : activities) {
+                tableModel.addRow(new Object[]{
+                        activity[0],
+                        activity[1],
+                        activity[2],
+                        activity[3],
+                        activity[4],
+                        activity[5],
+                        "Download",
+                        (boolean) activity[7] ? "✓" : "Enroll",
+                        activity[9] // Status (e.g., "This activity was canceled")
+                });
             }
 
-            // Show success message
-            JOptionPane.showMessageDialog(jFrame, "Successfully left the group!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
 
-            // Refresh the groups table
-            displayGroupsTable();
+            // Set custom renderer and editor for the "Download" column
+            table.getColumn("Download").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Download").setCellEditor(new ActivityDownloadButtonEditor(new JCheckBox(), activities));
+
+            // Set custom renderer and editor for the "Enroll" column
+            table.getColumn("Enroll").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Enroll").setCellEditor(new EnrollActivityButtonEditor(new JCheckBox(), activities));
+
+            // Add "Add Activity" button
+            JButton addActivityButton = new JButton("Add Activity");
+            addActivityButton.addActionListener(e -> openAddActivityDialog(groupId));
+
+            // Create a top panel for the button
+            JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            topPanel.add(addActivityButton);
+
+            // Clear and add components to the main panel
+            mainPanel.removeAll();
+            mainPanel.setLayout(new BorderLayout());
+            mainPanel.add(topPanel, BorderLayout.NORTH); // Add the button panel above the table
+            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+            // Refresh the panel
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(jFrame, "Error fetching activities: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+
+
+
+    class ActivityDownloadButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean clicked;
+        private List<Object[]> activities;
+
+        public ActivityDownloadButtonEditor(JCheckBox checkBox, List<Object[]> activities) {
+            super(checkBox);
+            this.activities = activities;
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            clicked = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (clicked && "Download".equals(label)) {
+                int rowIndex = ((JTable) button.getParent()).getSelectedRow();
+                try {
+                    downloadActivityDetails(activities.get(rowIndex));
+                    JOptionPane.showMessageDialog(button, "Activity details downloaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(button, "Error downloading activity details: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            clicked = false;
+            return label;
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+    }
+
+    private void downloadActivityDetails(Object[] activityDetails) throws Exception {
+        // Prepare activity details for the file
+        String content = "Activity Details:\n";
+        content += "Activity Name: " + activityDetails[0] + "\n"; // Activity Name
+        content += "Date: " + activityDetails[1] + "\n"; // Date
+        content += "Hours: " + activityDetails[2] + "\n"; // Hours
+        content += "Minimum Participants: " + activityDetails[3] + "\n"; // Minimum Participants
+        content += "Current Participants: " + activityDetails[4] + "\n"; // Current Participants
+        content += "Expiration Time: " + activityDetails[5] + "\n"; // Expiration Time
+
+        // Show file save dialog
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Activity Details");
+        fileChooser.setSelectedFile(new File(activityDetails[0] + "_details.txt")); // Default file name
+        int userSelection = fileChooser.showSaveDialog(jFrame);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+
+            // Write details to the file
+            try (FileWriter writer = new FileWriter(fileToSave)) {
+                writer.write(content);
+            }
+        }
+    }
+
+
+
+    private void openAddActivityDialog(int groupId) {
+        // Create input fields
+        JTextField dateField = new JTextField();
+        JTextField hoursField = new JTextField();
+        JTextField minParticipantsField = new JTextField();
+        JTextField expirationTimeField = new JTextField();
+        JTextField nameField = new JTextField();
+
+        Object[] message = {
+                "Date (yyyy-MM-dd HH:mm:ss):", dateField,
+                "Hours:", hoursField,
+                "Minimum Participants:", minParticipantsField,
+                "Expiration Time (yyyy-MM-dd HH:mm:ss):", expirationTimeField,
+                "Activity Name:", nameField
+        };
+
+        int option = JOptionPane.showConfirmDialog(null, message, "Add Activity", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                // Collect inputs
+                String date = dateField.getText();
+                int hours = Integer.parseInt(hoursField.getText());
+                int minParticipants = Integer.parseInt(minParticipantsField.getText());
+                String expirationTime = expirationTimeField.getText();
+                String name = nameField.getText();
+
+                // Insert into database
+                addActivity(groupId, date, hours, minParticipants, expirationTime, name);
+
+                JOptionPane.showMessageDialog(jFrame, "Activity added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                // Refresh the activities table
+                displayActivitiesTable(groupId);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(jFrame, "Error adding activity: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void addActivity(int groupId, String date, int hours, int minParticipants, String expirationTime, String name) throws SQLException {
+        String query = "INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, nume) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setString(1, date);
+            stmt.setInt(2, hours);
+            stmt.setInt(3, minParticipants);
+            stmt.setInt(4, groupId);
+            stmt.setString(5, expirationTime);
+            stmt.setString(6, name);
+            stmt.executeUpdate();
+        }
+    }
+
+
+
+
+    private List<Object[]> fetchActivitiesForGroupWithEnrollment(int groupId) throws SQLException {
+        List<Object[]> activities = new ArrayList<>();
+        String query = """
+        SELECT 
+            a.nume AS activity_name, 
+            a.data AS activity_date, 
+            a.numar_ore AS duration, 
+            a.numar_minim_participanti AS min_participants, 
+            a.numar_participanti AS current_participants, 
+            a.timp_expirare AS expiration_time,
+            a.id_activitate AS activity_id,
+            EXISTS(
+                SELECT 1
+                FROM studenti_activitati_studenti sas
+                WHERE sas.CNP_student = ? AND sas.id_activitate = a.id_activitate
+            ) AS enrolled,
+            a.id_grup AS group_id
+        FROM 
+            activitati_studenti a
+        WHERE 
+            a.id_grup = ?;
+    """;
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setString(1, student.getCNP());
+            stmt.setInt(2, groupId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String name = rs.getString("activity_name");
+                String date = rs.getString("activity_date");
+                int duration = rs.getInt("duration");
+                int minParticipants = rs.getInt("min_participants");
+                int currentParticipants = rs.getInt("current_participants");
+                String expirationTime = rs.getString("expiration_time");
+                int activityId = rs.getInt("activity_id");
+                boolean enrolled = rs.getBoolean("enrolled");
+                int groupIdValue = rs.getInt("group_id");
+
+                // Determine if the activity is canceled
+                boolean isCanceled = currentParticipants < minParticipants
+                        && LocalDateTime.parse(expirationTime.replace(" ", "T")).isBefore(LocalDateTime.now());
+
+                // Add all details, including a cancellation flag
+                activities.add(new Object[]{
+                        name,
+                        date,
+                        duration,
+                        minParticipants,
+                        currentParticipants,
+                        expirationTime,
+                        activityId,
+                        enrolled,
+                        groupIdValue,
+                        isCanceled ? "This activity was canceled" : ""
+                });
+            }
+        }
+
+        return activities;
+    }
+
+
+
+
+
+
+
+    private void leaveGroup(int groupId) {
+        try {
+            // Step 1: Delete all dependent rows in `studenti_activitati_studenti`
+            String deleteActivitiesQuery = """
+            DELETE sas
+            FROM studenti_activitati_studenti sas
+            JOIN activitati_studenti act ON sas.id_activitate = act.id_activitate
+            WHERE sas.CNP_student = ? AND act.id_grup = ?;
+        """;
+            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(deleteActivitiesQuery)) {
+                stmt.setString(1, student.getCNP());
+                stmt.setInt(2, groupId);
+                int rowsDeleted = stmt.executeUpdate();
+                System.out.println("Deleted " + rowsDeleted + " dependent activities for group ID: " + groupId);
+            }
+
+            // Step 2: Delete the student from the group
+            String deleteGroupQuery = """
+            DELETE FROM studenti_grupuri_studenti 
+            WHERE CNP_student = ? AND id_grup = ?;
+        """;
+            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(deleteGroupQuery)) {
+                stmt.setString(1, student.getCNP());
+                stmt.setInt(2, groupId);
+                int rowsDeleted = stmt.executeUpdate();
+                System.out.println("Deleted group membership for group ID: " + groupId);
+            }
+
+            // Step 3: Notify user and refresh the groups table
+            JOptionPane.showMessageDialog(jFrame, "Successfully left the group!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            displayGroupsTable(); // Refresh the groups table
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(jFrame, "Error leaving group: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 
     private void displayAvailableGroups() {
         try {
@@ -675,27 +1010,35 @@ public class StudentUI {
 
     private void displayAvailableCourses() {
         try {
+            // Clear the main panel
+            mainPanel.removeAll();
+
+            // Panel for search functionality
+            JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JTextField searchField = new JTextField(20);
+            JButton searchButton = new JButton("Search");
+            searchPanel.add(new JLabel("Search by Course: "));
+            searchPanel.add(searchField);
+            searchPanel.add(searchButton);
+
             // Fetch available courses
             List<Object[]> availableCourses = fetchAvailableCoursesFromDatabase();
 
-            // Create Table Model with Two Columns: "Course Name" and "Actions"
+            // Create Table Model
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 1; // Make only the "Actions" column editable
+                    return column == 1; // Only the "Actions" column is editable
                 }
             };
-            tableModel.addColumn("Course Name"); // Column for subject names
-            tableModel.addColumn("Actions");     // Column for the "Enroll" button
+            tableModel.addColumn("Course Name");
+            tableModel.addColumn("Actions");
 
-            // Add rows to the table model
+            // Populate the table model
             for (Object[] course : availableCourses) {
-                String courseName = (String) course[0];
-                int courseId = (int) course[1];
-                tableModel.addRow(new Object[]{courseName, "Enroll"}); // Add placeholder button
+                tableModel.addRow(new Object[]{course[0], "Enroll"});
             }
 
-            // Create JTable with the model
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
@@ -703,10 +1046,13 @@ public class StudentUI {
             table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
             table.getColumn("Actions").setCellEditor(new EnrollButtonEditor(new JCheckBox(), availableCourses));
 
-            // Add JTable to JScrollPane
-            JScrollPane scrollPane = new JScrollPane(table);
-            mainPanel.removeAll();
-            mainPanel.add(scrollPane, BorderLayout.CENTER);
+            // Search functionality
+            searchButton.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
+            searchField.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
+
+            // Add components to the main panel
+            mainPanel.add(searchPanel, BorderLayout.NORTH);
+            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
             // Refresh the main panel
             mainPanel.revalidate();
@@ -715,6 +1061,18 @@ public class StudentUI {
             JOptionPane.showMessageDialog(jFrame, "Error fetching available courses: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+    private void filterAvailableCourses(String query, DefaultTableModel tableModel, List<Object[]> data) {
+        tableModel.setRowCount(0); // Clear existing rows
+        for (Object[] row : data) {
+            String courseName = (String) row[0];
+            if (courseName.toLowerCase().contains(query.toLowerCase())) {
+                tableModel.addRow(new Object[]{row[0], "Enroll"});
+            }
+        }
+    }
+
 
     class EnrollButtonEditor extends DefaultCellEditor {
         private JButton button;
@@ -765,18 +1123,712 @@ public class StudentUI {
     }
 
     private void enrollInCourse(int courseId) throws SQLException {
-        String query = "INSERT INTO materii_studenti (CNP_student, id_materie) VALUES (?, ?)";
-        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
-            stmt.setString(1, student.getCNP());
-            stmt.setInt(2, courseId);
-            stmt.executeUpdate();
-        }
+        String query = "SELECT pm.CNP_profesor FROM profesori_materii pm LEFT JOIN materii_studenti ms " +
+                "ON pm.CNP_profesor = ms.CNP_profesor AND pm.id_materie = ms.id_materie " +
+                "WHERE pm.id_materie = " + courseId +
+                " GROUP BY pm.CNP_profesor ORDER BY COUNT(ms.CNP_student) ASC LIMIT 1;";
 
-        JOptionPane.showMessageDialog(jFrame, "Successfully enrolled in the course!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            if (rs.next()) {
+                String professorCNP = rs.getString("CNP_profesor");
+
+                // Insert the student enrollment with a default value for nota_finala
+                String insertQuery = """
+                INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala)
+                VALUES (?, ?, ?, ?);
+            """;
+
+                try (PreparedStatement insertStmt = DBController.db.getCon().prepareStatement(insertQuery)) {
+                    insertStmt.setString(1, student.getCNP());
+                    insertStmt.setString(2, professorCNP);
+                    insertStmt.setInt(3, courseId);
+                    insertStmt.setInt(4, 0); // Default value for nota_finala
+                    insertStmt.executeUpdate();
+
+                    JOptionPane.showMessageDialog(jFrame, "Successfully enrolled in the course!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(jFrame, "No available professor found for this course.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(jFrame, "Error enrolling in the course: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            throw e;
+        }
 
         // Refresh available courses table
         displayAvailableCourses();
     }
 
 
+
+
+    public int fetchYearOfStudies() {
+        int yearOfStudies = -1; // Default value in case of no data found or errors
+        String query = student.getYearOfStudies(); // Get the SQL query
+
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                yearOfStudies = rs.getInt("an_de_studiu");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching year of studies: " + e.getMessage());
+        }
+
+        return yearOfStudies;
+    }
+
+    public int fetchNrHoursSustained() {
+        int hoursSustained = -1; // Default value in case of no data found or errors
+        String query = student.getNrHoursSustained(); // Get the SQL query
+
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                hoursSustained = rs.getInt("numar_ore_sustinute");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching number of hours sustained: " + e.getMessage());
+        }
+
+        return hoursSustained;
+    }
+
+
+    private void displayProfileDetails() {
+        // Clear the main panel
+        mainPanel.removeAll();
+
+        // Fetch student details
+        String[] columnNames = {"Field", "Value"};
+        Object[][] data = {
+                {"CNP", student.getCNP()},
+                {"First Name", student.getFirstName()},
+                {"Last Name", student.getSecondName()},
+                {"Address", student.getAddress()},
+                {"Phone Number", student.getPhoneNumber()},
+                {"Email", student.getEmail()},
+                {"IBAN", student.getIban()},
+                {"Contract Number", student.getContractNumber()},
+                {"Year of Studies", fetchYearOfStudies()},
+                {"Hours Sustained", fetchNrHoursSustained()},
+        };
+
+        // Create a JTable to display the details
+        JTable table = new JTable(data, columnNames);
+        table.setRowHeight(30);
+
+        // Add the table to the main panel
+        mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        // Create a panel for the GIF and static image
+        JPanel gifPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Center-align with padding
+        gifPanel.setOpaque(false); // Make it transparent to avoid background conflicts
+
+        // Load the static and animated images
+        ImageIcon staticGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.png"); // Update path
+        ImageIcon animatedGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.gif"); // Update path
+
+        // Create a JLabel for the static image
+        JLabel gifLabel = new JLabel(staticGif);
+
+        // Add MouseListener to switch between static and animated GIFs
+        gifLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                gifLabel.setIcon(animatedGif); // Switch to animated GIF on hover
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                gifLabel.setIcon(staticGif); // Revert to static image on mouse exit
+            }
+        });
+
+        // Add the label to the panel
+        gifPanel.add(gifLabel);
+
+        // Add the GIF panel below the table
+        mainPanel.add(gifPanel, BorderLayout.SOUTH);
+
+        // Refresh the main panel
+        mainPanel.revalidate();
+        mainPanel.repaint();
+
+    }
+
+    private void handleLogout() {
+        int confirm = JOptionPane.showConfirmDialog(jFrame, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            jFrame.dispose(); // Close the current frame
+            // Optionally redirect to the login page or exit the program
+            // new LoginUI(); // Uncomment if you have a LoginUI class
+        }
+    }
+
+    private void displayMeetingsTable() {
+        try {
+            // Query to fetch meetings data
+            String query = """
+        SELECT 
+            ap.tip_activitate AS activity_type,
+            ap.nr_max_participanti AS max_participants,
+            ap.descriere AS description,
+            CONCAT(u.nume, ' ', u.prenume) AS professor_name,
+            m.nume AS subject_name,
+            p.data_inceput AS start_date,
+            p.data_final AS end_date,
+            p.nr_participanti AS current_participants,
+            p.id_programare AS schedule_id
+        FROM 
+            programari_studenti ps
+        JOIN 
+            programari p ON ps.id_programare = p.id_programare
+        JOIN 
+            activitati_profesori ap ON p.id_activitate = ap.id_activitate
+        JOIN 
+            materii m ON ap.id_materie = m.id
+        JOIN 
+            detalii_profesori dp ON ap.CNP_profesor = dp.CNP
+        JOIN 
+            utilizatori u ON dp.CNP = u.CNP
+        WHERE 
+            ps.CNP_student = '""" + student.getCNP() + "' " + """
+        ORDER BY p.data_inceput;
+        """;
+
+            // Execute query and fetch results
+            List<Object[]> meetings = fetchMeetingsFromDatabase(query);
+
+            // Create Table Model
+            DefaultTableModel tableModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 7; // Only the "Download" column is editable
+                }
+            };
+            tableModel.addColumn("Activity Type");
+            tableModel.addColumn("Subject");
+            tableModel.addColumn("Description");
+            tableModel.addColumn("Professor Name");
+            tableModel.addColumn("Start Date");
+            tableModel.addColumn("End Date");
+            tableModel.addColumn("Participants");
+            tableModel.addColumn("Actions"); // Download Button Column
+
+            // Populate the table
+            for (Object[] meeting : meetings) {
+                String participants = meeting[7] + "/" + meeting[1]; // current_participants/max_participants
+                tableModel.addRow(new Object[]{
+                        meeting[0], // Activity Type
+                        meeting[4], // Subject
+                        meeting[2], // Description
+                        meeting[3], // Professor Name
+                        meeting[5], // Start Date
+                        meeting[6], // End Date
+                        participants, // Participants
+                        "Download" // Download Button Placeholder
+                });
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
+
+            // Set custom renderer and editor for the "Actions" column
+            table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Actions").setCellEditor(new MeetingDownloadButtonEditor(new JCheckBox(), meetings));
+
+            // Add table to the main panel
+            mainPanel.removeAll();
+            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+            // Refresh the panel
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(jFrame, "Error fetching meetings: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+    private List<Object[]> fetchMeetingsFromDatabase(String query) throws SQLException {
+        List<Object[]> data = new ArrayList<>();
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String activityType = rs.getString("activity_type");
+                int maxParticipants = rs.getInt("max_participants");
+                String description = rs.getString("description");
+                String professorName = rs.getString("professor_name");
+                String subjectName = rs.getString("subject_name");
+                String startDate = rs.getString("start_date");
+                String endDate = rs.getString("end_date");
+                int currentParticipants = rs.getInt("current_participants");
+                int scheduleId = rs.getInt("schedule_id"); // Add schedule_id here
+
+                data.add(new Object[]{
+                        activityType,
+                        maxParticipants,
+                        description,
+                        professorName,
+                        subjectName,
+                        startDate,
+                        endDate,
+                        currentParticipants,
+                        scheduleId // Include schedule_id
+                });
+            }
+        }
+        return data;
+    }
+
+
+
+    private void displayAvailableMeetingsTable() {
+        try {
+            // Query to fetch available meetings
+            String query = """
+                SELECT 
+                    ap.tip_activitate AS activity_type,
+                    ap.nr_max_participanti AS max_participants,
+                    ap.descriere AS description,
+                    CONCAT(u.nume, ' ', u.prenume) AS professor_name,
+                    m.nume AS subject_name, -- Fetch subject name
+                    p.id_programare AS schedule_id,
+                    p.data_inceput AS start_date,
+                    p.data_final AS end_date,
+                    p.nr_participanti AS current_participants
+                FROM 
+                    programari p
+                JOIN 
+                    activitati_profesori ap ON p.id_activitate = ap.id_activitate
+                JOIN 
+                    materii m ON ap.id_materie = m.id -- Join with materii to get subject name
+                JOIN 
+                    materii_studenti ms ON ap.id_materie = ms.id_materie
+                JOIN 
+                    detalii_profesori dp ON ap.CNP_profesor = dp.CNP
+                JOIN 
+                    utilizatori u ON dp.CNP = u.CNP
+                WHERE 
+                    ms.CNP_student = '""" + student.getCNP() + "' " + """
+                    AND p.id_programare NOT IN (
+                        SELECT ps.id_programare
+                        FROM programari_studenti ps
+                        WHERE ps.CNP_student = '""" + student.getCNP() + "' " + """
+                    )
+                ORDER BY 
+                    DATE(p.data_inceput) = CURDATE() DESC, -- Current day meetings first
+                    p.data_inceput ASC; -- Then sort by start date
+                """;
+            List<Object[]> availableMeetings = fetchAvailableMeetingsFromDatabase(query);
+
+            // Create Table Model
+            DefaultTableModel tableModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 7; // Make only the "Enroll" column editable
+                }
+            };
+            tableModel.addColumn("Subject Name");    // New column for subject name
+            tableModel.addColumn("Activity Type");
+            tableModel.addColumn("Description");
+            tableModel.addColumn("Professor Name");
+            tableModel.addColumn("Start Date");
+            tableModel.addColumn("End Date");
+            tableModel.addColumn("Participants");
+            tableModel.addColumn("Actions"); // Enroll Button Column
+
+            // Populate the table
+            for (Object[] meeting : availableMeetings) {
+                String participants = meeting[8] + "/" + meeting[1]; // current/max participants
+                tableModel.addRow(new Object[]{
+                        meeting[4], // Subject Name
+                        meeting[0], // Activity Type
+                        meeting[2], // Description
+                        meeting[3], // Professor Name
+                        meeting[6], // Start Date
+                        meeting[7], // End Date
+                        participants, // Participants
+                        "Enroll" // Enroll Button Placeholder
+                });
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
+
+            // Set custom renderer and editor for the "Actions" column
+            table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Actions").setCellEditor(new AvailableMeetingEnrollButtonEditor(new JCheckBox(), availableMeetings));
+
+            // Add table to the main panel
+            mainPanel.removeAll();
+            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+            // Refresh the panel
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(jFrame, "Error fetching available meetings: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+    private List<Object[]> fetchAvailableMeetingsFromDatabase(String query) throws SQLException {
+        List<Object[]> data = new ArrayList<>();
+        try (Statement stmt = DBController.db.getCon().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String activityType = rs.getString("activity_type");
+                int maxParticipants = rs.getInt("max_participants");
+                String description = rs.getString("description");
+                String professorName = rs.getString("professor_name");
+                String subjectName = rs.getString("subject_name"); // Fetch subject name
+                int scheduleId = rs.getInt("schedule_id");
+                String startDate = rs.getString("start_date");
+                String endDate = rs.getString("end_date");
+                int currentParticipants = rs.getInt("current_participants");
+
+                data.add(new Object[]{
+                        activityType,
+                        maxParticipants,
+                        description,
+                        professorName,
+                        subjectName,      // Subject name
+                        scheduleId,       // Schedule ID
+                        startDate,
+                        endDate,
+                        currentParticipants
+                });
+            }
+        }
+        return data;
+    }
+
+
+
+
+
+    class AvailableMeetingEnrollButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean clicked;
+        private List<Object[]> availableMeetings;
+
+        public AvailableMeetingEnrollButtonEditor(JCheckBox checkBox, List<Object[]> availableMeetings) {
+            super(checkBox);
+            this.availableMeetings = availableMeetings;
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            clicked = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (clicked && "Enroll".equals(label)) {
+                int rowIndex = ((JTable) button.getParent()).getSelectedRow();
+                try {
+                    int scheduleId = Integer.parseInt(availableMeetings.get(rowIndex)[5].toString()); // Corrected index for schedule_id
+
+                    // Check both conditions: no time conflict and max participants not reached
+                    if (!canEnroll(scheduleId)) {
+                        return label; // Exit without enrolling if validation fails
+                    }
+
+                    // Perform the enrollment
+                    enrollInMeeting(scheduleId, student.getCNP());
+                    JOptionPane.showMessageDialog(button, "Successfully enrolled in the meeting!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    // Update the participants count
+                    updateParticipants(scheduleId);
+
+                    // Refresh the table
+                    displayAvailableMeetingsTable();
+                } catch (NumberFormatException nfe) {
+                    JOptionPane.showMessageDialog(button, "Error parsing schedule ID: " + nfe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(button, "Error enrolling in the meeting: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            clicked = false;
+            return label;
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+    }
+
+
+    private void enrollInMeeting(int scheduleId, String cnpStudent) throws SQLException {
+        System.out.println("Inserting enrollment for student CNP: " + cnpStudent + " and schedule ID: " + scheduleId); // Debugging log
+        String query = "INSERT INTO programari_studenti (id_programare, CNP_student) VALUES (?, ?)";
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, scheduleId);
+            stmt.setString(2, cnpStudent);
+            stmt.executeUpdate();
+            System.out.println("Enrollment inserted."); // Debugging log
+        }
+    }
+
+    private void updateParticipants(int scheduleId) throws SQLException {
+        System.out.println("Updating participants for schedule ID: " + scheduleId); // Debugging log
+        String query = "UPDATE programari SET nr_participanti = nr_participanti + 1 WHERE id_programare = ?";
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, scheduleId);
+            stmt.executeUpdate();
+            System.out.println("Participants updated."); // Debugging log
+        }
+    }
+
+    private boolean canEnroll(int scheduleId) throws SQLException {
+        // Query to get the start and end time, and current/max participants of the selected meeting
+        String query = """
+        SELECT p.data_inceput AS start_date, 
+               p.data_final AS end_date, 
+               p.nr_participanti AS current_participants, 
+               ap.nr_max_participanti AS max_participants
+        FROM programari p
+        JOIN activitati_profesori ap ON p.id_activitate = ap.id_activitate
+        WHERE p.id_programare = ?;
+    """;
+
+        LocalDateTime selectedStartDate;
+        LocalDateTime selectedEndDate;
+        int currentParticipants;
+        int maxParticipants;
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                selectedStartDate = rs.getTimestamp("start_date").toLocalDateTime();
+                selectedEndDate = rs.getTimestamp("end_date").toLocalDateTime();
+                currentParticipants = rs.getInt("current_participants");
+                maxParticipants = rs.getInt("max_participants");
+            } else {
+                throw new SQLException("Meeting not found for ID: " + scheduleId);
+            }
+        }
+
+        // Check if the meeting has reached the maximum number of participants
+        if (currentParticipants >= maxParticipants) {
+            JOptionPane.showMessageDialog(null, "The maximum number of participants for this meeting has been reached.", "Max Participants Reached", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
+        // Query to get all existing meetings for the student
+        String existingMeetingsQuery = """
+        SELECT p.data_inceput AS start_date, p.data_final AS end_date
+        FROM programari_studenti ps
+        JOIN programari p ON ps.id_programare = p.id_programare
+        WHERE ps.CNP_student = ?;
+    """;
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(existingMeetingsQuery)) {
+            stmt.setString(1, student.getCNP());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                LocalDateTime existingStartDate = rs.getTimestamp("start_date").toLocalDateTime();
+                LocalDateTime existingEndDate = rs.getTimestamp("end_date").toLocalDateTime();
+
+
+                if (!(selectedEndDate.isBefore(existingStartDate) || selectedStartDate.isAfter(existingEndDate))) {
+                    JOptionPane.showMessageDialog(null, "You cannot enroll in this meeting because it conflicts with another meeting.", "Time Conflict", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    class MeetingDownloadButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean clicked;
+        private List<Object[]> meetings;
+
+        public MeetingDownloadButtonEditor(JCheckBox checkBox, List<Object[]> meetings) {
+            super(checkBox);
+            this.meetings = meetings;
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            clicked = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (clicked && "Download".equals(label)) {
+                int rowIndex = ((JTable) button.getParent()).getSelectedRow();
+                Object[] meeting = meetings.get(rowIndex);
+
+                try {
+                    saveMeetingDetailsToFile(meeting);
+                    JOptionPane.showMessageDialog(button, "Meeting details downloaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(button, "Error downloading meeting details: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            clicked = false;
+            return label;
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+
+        private void saveMeetingDetailsToFile(Object[] meeting) throws Exception {
+            // Use a file chooser to allow the user to select a save location
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save Meeting Details");
+            fileChooser.setSelectedFile(new java.io.File("MeetingDetails_" + meeting[8] + ".txt")); // Default file name
+
+            int userSelection = fileChooser.showSaveDialog(null);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+
+                // Write meeting details to the selected file
+                try (PrintWriter writer = new PrintWriter(fileToSave)) {
+                    writer.println("Meeting Details:");
+                    writer.println("Activity Type: " + meeting[0]);
+                    writer.println("Subject: " + meeting[4]);
+                    writer.println("Description: " + meeting[2]);
+                    writer.println("Professor Name: " + meeting[3]);
+                    writer.println("Start Date: " + meeting[5]);
+                    writer.println("End Date: " + meeting[6]);
+                    writer.println("Participants: " + meeting[7] + "/" + meeting[1]);
+                }
+
+                JOptionPane.showMessageDialog(null, "Meeting details saved to " + fileToSave.getAbsolutePath(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Save operation canceled.", "Canceled", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+    }
+
+
+    class EnrollActivityButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean clicked;
+        private List<Object[]> activities;
+
+        public EnrollActivityButtonEditor(JCheckBox checkBox, List<Object[]> activities) {
+            super(checkBox);
+            this.activities = activities;
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            clicked = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (clicked && "Enroll".equals(label)) {
+                try {
+                    int rowIndex = ((JTable) button.getParent()).getSelectedRow();
+
+                    // Retrieve activity ID and group ID
+                    int activityId = (int) activities.get(rowIndex)[6]; // Index for activity ID
+                    int groupId = (int) activities.get(rowIndex)[8];    // Index for group ID
+                    String studentCNP = student.getCNP();
+
+                    // Enroll in the activity
+                    enrollInActivity(activityId, studentCNP, groupId);
+
+                    // Notify the user
+                    JOptionPane.showMessageDialog(button, "Successfully enrolled in the activity!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    // Refresh the activities table
+                    System.out.println("Refreshing activities for Group ID: " + groupId);
+                    displayActivitiesTable(groupId);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(button, "Error enrolling in the activity: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            clicked = false;
+            return label;
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+
+        private void enrollInActivity(int activityId, String studentCNP, int groupId) {
+            try {
+                // Step 1: Insert the enrollment into `studenti_activitati_studenti`
+                String enrollQuery = """
+                INSERT INTO studenti_activitati_studenti (CNP_student, id_activitate)
+                VALUES (?, ?);
+            """;
+                try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(enrollQuery)) {
+                    stmt.setString(1, studentCNP);
+                    stmt.setInt(2, activityId);
+                    stmt.executeUpdate();
+                    System.out.println("Enrolled student: " + studentCNP + " in activity ID: " + activityId);
+                }
+
+                // Step 2: Update the number of current participants
+                String updateParticipantsQuery = """
+                UPDATE activitati_studenti
+                SET numar_participanti = numar_participanti + 1
+                WHERE id_activitate = ?;
+            """;
+                try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(updateParticipantsQuery)) {
+                    stmt.setInt(1, activityId);
+                    int rowsUpdated = stmt.executeUpdate();
+                    System.out.println("Updated participants count for activity ID: " + activityId + ". Rows affected: " + rowsUpdated);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(jFrame, "Error enrolling in the activity: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+
+
+
+
 }
+

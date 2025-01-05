@@ -28,6 +28,7 @@ create table if not exists activitati_studenti
     data                     datetime    null,
     numar_ore                int         null,
     numar_minim_participanti int         null,
+    numar_participanti       int         null,
     id_grup                  int         null,
     timp_expirare            datetime    null,
     id_activitate            int         auto_increment
@@ -44,6 +45,7 @@ create table if not exists activitati_studenti
 # alter table activitati_studenti
 #     drop foreign key activitati_studenti_grupuri_studenti_id_grup_fk;
 );
+
 
 
 create table if not exists utilizatori
@@ -91,22 +93,16 @@ create table if not exists activitati_profesori
 
 create table if not exists programari
 (
-    tip_activitate      enum('curs', 'laborator', 'seminar'),
-    id_activitate       int         auto_increment
+    id_programare      int         auto_increment
         primary key,
+    id_activitate       int null,
     data_inceput        datetime    null,
     data_final        datetime    null,
-    nr_max_participanti int         null,
     nr_participanti     int         null,
-    descriere           text        null,
-    CNP_profesor        varchar(13) null,
-    id_materie          int         null,
-    constraint programari_detalii_profesori_CNP_fk
-        foreign key (CNP_profesor) references detalii_profesori (CNP)
-            on delete cascade,
-    constraint programari_materii_id_fk
-        foreign key (id_materie) references materii (id)
+    constraint programari_activitati_profesori_id_fk
+        foreign key (id_activitate) references activitati_profesori (id_activitate)
 );
+
 
 create table if not exists detalii_studenti
 (
@@ -163,9 +159,11 @@ create table if not exists studenti_grupuri_studenti
     CNP_student varchar(13) null,
     id_grup     int         null,
     constraint studenti_grupuri_studenti_detalii_studenti_CNP_fk
-        foreign key (CNP_student) references detalii_studenti (CNP),
+        foreign key (CNP_student) references detalii_studenti (CNP)
+                        on delete cascade,
     constraint studenti_grupuri_studenti_id_grup_fk
         foreign key (id_grup) references grupuri_studenti (id_grup)
+
 );
 
 CREATE TABLE IF NOT EXISTS group_messages (
@@ -176,6 +174,31 @@ CREATE TABLE IF NOT EXISTS group_messages (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_grup) REFERENCES grupuri_studenti (id_grup) ON DELETE CASCADE
 );
+
+create table if not exists programari_studenti
+(
+    id_programare int not null,
+    CNP_student varchar(13),
+    constraint programari_studenti_CNP
+        foreign key (CNP_student) references detalii_studenti (CNP)
+            on delete cascade,
+    constraint programari_studenti_id_fk
+        foreign key (id_programare) references programari (id_programare)
+);
+
+create table studenti_activitati_studenti
+(
+    CNP_student   varchar(13) null,
+    id_activitate int         null,
+    constraint studenti_activitati_studenti_CNP_student_fk
+        foreign key (CNP_student) references studenti_grupuri_studenti (CNP_student)
+            on delete cascade,
+    constraint studenti_activitati_studenti_id_activitate_fk
+        foreign key (id_activitate) references activitati_studenti (id_activitate)
+);
+ALTER TABLE activitati_studenti
+ADD COLUMN status ENUM('active', 'canceled') DEFAULT 'active';
+
 
 
 create definer = root@localhost trigger delete_user
@@ -665,7 +688,7 @@ INSERT INTO materii (nume, id, pondere_curs, pondere_lab, pondere_seminar) VALUE
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0127150807876', 10);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0407404275263', 6);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('0611494230499', 2);
-INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('2174897302000', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9242738541942', 1);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3252625163261', 3);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('3951032160081', 4);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('4104733170501', 10);
@@ -676,7 +699,7 @@ INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('5969849093080'
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8286157437721', 5);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8400244911342', 4);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('8425289091609', 3);
-INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9242738541942', 1);
+INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('2174897302000', 1);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9403029209133', 8);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9442879290479', 7);
 INSERT INTO profesori_materii (CNP_profesor, id_materie) VALUES ('9636398095255', 6);
@@ -699,12 +722,12 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1756162041010', '4490531059273', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1928611476860', '0407404275263', 6, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('1948434079530', '3951032160081', 10, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '2174897302000', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2264098827430', '9242738541942', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '0611494230499', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2944677451359', '9636398095255', 7, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3392736662265', '4490531059273', 5, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3646944547942', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('3831706449480', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4095341157595', '0127150807876', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('4213051539788', '9403029209133', 8, 0);
@@ -718,7 +741,7 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5040578352938', '9403029209133', 8, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5079758056055', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5109973862646', '5415821131183', 5, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5143749520421', '3252625163261', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5143749520421', '3252625163261', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5372828678163', '4490531059273', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5755486704549', '2174897302000', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('5781429640621', '0611494230499', 2, 0);
@@ -740,11 +763,11 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7091952483698', '0611494230499', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7436910111097', '3951032160081', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7452736860806', '9442879290479', 7, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7463636496480', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7463636496480', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7473326800017', '0611494230499', 2, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7520316043481', '5969849093080', 1, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7520316043481', '5969849093080', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7685738248381', '0127150807876', 10, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7808352501289', '9242738541942', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('7808352501289', '2174897302000', 1, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8088635380514', '3951032160081', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8105937318451', '8425289091609', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8417432772807', '8400244911342', 4, 0);
@@ -753,7 +776,7 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8816367931388', '0127150807876', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8829126950914', '8286157437721', 5, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8981395793520', '9403029209133', 8, 0);
-INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8995884772089', '3252625163261', 2, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('8995884772089', '3252625163261', 3, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9480683926228', '2174897302000', 2, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9484723178453', '9636398095255', 7, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9623779137893', '5969849093080', 2, 0);
@@ -767,9 +790,12 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 
 INSERT INTO activitati_profesori (tip_activitate, nr_max_participanti, descriere, CNP_profesor, id_materie)
 VALUES
-('seminar', 25, 'Seminar de informatica avansata', '2174897302000', 1),
-('curs', 100, 'Curs informatica avansata', '2174897302000', 1),
-('laborator', 25, 'Laborator de informatica avansata', '2174897302000', 1),
+('seminar', 25, 'Seminar seria B de informatica avansata', '2174897302000', 1),
+('curs', 100, 'Curs seria B', '2174897302000', 1),
+('laborator', 25, 'Laborator seria B de informatica avansata', '2174897302000', 1),
+('curs', 150, 'Curs seria A', '9242738541942', 1),
+('laborator', 25, 'Laborator seria A', '9242738541942', 1),
+('seminar', 50, 'Seminar seria A', '9242738541942', 1),
 ('laborator', 20, 'Workshop despre metode moderne de predare', '0611494230499', 2),
 ('curs', 30, 'Introducere in matematica discreta', '3252625163261', 3),
 ('laborator', 15, 'Laborator de programare in Python', '3951032160081', 4),
@@ -781,20 +807,21 @@ VALUES
 ('laborator', 60, 'Conferinta: Evolutia tehnologiei', '0127150807876', 10),
 ('seminar', 35, 'Bazele statisticii', '9242738541942', 3),
 ('seminar', 30, 'Seminar de chimie organica', '5969849093080', 2),
+('curs', 30, 'Seminar de chimie organica', '5969849093080', 2),
 ('laborator', 12, 'Laborator de biologie - Genetica', '8425289091609', 3),
 ('curs', 20, 'Workshop: Dezvoltarea aplicatiilor web', '8400244911342', 4),
 ('seminar', 70, 'Conferinta anuala de stiinte exacte', '4104733170501', 10);
 
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-01-28 23:37:40', 7, 44, 1, '2024-02-05 23:37:40', 1, 'Cybersecurity Talk');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-05-31 08:04:47', 5, 29, 1, '2024-06-09 08:04:47', 2, 'Algorithms Bootcamp');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-07-19 15:17:25', 6, 50, 2, '2024-08-18 15:17:25', 3, 'Networking Basics');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-10-01 13:44:10', 1, 44, 2, '2024-10-07 13:44:10', 4, 'Coding Camp');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-05-21 04:28:12', 1, 34, 3, '2024-05-28 04:28:12', 5, 'Cloud Computing Seminar');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-03-11 14:58:13', 7, 10, 3, '2024-03-28 14:58:13', 6, 'Workshop AI');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-09-12 02:29:08', 8, 9,  4, '2024-09-28 02:29:08', 7, 'Cloud Computing Seminar');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-12-21 19:08:27', 4, 28, 4, '2025-01-20 19:08:27', 8, 'Workshop AI');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-07-18 12:54:13', 7, 23, 5, '2024-07-24 12:54:13', 9, 'Database Optimization');
-INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2024-11-10 13:49:59', 7, 32, 5,'2024-11-30 13:49:59', 10, 'HCI Workshop');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-01-28 23:37:40', 7, 44, 0, 1,'2025-01-23 23:37:40', 1, 'Cybersecurity Talk');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-05-31 08:04:47', 5, 29, 0, 1, '2025-05-29 08:04:47', 2, 'Algorithms Bootcamp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-07-19 15:17:25', 6, 50, 0, 2, '2025-07-18 15:17:25', 3, 'Networking Basics');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-10-01 13:44:10', 1, 44, 0, 2, '2025-09-30 13:44:10', 4, 'Coding Camp');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-05-21 04:28:12', 1, 34, 0, 3, '2025-05-16 04:28:12', 5, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-03-11 14:58:13', 7, 10, 0, 3, '2025-03-09 14:58:13', 6, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-09-12 02:29:08', 8, 9,  0, 4, '2025-09-28 02:29:08', 7, 'Cloud Computing Seminar');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-12-21 19:08:27', 4, 28, 0, 4, '2025-11-20 19:08:27', 8, 'Workshop AI');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-07-18 12:54:13', 7, 23, 0, 5, '2025-07-16 12:54:13', 9, 'Database Optimization');
+INSERT INTO activitati_studenti (data, numar_ore, numar_minim_participanti, numar_participanti, id_grup, timp_expirare, id_activitate, nume) VALUES ('2025-11-10 13:49:59', 7, 32, 0, 5, '2025-11-05 13:49:59', 10, 'HCI Workshop');
 
 INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (1,  1);
 INSERT INTO grupuri_studenti (id_materie, id_grup) VALUES (2,  2);
@@ -835,94 +862,44 @@ INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4752196142
 INSERT INTO studenti_grupuri_studenti (CNP_student, id_grup) VALUES ('4911360347795', 5);
 
 
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+INSERT INTO programari (id_activitate, data_inceput, data_final, nr_participanti)
 VALUES
-('curs', '2025-01-02 09:00:00', '2025-01-02 11:00:00', 50, 45, 'Introducere in programare', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(2,  '2025-01-02 09:00:00', '2025-01-02 11:00:00', 45);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('laborator', '2025-01-03 10:00:00', '2025-01-03 12:30:00', 25, 20, 'Laborator Java pentru incepatori', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(1,  '2025-01-05 14:00:00', '2025-01-05 17:00:00', 15);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('seminar', '2025-01-05 14:00:00', '2025-01-05 16:00:00', 40, 35, 'Seminar: Structuri de date', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(3,  '2025-01-06 18:00:00', '2025-01-06 20:00:00', 15);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('curs', '2025-01-06 08:30:00', '2025-01-06 10:30:00', 60, 55, 'Baze de date pentru incepatori', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(4,  '2025-01-05 14:00:00', '2025-01-05 17:00:00', 70);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('laborator', '2025-01-07 09:30:00', '2025-01-07 11:00:00', 20, 18, 'Laborator Python: Proiecte practice', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(5,  '2025-01-02 14:00:00', '2025-01-02 16:00:00', 20);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('seminar', '2025-01-08 15:00:00', '2025-01-08 17:00:00', 30, 28, 'Seminar: Algoritmi de cautare', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(6,  '2025-01-06 18:00:00', '2025-01-06 20:00:00', 39);
+INSERT INTO programari (id_activitate, data_inceput, data_final ,nr_participanti)
 VALUES
-('curs', '2025-01-09 10:00:00', '2025-01-09 12:00:00', 50, 45, 'Curs avansat: Programare orientata pe obiecte', '2174897302000', 1);
+(7,  '2025-01-09 8:00:00', '2025-01-06 10:00:00', 20);
 
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+
+INSERT INTO programari_studenti (id_programare, CNP_student)
 VALUES
-('laborator', '2025-01-10 13:00:00', '2025-01-10 15:30:00', 25, 22, 'Laborator: Proiecte complexe in C++', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
+(1, 2404023608380);
+INSERT INTO programari_studenti (id_programare, CNP_student)
 VALUES
-('seminar', '2025-01-11 14:00:00', '2025-01-11 16:00:00', 35, 30, 'Seminar: Metode eficiente de sortare', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('curs', '2025-01-12 09:00:00', '2025-01-12 11:00:00', 50, 48, 'Introducere in analiza algoritmilor', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('laborator', '2025-01-13 10:30:00', '2025-01-13 12:30:00', 20, 19, 'Laborator: Implementare structuri de date', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('seminar', '2025-01-14 15:00:00', '2025-01-14 17:00:00', 40, 36, 'Seminar: Introducere in machine learning', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('curs', '2025-01-15 11:00:00', '2025-01-15 13:00:00', 70, 65, 'Curs avansat: Sisteme distribuite', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('laborator', '2025-01-16 10:00:00', '2025-01-16 12:00:00', 30, 28, 'Laborator: Dezvoltare aplicatii mobile', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('seminar', '2025-01-17 14:00:00', '2025-01-17 16:00:00', 45, 40, 'Seminar: Introducere in cybersecurity', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('curs', '2025-01-18 09:30:00', '2025-01-18 11:30:00', 50, 50, 'Curs: Proiectare aplicatii scalabile', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('laborator', '2025-01-19 13:00:00', '2025-01-19 15:30:00', 25, 24, 'Laborator: Dezvoltare backend cu Node.js', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('seminar', '2025-01-20 15:00:00', '2025-01-20 17:00:00', 30, 28, 'Seminar: Analiza proiectelor software', '2174897302000', 1);
-
-INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, nr_participanti, descriere, CNP_profesor, id_materie)
-VALUES
-('curs', '2025-01-21 10:00:00', '2025-01-21 12:00:00', 60, 55, 'Curs: Tehnologii emergente', '2174897302000', 1);
-
-
-
-
+(3, 2404023608380);
 
 INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
 (5.0,  '2404023608380', 1),
 (5.0,  '2404023608380', 2),
 (5.0,  '2404023608380', 3),
 
-(7.0,  '2404023608380', 4),
-(10.0,  '2404023608380', 5),
-(9.0,  '2404023608380', 15),
+(7.0,  '2404023608380', 18),
+(10.0,  '2404023608380', 7),
+(9.0,  '2404023608380', 17),
 
 (7.0,  '3646944547942', 1),
 (8.0,  '3646944547942', 2),
@@ -935,6 +912,10 @@ INSERT INTO note_activitati (nota, CNP_student, id_activitate)VALUES
 
 SELECT nota
     FROM note_activitati where id_activitate = 1 and CNP_student = '2404023608380';
+
+alter table activitati_studenti
+    add constraint activitati_studenti_grupuri_studenti_id_grup_fk
+        foreign key (id_grup) references grupuri_studenti (id_grup);
 
 # UPDATE materii_studenti
 #     SET nota_finala = ROUND(
@@ -1044,3 +1025,104 @@ SELECT nota
 #     FROM materii_studenti ms
 #     WHERE ms.CNP_student = '2404023608380'
 # );
+# SELECT pm.CNP_profesor
+# FROM profesori_materii pm
+# LEFT JOIN materii_studenti ms
+#     ON pm.CNP_profesor = ms.CNP_profesor AND pm.id_materie = ms.id_materie
+# WHERE pm.id_materie = 1
+# GROUP BY pm.CNP_profesor
+# ORDER BY COUNT(ms.CNP_student) ASC
+# LIMIT 1;
+
+SELECT
+    ap.tip_activitate AS activity_type,
+    ap.nr_max_participanti AS max_participants,
+    ap.descriere AS description,
+    m.nume AS subject_name,
+    CONCAT(u.nume, ' ', u.prenume) AS professor_name, -- Fetch professor's full name
+    p.data_inceput AS start_date,
+    p.data_final AS end_date,
+    p.nr_participanti AS current_participants
+
+FROM
+    programari_studenti ps
+JOIN
+    programari p ON ps.id_programare = p.id_programare
+JOIN
+    activitati_profesori ap ON p.id_activitate = ap.id_activitate
+JOIN
+    detalii_profesori dp ON ap.CNP_profesor = dp.CNP
+JOIN
+    materii m ON ap.id_materie = m.id -- Join with materii to get the subject name
+JOIN
+    utilizatori u ON dp.CNP = u.CNP
+WHERE
+    ps.CNP_student = '2404023608380';
+
+
+
+
+SELECT
+    ap.tip_activitate AS activity_type,
+    ap.nr_max_participanti AS max_participants,
+    ap.descriere AS description,
+    CONCAT(u.nume, ' ', u.prenume) AS professor_name, -- Fetch professor's full name
+    p.data_inceput AS start_date,
+    p.data_final AS end_date,
+    p.nr_participanti AS current_participants
+FROM
+    programari p
+JOIN
+    activitati_profesori ap ON p.id_activitate = ap.id_activitate
+JOIN
+    materii_studenti ms ON ap.id_materie = ms.id_materie
+JOIN
+    detalii_profesori dp ON ap.CNP_profesor = dp.CNP
+
+JOIN
+    utilizatori u ON dp.CNP = u.CNP
+WHERE
+    ms.CNP_student = '2404023608380' -- Student is enrolled in the subject
+    AND p.id_programare NOT IN ( -- Exclude programari the student is already enrolled in
+        SELECT ps.id_programare
+        FROM programari_studenti ps
+        WHERE ps.CNP_student = '2404023608380'
+    );
+
+
+SELECT * FROM activitati_studenti WHERE id_activitate = 1;
+
+# ORDER BY
+#     p.data_inceput ASC;
+SELECT
+    a.id_activitate,
+    a.nume AS activity_name,
+    a.data AS activity_date,
+    a.numar_ore AS duration,
+    a.numar_minim_participanti AS min_participants,
+    a.timp_expirare AS expiration_time,
+    a.numar_participanti AS current_participants
+FROM
+    activitati_studenti a
+WHERE
+    a.id_grup = 1;
+
+DELETE sas
+FROM studenti_activitati_studenti sas
+JOIN activitati_studenti act ON sas.id_activitate = act.id_activitate
+WHERE sas.CNP_student = '2404023608380' AND act.id_grup = 1;
+
+
+# DELETE FROM studenti_grupuri_studenti
+# WHERE CNP_student = '2404023608380' AND id_grup = 1;
+#
+#
+# DELETE sas
+# FROM studenti_activitati_studenti sas
+# JOIN activitati_studenti act ON sas.id_activitate = act.id_activitate
+# WHERE sas.CNP_student = '2404023608380' AND act.id_grup = 3;
+
+SELECT *
+FROM studenti_activitati_studenti sas
+JOIN activitati_studenti act ON sas.id_activitate = act.id_activitate
+WHERE sas.CNP_student = '2404023608380' AND act.id_grup = 3;
