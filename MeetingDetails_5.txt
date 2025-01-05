@@ -1,0 +1,8 @@
+Meeting Details:
+Activity Type: laborator
+Subject: Introduction to Programming
+Description: Laborator seria A
+Professor Name: Rădulescu Alina
+Start Date: 2025-01-02 14:00:00
+End Date: 2025-01-02 16:00:00
+Participants: 21/25

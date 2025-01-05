@@ -1,0 +1,8 @@
+Meeting Details:
+Activity Type: seminar
+Subject: Introduction to Programming
+Description: Seminar seria B de informatica avansata
+Professor Name: Tudor Cristina
+Start Date: 2025-01-05 14:00:00
+End Date: 2025-01-05 17:00:00
+Participants: 16/25

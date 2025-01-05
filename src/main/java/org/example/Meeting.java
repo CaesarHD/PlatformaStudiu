@@ -68,7 +68,7 @@ public class Meeting {
                 "FROM materii\n" +
                 "JOIN programari\n" +
                 "ON materii.id = programari.id_materie\n" +
-                "WHERE programari.id_activitate = '" + this.id + "';");
+                "WHERE programari.id_programare = '" + this.id + "';");
     }
 
 
