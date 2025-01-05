@@ -1,8 +1,0 @@
-Meeting Details:
-Activity Type: curs
-Subject: Introduction to Programming
-Description: Curs seria B
-Professor Name: Tudor Cristina
-Start Date: 2025-01-02 09:00:00
-End Date: 2025-01-02 11:00:00
-Participants: 45/100
