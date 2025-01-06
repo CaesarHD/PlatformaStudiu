@@ -97,10 +97,11 @@ create table if not exists programari
         primary key,
     id_activitate       int null,
     data_inceput        datetime    null,
-    data_final        datetime    null,
+    data_final          datetime    null,
+    descriere_programare    varchar(100)    null,
     nr_participanti     int         null,
     constraint programari_activitati_profesori_id_fk
-        foreign key (id_activitate) references activitati_profesori (id_activitate)
+        foreign key (id_activitate) references activitati_profesori (id_activitate) ON DELETE CASCADE
 );
 
 
@@ -183,7 +184,7 @@ create table if not exists programari_studenti
         foreign key (CNP_student) references detalii_studenti (CNP)
             on delete cascade,
     constraint programari_studenti_id_fk
-        foreign key (id_programare) references programari (id_programare)
+        foreign key (id_programare) references programari (id_programare) ON DELETE CASCADE
 );
 
 create table studenti_activitati_studenti
@@ -1126,3 +1127,13 @@ SELECT *
 FROM studenti_activitati_studenti sas
 JOIN activitati_studenti act ON sas.id_activitate = act.id_activitate
 WHERE sas.CNP_student = '2404023608380' AND act.id_grup = 3;
+
+
+select * from programari join activitati_profesori
+    on programari.id_activitate = activitati_profesori.id_activitate
+         where CNP_profesor = '2174897302000';
+
+    select materii.nume from materii
+        join activitati_profesori ap on materii.id = ap.id_materie
+        join programari p on ap.id_activitate = p.id_activitate
+        where id_programare = 1;
