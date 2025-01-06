@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class MeetEditor extends JPanel {
     public MeetEditor(Meeting meet, MeetingCard meetingCard, JPanel parent, Professor professor, JPanel cardList) {
@@ -23,7 +24,7 @@ public class MeetEditor extends JPanel {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 20, 20, 20));
         mainPanel.setBackground(Color.white);
 
-        JPanel center = new JPanel(new GridLayout(6, 2, 20, 20));
+        JPanel center = new JPanel(new GridLayout(5, 2, 20, 20));
         center.setBackground(Color.white);
 
         JLabel l1 = new JLabel("Title");
@@ -31,11 +32,11 @@ public class MeetEditor extends JPanel {
         l1.setHorizontalAlignment(JLabel.CENTER);
         center.add(l1);
 
-        List<Subject> options = new ArrayList<>(professor.getSubjects());
+        List<ProfessorActivity> options = new ArrayList<>(professor.getProfessorActivities());
 
-        JComboBox<String> titleComboBox = new JComboBox<>();
-        for(Subject subject : options){
-            titleComboBox.addItem(subject.getName());
+        JComboBox<ProfessorActivity> titleComboBox = new JComboBox<>();
+        for(ProfessorActivity professorActivity : options){
+            titleComboBox.addItem(professorActivity);
         }
         titleComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
         titleComboBox.setRenderer(new DefaultListCellRenderer() {
@@ -47,26 +48,6 @@ public class MeetEditor extends JPanel {
             }
         });
         center.add(titleComboBox);
-
-        JLabel l2 = new JLabel("Type");
-        l2.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        l2.setHorizontalAlignment(JLabel.CENTER);
-        center.add(l2);
-
-        JComboBox<String> typeComboBox = new JComboBox<>();
-        typeComboBox.addItem("curs");
-        typeComboBox.addItem("laborator");
-        typeComboBox.addItem("seminar");
-        typeComboBox.setFont(new Font("Helvetica", Font.PLAIN, 20));
-        typeComboBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                return c;
-            }
-        });
-        center.add(typeComboBox);
 
         JLabel l3 = new JLabel("Start Time");
         l3.setFont(new Font("Helvectica", Font.PLAIN, 20));
@@ -87,16 +68,6 @@ public class MeetEditor extends JPanel {
         endTime.setFont(new Font("Helvectica", Font.PLAIN, 20));
         endTime.setHorizontalAlignment(JLabel.CENTER);
         center.add(endTime);
-
-        JLabel l5 = new JLabel("Nr max students");
-        l5.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        l5.setHorizontalAlignment(JLabel.CENTER);
-        center.add(l5);
-
-        JTextField maxStudents = new JTextField();
-        maxStudents.setFont(new Font("Helvectica", Font.PLAIN, 20));
-        maxStudents.setHorizontalAlignment(JLabel.CENTER);
-        center.add(maxStudents);
 
         JLabel l6 = new JLabel("Descriere");
         l6.setFont(new Font("Helvectica", Font.PLAIN, 20));
@@ -127,11 +98,9 @@ public class MeetEditor extends JPanel {
 
         startTime.setText(meet.getStartDate().toLocalTime().toString());
         endTime.setText(meet.getEndDate().toLocalTime().toString());
-        maxStudents.setText("" + meet.getMaxNb());
         description.setText(meet.getDescription());
 
         if (meet.getClassName() != null) {
-//            save.setEnabled(true);
 
             save.addActionListener(e -> {
                 LocalDateTime parsedDate;
@@ -156,20 +125,18 @@ public class MeetEditor extends JPanel {
                                 }
                                 else{
                                     meet.setEndDate(parsedDate);
-                                    meet.setType((String)typeComboBox.getSelectedItem());
-                                    meet.setClassName((String)titleComboBox.getSelectedItem());
+                                    ProfessorActivity selectedActivity = (ProfessorActivity)titleComboBox.getSelectedItem();
+                                    meet.setClassName(selectedActivity.getClassName());
                                     meet.setClassId(options.get(titleComboBox.getItemCount() - 1).getId());
+                                    meet.setProfessorActivityId(selectedActivity.getId());
                                     meet.setDescription(description.getText());
-                                    meet.setMaxNb(Integer.parseInt(maxStudents.getText()));
 
                                     DBController.updateMeeting(meet);
 
                                     SwingUtilities.invokeLater(() -> {
-                                        meetingCard.getTitle().setText((String) titleComboBox.getSelectedItem());
-                                        meetingCard.getType().setText((String) typeComboBox.getSelectedItem());
+                                        meetingCard.getTitle().setText(selectedActivity.getClassName());
                                         meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
-                                        meetingCard.getMaxStudents().setText("Nr maxim studenti: " + maxStudents.getText());
                                         meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
                                         meetingCard.getDescription().setText(meet.getDescription());
                                         meetingCard.revalidate();
@@ -194,7 +161,6 @@ public class MeetEditor extends JPanel {
                 }
 
             });
-
 
             delete.addActionListener(e -> {
                 try {
@@ -233,21 +199,19 @@ public class MeetEditor extends JPanel {
                                     throw new IllegalArgumentException("The end date must be after the start date!");
                                 }
                                 else{
+                                    ProfessorActivity selectedActivity = (ProfessorActivity)titleComboBox.getSelectedItem();
                                     meet.setEndDate(parsedDate);
-                                    meet.setType((String)typeComboBox.getSelectedItem());
-                                    meet.setClassName((String)titleComboBox.getSelectedItem());
+                                    meet.setClassName(selectedActivity.getClassName());
                                     meet.setClassId(options.get(titleComboBox.getItemCount() - 1).getId());
                                     meet.setDescription(description.getText());
-                                    meet.setMaxNb(Integer.parseInt(maxStudents.getText()));
+                                    meet.setProfessorActivityId(selectedActivity.getId());
 
                                     DBController.createNewMeeting(professor, meet);
 
                                     SwingUtilities.invokeLater(() -> {
-                                        meetingCard.getTitle().setText((String) titleComboBox.getSelectedItem());
-                                        meetingCard.getType().setText((String) typeComboBox.getSelectedItem());
+                                        meetingCard.getTitle().setText(selectedActivity.getClassName());
                                         meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
-                                        meetingCard.getMaxStudents().setText("Nr maxim studenti: " + maxStudents.getText());
                                         meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
                                         meetingCard.getDescription().setText(meet.getDescription());
 
@@ -255,6 +219,7 @@ public class MeetEditor extends JPanel {
 //                                        parent.add(new Calendar(year, month, meet.getStartDate(), mainPanel, professor));
 //                                        parent.add(new MeetingsCalendar(professor, meet.getStartDate(), mainPanel));
                                         cardList.add(meetingCard);
+                                        professor.getMeetings().add(meet);
 
                                         parent.revalidate();
                                         parent.repaint();

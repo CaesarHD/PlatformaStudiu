@@ -10,11 +10,10 @@ public class Meeting {
     private int crtNb;
     private String className;
     private int classId;
+    private int professorActivityId;
     private String description;
-
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-
     private List<Student> students;
 
     public Meeting() {
@@ -26,54 +25,27 @@ public class Meeting {
         this.endDate = endDate;
     }
 
-    public Meeting(int id, String type, int maxNb, int crtNb, String className, int classId, String description, LocalDateTime startDate, LocalDateTime endDate, List<Student> students) {
-        this.id = id;
-        this.type = type;
-        this.maxNb = maxNb;
-        this.crtNb = crtNb;
-        this.className = className;
-        this.classId = classId;
-        this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.students = students;
-    }
-
     public String updateMeeting() {
         return "UPDATE programari\n" +
                 "SET \n" +
-                "    tip_activitate = '" + this.type + "',\n" +
                 "    data_inceput = '" + this.startDate + "',\n" +
-                "    data_final = '" + this.endDate + "',\n" +
-                "    nr_max_participanti = " + this.maxNb + ",\n" +
-                "    descriere = '" + this.description + "'\n" +
+                "    data_final = '" + this.endDate + "', \n" +
+                "    descriere_programare = '" + this.description + "' " +
                 "WHERE \n" +
-                "    id_activitate = " + this.id + ";";
-    }
-
-    public String selectStudentsandGrades() {
-        return ("select distinct nume, prenume, CNP, nota from note_activitati join proiect.utilizatori on note_activitati.CNP_student = utilizatori.CNP where id_activitate = '" + this.id + "';");
-    }
-
-    public String selectClassId() {
-        return ("SELECT materii.id\n" +
-                "FROM materii\n" +
-                "JOIN programari\n" +
-                "ON materii.id = programari.id_materie\n" +
-                "WHERE programari.id_activitate = '" + this.id + "';");
+                "    id_programare = " + this.id + ";";
     }
 
     public String selectClassName() {
         return ("SELECT materii.nume\n" +
                 "FROM materii\n" +
-                "JOIN programari\n" +
-                "ON materii.id = programari.id_materie\n" +
-                "WHERE programari.id_programare = '" + this.id + "';");
+                "join activitati_profesori ap on materii.id = ap.id_materie\n" +
+                "join programari p on ap.id_activitate = p.id_activitate " +
+                "WHERE id_programare = '" + this.id + "';");
     }
 
 
     public String deleteMeeting() {
-        return "DELETE FROM programari WHERE id_activitate = " + this.id + ";";
+        return "DELETE FROM programari WHERE id_programare = " + this.id + ";";
     }
 
     public int getId() {
@@ -154,5 +126,13 @@ public class Meeting {
 
     public void setCrtNb(int crtNb) {
         this.crtNb = crtNb;
+    }
+
+    public int getProfessorActivityId() {
+        return professorActivityId;
+    }
+
+    public void setProfessorActivityId(int professorActivityId) {
+        this.professorActivityId = professorActivityId;
     }
 }

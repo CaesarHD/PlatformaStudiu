@@ -162,9 +162,10 @@ public class DBController {
 
                 meeting.setMaxNb(rs.getInt("nr_max_participanti"));
                 meeting.setCrtNb(rs.getInt("nr_participanti"));
-                meeting.setDescription(rs.getString("descriere"));
+                meeting.setDescription(rs.getString("descriere_programare"));
                 meeting.setClassId(rs.getInt("id_materie"));
                 getMeetingClassName(meeting);
+
                 professor.getMeetings().add(meeting);
             }
         }
@@ -274,12 +275,37 @@ public class DBController {
         professor.getMeetings().remove(meeting);
     }
 
-    public static void createNewMeeting (Professor professor, Meeting newMeeting){
+    public static void createNewMeeting (Professor professor, Meeting newMeeting) throws SQLException {
         db.execute("use proiect");
-        db.execute(professor.insertMeeting(newMeeting));
+        String insertQuery = professor.insertMeeting(newMeeting);
+
+        try (PreparedStatement ps = db.getCon().prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setInt(1, newMeeting.getProfessorActivityId());
+            ps.setTimestamp(2, Timestamp.valueOf(newMeeting.getStartDate()));
+            ps.setTimestamp(3, Timestamp.valueOf(newMeeting.getEndDate()));
+            ps.setString(4, newMeeting.getDescription());
+            ps.setInt(5, newMeeting.getCrtNb());
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int generatedId = rs.getInt(1);
+                        newMeeting.setId(generatedId);
+                        System.out.println("Generated ID: " + generatedId);
+                    } else {
+                        System.out.println("No ID was generated.");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void changeGrades(ProfessorActivity professorActivity, Student student) {
+        public static void changeGrades(ProfessorActivity professorActivity, Student student) {
         db.execute(professorActivity.changeGrade(student));
     }
 

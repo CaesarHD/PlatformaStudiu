@@ -3,6 +3,8 @@ package org.example;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.sql.*;
+
 public class Professor extends User {
 
     private int maxHour;
@@ -27,11 +29,8 @@ public class Professor extends User {
     }
 
     public String insertMeeting(Meeting meeting) {
-        return "INSERT INTO programari (tip_activitate, data_inceput, data_final, nr_max_participanti, descriere, CNP_profesor, id_materie)\n" +
-                "VALUES\n" +
-                "('" + meeting.getType() + "', '" + meeting.getStartDate() + "', ' " +
-                meeting.getEndDate() + "', " + meeting.getMaxNb() + " , '" + meeting.getDescription() + "', '" + this.CNP + "', " +
-                meeting.getClassId() + ");\n";
+        return "INSERT INTO programari (id_activitate, data_inceput, data_final, descriere_programare, nr_participanti) " +
+                "VALUES (?, ?, ?, ?, ?)";
     }
 
     public String selectSubjects() {
@@ -43,7 +42,9 @@ public class Professor extends User {
     }
 
     public String selectMeetings() {
-        return ("select * from programari where CNP_profesor = '" + this.CNP + "';");
+        return ("select * from programari join activitati_profesori\n" +
+                "    on programari.id_activitate = activitati_profesori.id_activitate\n" +
+                "         where CNP_profesor = '" + this.CNP + "';");
     }
 
     public void printSubjects() {

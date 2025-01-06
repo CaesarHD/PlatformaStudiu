@@ -14,7 +14,6 @@ public class ProfessorActivity {
     private int classId;
     private String description;
     private List<Student> students;
-
     private Map<Student, Integer> grades;
 
     public ProfessorActivity() {
@@ -105,13 +104,7 @@ public class ProfessorActivity {
 
     @Override
     public String toString() {
-        return "ProfessorActivity{" +
-                "id=" + id +
-                ", type='" + type + '\'' +
-                ", maxNb=" + maxNb +
-                ", className='" + className + '\'' +
-                ", classId=" + classId +
-                ", description='" + description + '\'' +
-                '}';
+        return  className +
+                " " + type;
     }
 }

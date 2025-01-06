@@ -12,7 +12,6 @@ public class MeetingCard extends JPanel {
     private final JLabel endTime;
     private final JLabel type;
     private final JLabel data;
-    private final JLabel maxStudents;
     private final JLabel crtStudentsNb;
 
     public MeetingCard(Meeting meeting, JPanel mainPanel, Professor professor, JPanel cardList) {
@@ -84,12 +83,6 @@ public class MeetingCard extends JPanel {
         data.setForeground(Color.darkGray);
         this.add(data);
 
-        maxStudents = new JLabel("Nr maxim studenti: " + meeting.getMaxNb());
-        maxStudents.setBorder(BorderFactory.createEmptyBorder(2, 15, 1, 5));
-        maxStudents.setFont(new Font("Helvetica", Font.PLAIN, 28));
-        maxStudents.setForeground(Color.darkGray);
-        this.add(maxStudents);
-
         crtStudentsNb = new JLabel(meeting.getCrtNb() + "/" + meeting.getMaxNb() + " participanti");
         crtStudentsNb.setBorder(BorderFactory.createEmptyBorder(2, 15, 1, 5));
         crtStudentsNb.setFont(new Font("Helvetica", Font.PLAIN, 28));
@@ -118,10 +111,6 @@ public class MeetingCard extends JPanel {
 
     public JLabel getData() {
         return data;
-    }
-
-    public JLabel getMaxStudents() {
-        return maxStudents;
     }
 
     public JLabel getCrtStudentsNb() {
