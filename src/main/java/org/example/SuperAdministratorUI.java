@@ -38,14 +38,14 @@ public class SuperAdministratorUI extends Component
         menuBar.add(menu);
         jFrame.setJMenuBar(menuBar);
 
-        addUserButton = new JButton("Add User");
-        deleteUserButton = new JButton("Delete User");
-        updateUserButton = new JButton("Update User");
-        searchUserButton = new JButton("Search User");
-        filterUserButton = new JButton("Filter Users");
-        assignProfessorButton = new JButton("Assign Professor");
-        searchCourseButton = new JButton("Search Course");
-        logoutButton = new JButton("Log Out");
+        addUserButton = createStyledButton("Add User");
+        deleteUserButton = createStyledButton("Delete User");
+        updateUserButton = createStyledButton("Update User");
+        searchUserButton = createStyledButton("Search User");
+        filterUserButton = createStyledButton("Filter Users");
+        assignProfessorButton = createStyledButton("Assign Professor");
+        searchCourseButton = createStyledButton("Search Course");
+        logoutButton = createStyledButton("Log Out");
 
         JPanel buttonPanel = new JPanel(new GridLayout(8, 1, 10, 10));
         buttonPanel.add(addUserButton);
@@ -84,53 +84,70 @@ public class SuperAdministratorUI extends Component
         jFrame.setVisible(true);
     }
 
+    private JButton createStyledButton(String text)
+    {
+        JButton button = new JButton(text);
+        button.setBackground(Color.GRAY);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        return button;
+    }
+
+    private JTextField addRow(JPanel panel, GridBagConstraints gbc, int row, String labelText, Font labelFont, Font textFieldFont) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(labelFont);
+        JTextField textField = new JTextField(20);
+        textField.setFont(textFieldFont);
+        textField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(textField, gbc);
+
+        return textField;
+    }
+
+
     private void displayAddUserPanel() {
-        JPanel panel = new JPanel(new GridLayout(10, 1));
-        JLabel cnpLabel = new JLabel("CNP:");
-        JTextField cnpField = new JTextField();
-        JLabel firstNameLabel = new JLabel("First Name:");
-        JTextField firstNameField = new JTextField();
-        JLabel secondNameLabel = new JLabel("Second Name:");
-        JTextField secondNameField = new JTextField();
-        JLabel addressLabel = new JLabel("Address:");
-        JTextField addressField = new JTextField();
-        JLabel phoneNumberLabel = new JLabel("Phone Number:");
-        JTextField phoneNumberField = new JTextField();
-        JLabel emailLabel = new JLabel("Email:");
-        JTextField emailField = new JTextField();
-        JLabel ibanLabel = new JLabel("IBAN:");
-        JTextField ibanField = new JTextField();
-        JLabel contractNumberLabel = new JLabel("Contract Number:");
-        JTextField contractNumberField = new JTextField();
-        JLabel userTypeLabel = new JLabel("User Type (student, professor):");
-        JTextField userTypeField = new JTextField();
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JButton addButton = new JButton("Add");
-        JButton cancelButton = new JButton("Cancel");
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font textFieldFont = new Font("Arial", Font.PLAIN, 14);
 
-        panel.add(cnpLabel);
-        panel.add(cnpField);
-        panel.add(firstNameLabel);
-        panel.add(firstNameField);
-        panel.add(secondNameLabel);
-        panel.add(secondNameField);
-        panel.add(addressLabel);
-        panel.add(addressField);
-        panel.add(phoneNumberLabel);
-        panel.add(phoneNumberField);
-        panel.add(emailLabel);
-        panel.add(emailField);
-        panel.add(ibanLabel);
-        panel.add(ibanField);
-        panel.add(contractNumberLabel);
-        panel.add(contractNumberField);
-        panel.add(userTypeLabel);
-        panel.add(userTypeField);
+        JTextField cnpField = addRow(panel, gbc, 0, "CNP:", labelFont, textFieldFont);
+        JTextField firstNameField = addRow(panel, gbc, 1, "First Name:", labelFont, textFieldFont);
+        JTextField secondNameField = addRow(panel, gbc, 2, "Second Name:", labelFont, textFieldFont);
+        JTextField addressField = addRow(panel, gbc, 3, "Address:", labelFont, textFieldFont);
+        JTextField phoneNumberField = addRow(panel, gbc, 4, "Phone Number:", labelFont, textFieldFont);
+        JTextField emailField = addRow(panel, gbc, 5, "Email:", labelFont, textFieldFont);
+        JTextField ibanField = addRow(panel, gbc, 6, "IBAN:", labelFont, textFieldFont);
+        JTextField contractNumberField = addRow(panel, gbc, 7, "Contract Number:", labelFont, textFieldFont);
+        JTextField userTypeField = addRow(panel, gbc, 8, "User Type (student, professor):", labelFont, textFieldFont);
+
+
+        JButton addButton = createStyledButton("Add ");
+        JButton cancelButton = createStyledButton("Cancel");
+
+        gbc.gridx = 0;
+        gbc.gridy = 9;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(addButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -179,18 +196,44 @@ public class SuperAdministratorUI extends Component
     }
 
     private void displayDeleteUserPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 1));
-        JLabel cnpLabel = new JLabel("Enter CNP:");
-        JTextField cnpField = new JTextField();
-        JButton deleteButton = new JButton("Delete");
-        JButton cancelButton = new JButton("Cancel");
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        panel.add(cnpLabel);
-        panel.add(cnpField);
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font textFieldFont = new Font("Arial", Font.PLAIN, 14);
+
+        JLabel cnpLabel = new JLabel("Enter CNP:");
+        cnpLabel.setFont(labelFont);
+        JTextField cnpField = new JTextField(20);
+        cnpField.setFont(textFieldFont);
+        cnpField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        panel.add(cnpLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(cnpField, gbc);
+
+
+        JButton deleteButton = createStyledButton("Delete");
+        JButton cancelButton = createStyledButton("Cancel");
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(deleteButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
+
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -216,35 +259,87 @@ public class SuperAdministratorUI extends Component
     }
 
 
-    private void returnToMainPanel() {
+    private void returnToMainPanel()
+    {
         mainPanel.removeAll();
         mainPanel.revalidate();
         mainPanel.repaint();
     }
 
-    private void displayUpdateUserPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 1));
+    private void displayUpdateUserPanel()
+    {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font textFieldFont = new Font("Arial", Font.PLAIN, 14);
+
+
         JLabel cnpLabel = new JLabel("Enter CNP:");
-        JTextField cnpField = new JTextField();
+        cnpLabel.setFont(labelFont);
+        JTextField cnpField = new JTextField(20);
+        cnpField.setFont(textFieldFont);
+        cnpField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+
         JLabel fieldLabel = new JLabel("Field to update:");
-        JTextField fieldField = new JTextField();
+        fieldLabel.setFont(labelFont);
+        JTextField fieldField = new JTextField(20);
+        fieldField.setFont(textFieldFont);
+        fieldField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+
         JLabel valueLabel = new JLabel("New value:");
-        JTextField valueField = new JTextField();
+        valueLabel.setFont(labelFont);
+        JTextField valueField = new JTextField(20);
+        valueField.setFont(textFieldFont);
+        valueField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
-        JButton updateButton = new JButton("Update");
-        JButton cancelButton = new JButton("Cancel");
 
-        panel.add(cnpLabel);
-        panel.add(cnpField);
-        panel.add(fieldLabel);
-        panel.add(fieldField);
-        panel.add(valueLabel);
-        panel.add(valueField);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        panel.add(cnpLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(cnpField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        panel.add(fieldLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(fieldField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        panel.add(valueLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(valueField, gbc);
+
+        JButton updateButton = createStyledButton("Update");
+        JButton cancelButton = createStyledButton("Cancel");
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(updateButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -274,23 +369,47 @@ public class SuperAdministratorUI extends Component
 
     private void displaySearchUserPanel()
     {
-        JPanel panel = new JPanel(new GridLayout(3, 1));
-        JLabel nameLabel = new JLabel("Press search to find a user by name");
-        //JTextField nameField = new JTextField();
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+
+        JLabel nameLabel = new JLabel("Press 'Search' to find a user by name:");
+        nameLabel.setFont(labelFont);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(nameLabel, gbc);
+
+
         JButton searchButton = new JButton("Search");
         JButton cancelButton = new JButton("Cancel");
 
-        panel.add(nameLabel);
-        //panel.add(nameField);
+        searchButton.setBackground(Color.LIGHT_GRAY);
+        cancelButton.setBackground(Color.LIGHT_GRAY);
+
+        searchButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(searchButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
         mainPanel.revalidate();
         mainPanel.repaint();
+
 
         searchButton.addActionListener(e -> {
             String name = JOptionPane.showInputDialog("Enter name: ");
@@ -330,23 +449,45 @@ public class SuperAdministratorUI extends Component
         mainPanel.repaint();
     }
 
-    private void displayFilterUserPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel typeLabel = new JLabel("Press 'Filter' to enter an user type (e.g., professor, administrator):");
-        // JTextField typeField = new JTextField();
+    private void displayFilterUserPanel()
+    {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+
+        JLabel typeLabel = new JLabel("Press 'Filter' to enter a user type (e.g., professor, administrator):");
+        typeLabel.setFont(labelFont);
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(typeLabel, gbc);
+
+
         JButton filterButton = new JButton("Filter");
         JButton cancelButton = new JButton("Cancel");
 
-        JPanel inputPanel = new JPanel(new GridLayout(2, 1));
-        inputPanel.add(typeLabel);
-        //inputPanel.add(typeField);
+        filterButton.setBackground(Color.LIGHT_GRAY);
+        cancelButton.setBackground(Color.LIGHT_GRAY);
+
+        filterButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(filterButton);
         buttonPanel.add(cancelButton);
-
-        panel.add(inputPanel, BorderLayout.NORTH);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
+        panel.add(buttonPanel, gbc);
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -389,7 +530,7 @@ public class SuperAdministratorUI extends Component
     }
 
     private JTable buildUserTable(ResultSet resultSet) throws SQLException, SQLException {
-        // Extragem coloanele și datele din ResultSet
+
         String[] columns = {"CNP", "First Name", "Second Name", "User Type"};
         List<String[]> data = new ArrayList<>();
 
@@ -402,7 +543,6 @@ public class SuperAdministratorUI extends Component
             };
             data.add(row);
         }
-
 
         String[][] dataArray = data.toArray(new String[0][]);
         return new JTable(dataArray, columns);
@@ -431,24 +571,45 @@ public class SuperAdministratorUI extends Component
     }
 
 
-    private void displayAssignProfessorPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 1));
-        JLabel cnpLabel = new JLabel(" Press 'Assign' and enter the CNP of the professor and the ID of the course:");
-//        JTextField cnpField = new JTextField();
-//        JLabel courseIdLabel = new JLabel("Enter Course ID:");
-//        JTextField courseIdField = new JTextField();
+    private void displayAssignProfessorPanel()
+    {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+
+        JLabel cnpLabel = new JLabel("Press 'Assign' and enter the CNP of the professor and the ID of the course:");
+        cnpLabel.setFont(labelFont);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(cnpLabel, gbc);
+
+
         JButton assignButton = new JButton("Assign");
         JButton cancelButton = new JButton("Cancel");
 
-        panel.add(cnpLabel);
-//        panel.add(cnpField);
-//        panel.add(courseIdLabel);
-//        panel.add(courseIdField);
+        assignButton.setBackground(Color.LIGHT_GRAY);
+        cancelButton.setBackground(Color.LIGHT_GRAY);
+
+        assignButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(assignButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
+
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -475,23 +636,53 @@ public class SuperAdministratorUI extends Component
         mainPanel.repaint();
     }
 
-    private void displaySearchCoursePanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 1));
+    private void displaySearchCoursePanel()
+    {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+
+
         JLabel courseLabel = new JLabel("Press 'Search' to find a course by name:");
+        courseLabel.setFont(labelFont);
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(courseLabel, gbc);
+
+
         JButton searchButton = new JButton("Search");
         JButton cancelButton = new JButton("Cancel");
 
-        panel.add(courseLabel);
+        searchButton.setBackground(Color.LIGHT_GRAY);
+        cancelButton.setBackground(Color.LIGHT_GRAY);
+
+        searchButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(searchButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
+        panel.add(buttonPanel, gbc);
+
 
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
         mainPanel.revalidate();
         mainPanel.repaint();
+
 
         searchButton.addActionListener(e -> {
             String courseName = JOptionPane.showInputDialog("Enter course name:");

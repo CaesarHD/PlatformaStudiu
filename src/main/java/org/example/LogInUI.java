@@ -18,11 +18,21 @@ public class LogInUI {
 
 
     public LogInUI() {
+        try {
 
+            DataBase database = new DataBase();
+            database.connect("root", "root");
+            DBController.setDbConnection(database);
 
-        initUI();
+            initUI();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Failed to connect to the database: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
     }
-
 
     private void initUI() {
         frame = new JFrame("Login Panel - StudyPlatform");
@@ -55,6 +65,8 @@ public class LogInUI {
         passwordField = new JPasswordField(15);
 
         loginButton = new JButton("Log In");
+        loginButton.setBackground(Color.LIGHT_GRAY);
+
         loginButton.addActionListener(this::handleLogin);
 
         gbc.gridx = 0;
@@ -79,6 +91,8 @@ public class LogInUI {
         loginPanel.add(loginButton, gbc);
 
         JButton closeButton = new JButton("Close");
+        closeButton.setBackground(Color.LIGHT_GRAY);
+
         closeButton.addActionListener(e -> System.exit(0));
 
         gbc.gridx = 0;
@@ -94,39 +108,8 @@ public class LogInUI {
         frame.setVisible(true);
     }
 
-
-    /**
-     * Retrieves the user type (e.g., student, professor) by checking credentials in the database.
-     */
-    private String retrieveUserType(String cnp, String password) {
-        String userType = null;
-
-        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE CNP = ? AND parola = ?";
-
-        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
-            stmt.setString(1, cnp);
-            stmt.setString(2, password);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    userType = rs.getString("tip_utilizator");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(frame,
-                    "Database error: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-
-        return userType;
-    }
-
-    /**
-     * Retrieves the user data (all fields) from the database table `utilizatori` based on the provided CNP.
-     */
-    private ResultSet getUserDataFromDB(String cnp) throws SQLException {
+    private ResultSet getUserDataFromDB(String cnp) throws SQLException
+    {
         DBController.db.execute("use proiect");
 
         String query = "SELECT CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, parola, tip_utilizator FROM utilizatori WHERE CNP = ?";
@@ -137,21 +120,28 @@ public class LogInUI {
         return pstmt.executeQuery();
     }
 
-    /**
-     * Handles the login button behavior.
-     * Validates the credentials and initiates the appropriate UI based on the user type.
-     */
-    private void handleLogin(ActionEvent event) {
+
+    private void handleLogin(ActionEvent event)
+    {
         String cnp = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
-
 
         if (cnp.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String userType = retrieveUserType(cnp, password);
+        String userType;
+        try {
+            userType = DBController.retrieveUserType(cnp, password);
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(frame,
+                    "An error occurred while connecting to the database: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (userType == null) {
             JOptionPane.showMessageDialog(frame, "Invalid username or password!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -174,9 +164,7 @@ public class LogInUI {
                                 resultSet.getString("IBAN"),
                                 resultSet.getInt("numar_contract"),
                                 resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator"),
-                                resultSet.getInt("yearOfStudies"),
-                                resultSet.getInt("nrHoursSustained")
+                                resultSet.getString("tip_utilizator")
                         );
                         new StudentUI(student);
                     }
