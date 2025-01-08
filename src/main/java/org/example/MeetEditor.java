@@ -137,8 +137,9 @@ public class MeetEditor extends JPanel {
                                         meetingCard.getTitle().setText(selectedActivity.getClassName());
                                         meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
-                                        meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
+                                        meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + professor.getProfessorActivityById(meet.getProfessorActivityId()).getMaxNb() + " participanti");
                                         meetingCard.getDescription().setText(meet.getDescription());
+                                        meetingCard.getType().setText(selectedActivity.getType());
                                         meetingCard.revalidate();
                                         meetingCard.repaint();
 
@@ -212,7 +213,8 @@ public class MeetEditor extends JPanel {
                                         meetingCard.getTitle().setText(selectedActivity.getClassName());
                                         meetingCard.getStartTime().setText("Incepe la: " + startTime.getText());
                                         meetingCard.getEndTime().setText("Se termina la: " + endTime.getText());
-                                        meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + meet.getMaxNb() + " participanti");
+                                        meetingCard.getCrtStudentsNb().setText(meet.getCrtNb() + "/" + professor.getProfessorActivityById(meet.getProfessorActivityId()).getMaxNb() + " participanti");
+                                        meetingCard.getType().setText(selectedActivity.getType());
                                         meetingCard.getDescription().setText(meet.getDescription());
 
 //                                        parent.removeAll();

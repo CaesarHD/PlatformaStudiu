@@ -97,6 +97,15 @@ public class Professor extends User {
         return professorActivities;
     }
 
+    public ProfessorActivity getProfessorActivityById(int id) {
+        for(ProfessorActivity professorActivity : professorActivities){
+            if(professorActivity.getId() == id) {
+                return professorActivity;
+            }
+        }
+        return null;
+    }
+
     public List<Meeting> getMeetings() {
         return meetings;
     }
