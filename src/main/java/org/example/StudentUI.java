@@ -1269,9 +1269,8 @@ public class StudentUI {
     private void handleLogout() {
         int confirm = JOptionPane.showConfirmDialog(jFrame, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            jFrame.dispose(); // Close the current frame
-            // Optionally redirect to the login page or exit the program
-            // new LoginUI(); // Uncomment if you have a LoginUI class
+            jFrame.dispose();
+            new LogInUI();
         }
     }
 
