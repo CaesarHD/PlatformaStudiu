@@ -36,14 +36,14 @@ public class LogInUI {
                 super.paintComponent(g);
                 ImageIcon imageIcon = new ImageIcon("faculty.jpg");
                 Image image = imageIcon.getImage();
-                g.drawImage(image, 0, 0, getWidth(), getHeight(), this); // Redimensionează imaginea să ocupe tot fundalul
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
             }
         };
         backgroundPanel.setLayout(new GridBagLayout());
 
         loginPanel = new JPanel();
         loginPanel.setLayout(new GridBagLayout());
-        loginPanel.setBackground(new Color(255, 255, 255, 200)); // Fundal semi-transparent
+        loginPanel.setBackground(new Color(255, 255, 255, 200));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -79,7 +79,7 @@ public class LogInUI {
         loginPanel.add(loginButton, gbc);
 
         JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(e -> System.exit(0)); // Închide aplicația
+        closeButton.addActionListener(e -> System.exit(0));
 
         gbc.gridx = 0;
         gbc.gridy = 3;
@@ -145,7 +145,7 @@ public class LogInUI {
         String cnp = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        // Validate empty fields
+
         if (cnp.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
             return;

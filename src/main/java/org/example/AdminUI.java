@@ -168,7 +168,7 @@ public class AdminUI extends Component
                     User newUser = new User(cnp, firstName, secondName, address, phoneNumber, email, iban,
                             parsedContractNumber, password, userType);
 
-                    DBController.addUser(admin, newUser); // Apel DBController
+                    DBController.addUser(admin, newUser);
                     JOptionPane.showMessageDialog(jFrame, "User added successfully!");
                     returnToMainPanel();
                 } catch (Exception ex) {

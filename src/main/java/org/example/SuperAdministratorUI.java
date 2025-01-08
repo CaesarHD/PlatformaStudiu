@@ -403,7 +403,7 @@ public class SuperAdministratorUI extends Component
             data.add(row);
         }
 
-        // Construim JTable
+
         String[][] dataArray = data.toArray(new String[0][]);
         return new JTable(dataArray, columns);
     }
@@ -430,7 +430,7 @@ public class SuperAdministratorUI extends Component
         }
     }
 
-    // Assign Professor Panel
+
     private void displayAssignProfessorPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 1));
         JLabel cnpLabel = new JLabel(" Press 'Assign' and enter the CNP of the professor and the ID of the course:");
