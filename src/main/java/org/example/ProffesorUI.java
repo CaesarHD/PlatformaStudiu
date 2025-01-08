@@ -95,7 +95,6 @@ public class ProffesorUI extends UI {
                     JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                jFrame.dispose();
                 this.getjFrame().dispose();
                 new LogInUI();
             }

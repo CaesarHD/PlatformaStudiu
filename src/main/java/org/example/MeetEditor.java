@@ -248,5 +248,8 @@ public class MeetEditor extends JPanel {
         frame.getContentPane().add(mainPanel);
 
         frame.setVisible(true);
+
+
+
     }
 }
