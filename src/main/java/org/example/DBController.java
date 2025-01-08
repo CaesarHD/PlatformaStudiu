@@ -194,15 +194,15 @@ public class DBController {
         subject.setSemWeight(rs.getInt("pondere_seminar"));
     }
 
-    public void changeLabWeight(Subject subject) {
+    public static void changeLabWeight(Subject subject) {
         db.execute(subject.changeLabWeight());
     }
 
-    public void changeClassWeight(Subject subject) {
+    public static void changeClassWeight(Subject subject) {
         db.execute(subject.changeClassWeight());
     }
 
-    public void changeSemWeight(Subject subject) {
+    public static void changeSemWeight(Subject subject) {
         db.execute(subject.changeSemWeight());
     }
 

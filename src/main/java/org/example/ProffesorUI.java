@@ -24,12 +24,12 @@ public class ProffesorUI extends UI {
     private final JButton allActivities = new JButton("All Activities");
     private final JButton classBook = new JButton("Class Book");
     private final JButton profile = new JButton("Profile");
+    private final JButton studentActivities = new JButton("Student Activities");
     private final JButton logOut = new JButton("Log Out");
     private final JButton downloadToFile = new JButton("Download to file");
     private JTable classTable;
     private final List<JButton> classButtons = new ArrayList<>();
     private JTable gradesTable;
-    private DBController dbController;
     private JPanel displayPanel;
 
     Professor professor;
@@ -56,7 +56,7 @@ public class ProffesorUI extends UI {
 
     private JPanel createButtonsPanel() {
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(6, 1));
+        buttonsPanel.setLayout(new GridLayout(7, 1));
         buttonsPanel.setBackground(Color.LIGHT_GRAY);
 
         classes.setFont(new Font("Helvetica", Font.PLAIN, 30));
@@ -74,6 +74,9 @@ public class ProffesorUI extends UI {
         profile.setFont(new Font("Helvetica", Font.PLAIN, 30));
         profile.setBackground(Color.lightGray);
 
+        studentActivities.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        studentActivities.setBackground(Color.lightGray);
+
         logOut.setFont(new Font("Helvetica", Font.PLAIN, 30));
         logOut.setBackground(Color.lightGray);
 
@@ -82,6 +85,7 @@ public class ProffesorUI extends UI {
         buttonsPanel.add(allActivities);
         buttonsPanel.add(classBook);
         buttonsPanel.add(profile);
+        buttonsPanel.add(studentActivities);
         buttonsPanel.add(logOut);
         return buttonsPanel;
     }
@@ -489,15 +493,15 @@ public class ProffesorUI extends UI {
                     switch (column) {
                         case 1:
                             subject.setLabWeight(value);
-                            dbController.changeLabWeight(subject);
+                            DBController.changeLabWeight(subject);
                             break;
                         case 2:
                             subject.setSemWeight(value);
-                            dbController.changeSemWeight(subject);
+                            DBController.changeSemWeight(subject);
                             break;
                         case 3:
                             subject.setClassWeight(value);
-                            dbController.changeClassWeight(subject);
+                            DBController.changeClassWeight(subject);
                             break;
                     }
                 } catch (NumberFormatException ex) {

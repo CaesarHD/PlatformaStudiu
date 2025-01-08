@@ -249,7 +249,5 @@ public class MeetEditor extends JPanel {
 
         frame.setVisible(true);
 
-
-
     }
 }
