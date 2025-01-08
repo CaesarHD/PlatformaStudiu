@@ -241,14 +241,15 @@ public class StudentUI {
             tableModel.addColumn("Subject");       // Column for group names
             tableModel.addColumn("View Members"); // Column for "View Members" button
             tableModel.addColumn("Chat");         // Column for "Chat" button
-            tableModel.addColumn("Activities");   // Column for "Activities" button
+            tableModel.addColumn("Activities");
+            tableModel.addColumn("View Suggestions for Members");
             tableModel.addColumn("Leave");        // Column for "Leave" button
 
             // Add rows to the table model
             for (Object[] group : groups) {
                 String subjectName = (String) group[0];
                 int groupId = (int) group[1];
-                tableModel.addRow(new Object[]{subjectName, "View Members", "Chat", "Activities", "Leave"});
+                tableModel.addRow(new Object[]{subjectName, "View Members", "Chat", "Activities",  "View Suggestions for Members", "Leave"});
             }
 
             JTable table = new JTable(tableModel);
@@ -263,6 +264,9 @@ public class StudentUI {
 
             table.getColumn("Activities").setCellRenderer(new ButtonRenderer());
             table.getColumn("Activities").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "Activities"));
+
+            table.getColumn("View Suggestions for Members").setCellRenderer(new ButtonRenderer());
+            table.getColumn("View Suggestions for Members").setCellEditor(new SuggestionsButtonEditor(new JCheckBox(), groups));
 
             table.getColumn("Leave").setCellRenderer(new ButtonRenderer());
             table.getColumn("Leave").setCellEditor(new GroupActionButtonEditor(new JCheckBox(), groups, "Leave"));
@@ -905,11 +909,14 @@ public class StudentUI {
         String query = "SELECT DISTINCT m.nume AS subject_name, gs.id_grup AS group_id " +
                 "FROM grupuri_studenti gs " +
                 "JOIN materii m ON gs.id_materie = m.id " +
-                "WHERE gs.id_grup NOT IN (" +
+                "JOIN materii_studenti ms ON ms.id_materie = m.id " +
+                "WHERE ms.CNP_student = '" + student.getCNP() + "' " +
+                "AND gs.id_grup NOT IN (" +
                 "    SELECT id_grup " +
                 "    FROM studenti_grupuri_studenti " +
                 "    WHERE CNP_student = '" + student.getCNP() + "'" +
                 ")";
+
 
         try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -1275,7 +1282,7 @@ public class StudentUI {
         SELECT 
             ap.tip_activitate AS activity_type,
             ap.nr_max_participanti AS max_participants,
-            ap.descriere AS description,
+            p.descriere_programare AS description,
             CONCAT(u.nume, ' ', u.prenume) AS professor_name,
             m.nume AS subject_name,
             p.data_inceput AS start_date,
@@ -1394,7 +1401,7 @@ public class StudentUI {
                 SELECT 
                     ap.tip_activitate AS activity_type,
                     ap.nr_max_participanti AS max_participants,
-                    ap.descriere AS description,
+                    p.descriere_programare AS description,
                     CONCAT(u.nume, ' ', u.prenume) AS professor_name,
                     m.nume AS subject_name, -- Fetch subject name
                     p.id_programare AS schedule_id,
@@ -1826,6 +1833,108 @@ public class StudentUI {
         }
     }
 
+    private void displaySuggestionsForGroup(int groupId) {
+        try {
+            // Fetch suggestions for the group
+            List<String[]> suggestions = fetchSuggestionsForGroupFromDatabase(groupId);
+
+            // Create Table Model with Student Information
+            DefaultTableModel tableModel = new DefaultTableModel();
+            tableModel.addColumn("First Name");
+            tableModel.addColumn("Last Name");
+            tableModel.addColumn("Email");
+
+            // Add rows to the table model
+            for (String[] suggestion : suggestions) {
+                tableModel.addRow(suggestion);
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
+
+            // Display the suggestions in a dialog or new panel
+            JFrame suggestionsFrame = new JFrame("Suggestions for Members - Group " + groupId);
+            suggestionsFrame.setSize(600, 400);
+            suggestionsFrame.add(new JScrollPane(table), BorderLayout.CENTER);
+            suggestionsFrame.setVisible(true);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(jFrame, "Error fetching suggestions: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private List<String[]> fetchSuggestionsForGroupFromDatabase(int groupId) throws SQLException {
+        List<String[]> suggestions = new ArrayList<>();
+        String query =
+         " SELECT u.nume AS first_name, u.prenume AS last_name, u.email  " +
+                  " FROM utilizatori u  " +
+                  " JOIN materii_studenti ms ON u.CNP = ms.CNP_student " +
+                  " JOIN grupuri_studenti gs ON ms.id_materie = gs.id_materie " +
+                  " WHERE gs.id_grup =  ?" +
+                  " AND u.CNP NOT IN ( " +
+                      " SELECT CNP_student " +
+                      " FROM studenti_grupuri_studenti " +
+                      " WHERE id_grup = ?"  + "  ); " ;
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setInt(1, groupId);
+            stmt.setInt(2, groupId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String firstName = rs.getString("first_name");
+                String lastName = rs.getString("last_name");
+                String email = rs.getString("email");
+                suggestions.add(new String[]{firstName, lastName, email});
+            }
+        }
+
+        return suggestions;
+    }
+
+
+    class SuggestionsButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean clicked;
+        private List<Object[]> groups;
+
+        public SuggestionsButtonEditor(JCheckBox checkBox, List<Object[]> groups) {
+            super(checkBox);
+            this.groups = groups;
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            clicked = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (clicked) {
+                // Get the selected group's ID
+                int rowIndex = ((JTable) button.getParent()).getSelectedRow();
+                int groupId = (int) groups.get(rowIndex)[1];
+
+                // Display suggestions for members
+                displaySuggestionsForGroup(groupId);
+            }
+            clicked = false;
+            return label;
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+    }
 
 
 
