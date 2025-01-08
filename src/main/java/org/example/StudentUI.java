@@ -47,16 +47,47 @@ public class StudentUI {
         JMenu menu = new JMenu("Menu");
         menuBar.add(menu);
 
+        Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+        Color buttonBackground = Color.LIGHT_GRAY;
+
         // Initialize Buttons
         subjectsButton = new JButton("My Subjects");
+        subjectsButton.setFont(buttonFont);
+        subjectsButton.setBackground(buttonBackground);
+
         studentsGroupsButton = new JButton("My Groups");
+        studentsGroupsButton.setFont(buttonFont);
+        studentsGroupsButton.setBackground(buttonBackground);
+
         gradesButton = new JButton("Grades");
+        gradesButton.setFont(buttonFont);
+        gradesButton.setBackground(buttonBackground);
+
         availableGroupsButton = new JButton("Available Groups");
+        availableGroupsButton.setFont(buttonFont);
+        availableGroupsButton.setBackground(buttonBackground);
+
         availableCoursesButton = new JButton("Available Courses");
+        availableCoursesButton.setFont(buttonFont);
+        availableCoursesButton.setBackground(buttonBackground);
+
         profileButton = new JButton("Profile");
+        profileButton.setFont(buttonFont);
+        profileButton.setBackground(buttonBackground);
+
         logoutButton = new JButton("Log Out");
+        logoutButton.setFont(buttonFont);
+        logoutButton.setBackground(buttonBackground);
+
         meetingsButton = new JButton("Meetings");
+        meetingsButton.setFont(buttonFont);
+        meetingsButton.setBackground(buttonBackground);
+
         availableMeetingsButton = new JButton("Available Meetings");
+        availableMeetingsButton.setFont(buttonFont);
+        availableMeetingsButton.setBackground(buttonBackground);
+
+        menuBar.setFont(new Font("Arial", Font.BOLD, 16));
 
         menuBar.add(subjectsButton);
         menuBar.add(gradesButton);
@@ -99,6 +130,10 @@ public class StudentUI {
             JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             JTextField searchField = new JTextField(20);
             JButton searchButton = new JButton("Search");
+            Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+            Color buttonBackground = Color.LIGHT_GRAY;
+            searchButton.setFont(buttonFont);
+            searchButton.setBackground(buttonBackground);
             searchPanel.add(new JLabel("Search by Subject: "));
             searchPanel.add(searchField);
             searchPanel.add(searchButton);
@@ -447,6 +482,10 @@ public class StudentUI {
 
     class LeaveButtonEditor extends DefaultCellEditor {
         private JButton button;
+        Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+        Color buttonBackground = Color.LIGHT_GRAY;
+//        button.setFont(buttonFont);
+//        button.setBackground(buttonBackground);
         private String label;
         private boolean clicked;
         private List<Object[]> subjectsAndGrades;
