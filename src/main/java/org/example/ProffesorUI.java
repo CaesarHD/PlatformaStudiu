@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,11 +37,12 @@ public class ProffesorUI extends UI {
     public ProffesorUI(Professor professor) {
         initializeUI();
         this.professor = professor;
-        addClassesActionListeners();
+        addClassesActionListener();
         addProfileActionListener();
         addClassBookActionListener();
         addAllActivitiesActionListener();
         addMeetingsActionListener();
+        addLogOutActionListener();
     }
 
     private void initializeUI() {
@@ -86,7 +86,23 @@ public class ProffesorUI extends UI {
         return buttonsPanel;
     }
 
-    public void addClassesActionListeners() {
+    public void addLogOutActionListener (){
+        JFrame jFrame = new JFrame();
+        logOut.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(jFrame,
+                    "Are you sure you want to log out?",
+                    "Log Out Confirmation",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                jFrame.dispose();
+                this.getjFrame().dispose();
+                new LogInUI();
+            }
+        });
+    }
+
+    public void addClassesActionListener() {
         classes.addActionListener(e -> displayCoursesTable());
     }
 
