@@ -47,7 +47,7 @@ public class StudentUI {
         JMenu menu = new JMenu("Menu");
         menuBar.add(menu);
 
-        Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+        Font buttonFont = new Font("Arial", Font.BOLD, 18); // Larger text
         Color buttonBackground = Color.LIGHT_GRAY;
 
         // Initialize Buttons
@@ -128,13 +128,26 @@ public class StudentUI {
 
             // Panel for search functionality
             JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JTextField searchField = new JTextField(20);
+            JTextField searchField = new JTextField(20); // Width is still 20 columns
+            searchField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+            searchField.setPreferredSize(new Dimension(300, 30));
+
             JButton searchButton = new JButton("Search");
             Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
             Color buttonBackground = Color.LIGHT_GRAY;
             searchButton.setFont(buttonFont);
             searchButton.setBackground(buttonBackground);
-            searchPanel.add(new JLabel("Search by Subject: "));
+
+            JLabel searchLabel = new JLabel("Search by Subject:");
+            searchLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set font and size
+            searchLabel.setForeground(Color.BLACK); // Set text color (optional)
+            searchPanel.add(searchLabel);
+
+//            searchPanel.add(new JLabel("Search by Subject: "));
+//            searchPanel.setFont(new Font("Arial", Font.PLAIN, 18));
+//            searchPanel.setOpaque(true);
+//            searchPanel.setBackground(Color.LIGHT_GRAY);
+//            searchPanel.setForeground(Color.BLACK);
             searchPanel.add(searchField);
             searchPanel.add(searchButton);
 
@@ -177,6 +190,72 @@ public class StudentUI {
             mainPanel.repaint();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(jFrame, "Error fetching subjects and grades: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void displayAvailableCourses() {
+        try {
+            // Clear the main panel
+            mainPanel.removeAll();
+
+            // Panel for search functionality
+            JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JTextField searchField = new JTextField(20); // Width is still 20 columns
+            searchField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+            searchField.setPreferredSize(new Dimension(300, 30));
+
+            JButton searchButton = new JButton("Search");
+            Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+            Color buttonBackground = Color.LIGHT_GRAY;
+            searchButton.setFont(buttonFont);
+            searchButton.setBackground(buttonBackground);
+
+            JLabel searchLabel = new JLabel("Search by Subject:");
+            searchLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set font and size
+            searchLabel.setForeground(Color.BLACK); // Set text color (optional)
+            searchPanel.add(searchLabel);
+
+            searchPanel.add(searchField);
+            searchPanel.add(searchButton);
+
+            // Fetch available courses
+            List<Object[]> availableCourses = fetchAvailableCoursesFromDatabase();
+
+            // Create Table Model
+            DefaultTableModel tableModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 1; // Only the "Actions" column is editable
+                }
+            };
+            tableModel.addColumn("Course Name");
+            tableModel.addColumn("Actions");
+
+            // Populate the table model
+            for (Object[] course : availableCourses) {
+                tableModel.addRow(new Object[]{course[0], "Enroll"});
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
+
+            // Set custom renderer and editor for the "Actions" column
+            table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
+            table.getColumn("Actions").setCellEditor(new EnrollButtonEditor(new JCheckBox(), availableCourses));
+
+            // Search functionality
+            searchButton.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
+            searchField.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
+
+            // Add components to the main panel
+            mainPanel.add(searchPanel, BorderLayout.NORTH);
+            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+            // Refresh the main panel
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(jFrame, "Error fetching available courses: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -419,6 +498,9 @@ public class StudentUI {
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
+            setBackground(Color.LIGHT_GRAY); // Set the background color to match menu buttons
+            setForeground(Color.BLACK); // Set the text color
+            setFont(new Font("Arial", Font.BOLD, 14)); // Set the
         }
 
         @Override
@@ -441,6 +523,10 @@ public class StudentUI {
         chatArea.setEditable(false);
         JTextField inputField = new JTextField();
         JButton sendButton = new JButton("Send");
+        Font buttonFont = new Font("Arial", Font.BOLD, 14); // Larger text
+        Color buttonBackground = Color.LIGHT_GRAY;
+        sendButton.setFont(buttonFont);
+        sendButton.setBackground(buttonBackground);
 
         // Add components to the chat frame
         chatFrame.setLayout(new BorderLayout());
@@ -497,6 +583,13 @@ public class StudentUI {
             // Initialize the button
             button = new JButton();
             button.setOpaque(true);
+            button = new JButton();
+            button.setOpaque(true);
+            button.setBackground(Color.GRAY); // Set the background color to match menu buttons
+            button.setForeground(Color.BLACK); // Set the text color
+            button.setFont(new Font("Arial", Font.BOLD, 14)); // Set the same font
+            button.setPreferredSize(new Dimension(100, 30));
+
 
             // Add action listener to handle the button click
             button.addActionListener(e -> fireEditingStopped());
@@ -638,6 +731,10 @@ public class StudentUI {
 
             // Add "Add Activity" button
             JButton addActivityButton = new JButton("Add Activity");
+            Font buttonFont = new Font("Arial", Font.BOLD, 14); // Larger text
+            Color buttonBackground = Color.LIGHT_GRAY;
+            addActivityButton.setFont(buttonFont);
+            addActivityButton.setBackground(buttonBackground);
             addActivityButton.addActionListener(e -> openAddActivityDialog(groupId));
 
             // Create a top panel for the button
@@ -1054,59 +1151,7 @@ public class StudentUI {
         return courses;
     }
 
-    private void displayAvailableCourses() {
-        try {
-            // Clear the main panel
-            mainPanel.removeAll();
 
-            // Panel for search functionality
-            JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JTextField searchField = new JTextField(20);
-            JButton searchButton = new JButton("Search");
-            searchPanel.add(new JLabel("Search by Course: "));
-            searchPanel.add(searchField);
-            searchPanel.add(searchButton);
-
-            // Fetch available courses
-            List<Object[]> availableCourses = fetchAvailableCoursesFromDatabase();
-
-            // Create Table Model
-            DefaultTableModel tableModel = new DefaultTableModel() {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return column == 1; // Only the "Actions" column is editable
-                }
-            };
-            tableModel.addColumn("Course Name");
-            tableModel.addColumn("Actions");
-
-            // Populate the table model
-            for (Object[] course : availableCourses) {
-                tableModel.addRow(new Object[]{course[0], "Enroll"});
-            }
-
-            JTable table = new JTable(tableModel);
-            table.setRowHeight(30);
-
-            // Set custom renderer and editor for the "Actions" column
-            table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
-            table.getColumn("Actions").setCellEditor(new EnrollButtonEditor(new JCheckBox(), availableCourses));
-
-            // Search functionality
-            searchButton.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
-            searchField.addActionListener(e -> filterAvailableCourses(searchField.getText(), tableModel, availableCourses));
-
-            // Add components to the main panel
-            mainPanel.add(searchPanel, BorderLayout.NORTH);
-            mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-
-            // Refresh the main panel
-            mainPanel.revalidate();
-            mainPanel.repaint();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(jFrame, "Error fetching available courses: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
 
     private void filterAvailableCourses(String query, DefaultTableModel tableModel, List<Object[]> data) {
@@ -1274,8 +1319,8 @@ public class StudentUI {
         gifPanel.setOpaque(false); // Make it transparent to avoid background conflicts
 
         // Load the static and animated images
-        ImageIcon staticGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.png"); // Update path
-        ImageIcon animatedGif = new ImageIcon("C:\\Adelin\\Anul_2\\PROIECT BD\\PlatformaStudiu\\src\\grinch.gif"); // Update path
+        ImageIcon staticGif = new ImageIcon("grinch.png"); // Update path
+        ImageIcon animatedGif = new ImageIcon("grinch.gif"); // Update path
 
         // Create a JLabel for the static image
         JLabel gifLabel = new JLabel(staticGif);
@@ -1306,12 +1351,52 @@ public class StudentUI {
     }
 
     private void handleLogout() {
-        int confirm = JOptionPane.showConfirmDialog(jFrame, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
+        // Create a custom panel for the message
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel messageLabel = new JLabel("Are you sure you want to log out?");
+        messageLabel.setFont(new Font("Arial", Font.PLAIN, 16)); // Bigger font for the message
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(messageLabel, BorderLayout.CENTER);
+
+        // Custom buttons
+        JButton yesButton = new JButton("YES");
+        yesButton.setFont(new Font("Arial", Font.BOLD, 14));
+        yesButton.setBackground(Color.LIGHT_GRAY);
+        yesButton.setFocusPainted(false);
+
+        JButton noButton = new JButton("NO");
+        noButton.setFont(new Font("Arial", Font.BOLD, 14));
+        noButton.setBackground(Color.LIGHT_GRAY);
+        noButton.setFocusPainted(false);
+
+        // Create a custom dialog
+        JDialog dialog = new JDialog(jFrame, "Log Out", true);
+        dialog.setSize(300, 150);
+        dialog.setLayout(new BorderLayout());
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.add(yesButton);
+        buttonPanel.add(noButton);
+
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add button actions
+        yesButton.addActionListener(e -> {
+            dialog.dispose();
             jFrame.dispose();
             new LogInUI();
-        }
+        });
+
+        noButton.addActionListener(e -> dialog.dispose());
+
+        // Display the dialog
+        dialog.setLocationRelativeTo(jFrame);
+        dialog.setVisible(true);
     }
+
+
 
     private void displayMeetingsTable() {
         try {
