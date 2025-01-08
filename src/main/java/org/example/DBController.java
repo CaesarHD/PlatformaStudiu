@@ -614,12 +614,12 @@ public class DBController {
         return pstmt.executeQuery();
     }
 
-    public static String retrieveUserType(String cnp, String password) {
+    public static String retrieveUserType(String email, String password) {
         String userType = null;
-        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE CNP = ? AND parola = ?";
+        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE email = ? AND parola = ?";
 
         try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
-            stmt.setString(1, cnp);
+            stmt.setString(1, email);
             stmt.setString(2, password);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -630,7 +630,7 @@ public class DBController {
         } catch (SQLException e) {
             throw new RuntimeException("Database error while retrieving user type: " + e.getMessage(), e);
         }
-
+        System.out.println(userType);
         return userType;
     }
 

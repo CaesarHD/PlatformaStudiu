@@ -59,7 +59,7 @@ public class LogInUI {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel usernameLabel = new JLabel("Enter username (CNP):");
+        JLabel usernameLabel = new JLabel("Enter email:");
         usernameField = new JTextField(15);
         JLabel passwordLabel = new JLabel("Enter password:");
         passwordField = new JPasswordField(15);
@@ -108,14 +108,34 @@ public class LogInUI {
         frame.setVisible(true);
     }
 
-    private ResultSet getUserDataFromDB(String cnp) throws SQLException
+    private ResultSet getUserDataFromDB(String email) throws SQLException
     {
         DBController.db.execute("use proiect");
 
-        String query = "SELECT CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, parola, tip_utilizator FROM utilizatori WHERE CNP = ?";
+        String query = "SELECT \n" +
+                "    utilizatori.CNP, \n" +
+                "    utilizatori.nume, \n" +
+                "    utilizatori.prenume, \n" +
+                "    utilizatori.adresa, \n" +
+                "    utilizatori.numar_telefon, \n" +
+                "    utilizatori.email, \n" +
+                "    utilizatori.IBAN, \n" +
+                "    utilizatori.numar_contract, \n" +
+                "    utilizatori.parola, \n" +
+                "    utilizatori.tip_utilizator, \n" +
+                "    detalii_studenti.an_de_studiu, \n" +
+                "    detalii_studenti.numar_ore_sustinute \n" +
+                "FROM \n" +
+                "    utilizatori \n" +
+                "JOIN \n" +
+                "    detalii_studenti \n" +
+                "ON \n" +
+                "    utilizatori.CNP = detalii_studenti.CNP  \n" +
+                "WHERE \n" +
+                "    utilizatori.email = ?;\n";
 
         PreparedStatement pstmt = DBController.db.getCon().prepareStatement(query);
-        pstmt.setString(1, cnp);
+        pstmt.setString(1, email);
 
         return pstmt.executeQuery();
     }
@@ -123,17 +143,17 @@ public class LogInUI {
 
     private void handleLogin(ActionEvent event)
     {
-        String cnp = usernameField.getText().trim();
+        String email = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        if (cnp.isEmpty() || password.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         String userType;
         try {
-            userType = DBController.retrieveUserType(cnp, password);
+            userType = DBController.retrieveUserType(email, password);
         } catch (RuntimeException e) {
             JOptionPane.showMessageDialog(frame,
                     "An error occurred while connecting to the database: " + e.getMessage(),
@@ -150,7 +170,7 @@ public class LogInUI {
         frame.dispose();
 
         try {
-            ResultSet resultSet = getUserDataFromDB(cnp);
+            ResultSet resultSet = getUserDataFromDB(email);
             if (resultSet != null && resultSet.next()) {
                 switch (userType) {
                     case "student" -> {
@@ -164,7 +184,10 @@ public class LogInUI {
                                 resultSet.getString("IBAN"),
                                 resultSet.getInt("numar_contract"),
                                 resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator")
+                                resultSet.getString("tip_utilizator"),
+                                resultSet.getInt("an_de_studiu"),
+                                resultSet.getInt("numar_ore_sustinute")
+
                         );
                         new StudentUI(student);
                     }
