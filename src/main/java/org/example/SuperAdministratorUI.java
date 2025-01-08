@@ -1,14 +1,16 @@
 package org.example;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SuperAdministratorUI extends Component
-{
+public class SuperAdministratorUI extends Component {
     private JFrame jFrame;
     private JPanel mainPanel;
     private JMenuBar menuBar;
@@ -84,8 +86,7 @@ public class SuperAdministratorUI extends Component
         jFrame.setVisible(true);
     }
 
-    private JButton createStyledButton(String text)
-    {
+    private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setBackground(Color.GRAY);
         button.setForeground(Color.WHITE);
@@ -259,15 +260,13 @@ public class SuperAdministratorUI extends Component
     }
 
 
-    private void returnToMainPanel()
-    {
+    private void returnToMainPanel() {
         mainPanel.removeAll();
         mainPanel.revalidate();
         mainPanel.repaint();
     }
 
-    private void displayUpdateUserPanel()
-    {
+    private void displayUpdateUserPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -276,27 +275,34 @@ public class SuperAdministratorUI extends Component
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font textFieldFont = new Font("Arial", Font.PLAIN, 14);
 
-
         JLabel cnpLabel = new JLabel("Enter CNP:");
         cnpLabel.setFont(labelFont);
         JTextField cnpField = new JTextField(20);
         cnpField.setFont(textFieldFont);
         cnpField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
-
         JLabel fieldLabel = new JLabel("Field to update:");
         fieldLabel.setFont(labelFont);
-        JTextField fieldField = new JTextField(20);
-        fieldField.setFont(textFieldFont);
-        fieldField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
+        String[] fields = {
+                "nume",
+                "prenume",
+                "adresa",
+                "numar_telefon",
+                "email",
+                "IBAN",
+                "numar_contract",
+                "parola",
+                "tip_utilizator"
+        };
+        JComboBox<String> fieldDropdown = new JComboBox<>(fields);
+        fieldDropdown.setFont(textFieldFont);
 
         JLabel valueLabel = new JLabel("New value:");
         valueLabel.setFont(labelFont);
         JTextField valueField = new JTextField(20);
         valueField.setFont(textFieldFont);
         valueField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -316,7 +322,7 @@ public class SuperAdministratorUI extends Component
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.LINE_END;
-        panel.add(fieldField, gbc);
+        panel.add(fieldDropdown, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -348,10 +354,10 @@ public class SuperAdministratorUI extends Component
 
         updateButton.addActionListener(e -> {
             String cnp = cnpField.getText().trim();
-            String field = fieldField.getText().trim();
+            String field = (String) fieldDropdown.getSelectedItem();
             String value = valueField.getText().trim();
 
-            if (cnp.isEmpty() || field.isEmpty() || value.isEmpty()) {
+            if (cnp.isEmpty() || value.isEmpty()) {
                 JOptionPane.showMessageDialog(jFrame, "Please provide valid inputs!");
             } else {
                 try {
@@ -367,8 +373,75 @@ public class SuperAdministratorUI extends Component
         cancelButton.addActionListener(e -> returnToMainPanel());
     }
 
-    private void displaySearchUserPanel()
-    {
+    private String showCustomInputDialog(String message) {
+        JDialog dialog = new JDialog((Frame) null, "Input", true);
+        dialog.setLayout(new GridBagLayout());
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(null);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Etichetă pentru mesaj
+        JLabel messageLabel = new JLabel(message);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        dialog.add(messageLabel, gbc);
+
+        // TextField pentru input
+        JTextField inputField = new JTextField(20);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        dialog.add(inputField, gbc);
+
+        // Panou pentru butoane
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Stilizare butoane
+        okButton.setBackground(Color.GRAY);
+        okButton.setForeground(Color.WHITE);
+        okButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+        cancelButton.setBackground(Color.GRAY);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+        // Adăugăm butoanele în panou
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        dialog.add(buttonPanel, gbc);
+
+        // Acțiuni pentru butoane
+        final String[] result = {null}; // Variabilă pentru rezultat
+        okButton.addActionListener(e -> {
+            result[0] = inputField.getText().trim();
+            dialog.dispose();
+        });
+
+        cancelButton.addActionListener(e -> {
+            result[0] = null;
+            dialog.dispose();
+        });
+
+        // Afișăm dialogul
+        dialog.setVisible(true);
+
+        return result[0]; // Returnăm rezultatul
+    }
+
+
+    private void displaySearchUserPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -384,7 +457,6 @@ public class SuperAdministratorUI extends Component
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(nameLabel, gbc);
-
 
         JButton searchButton = new JButton("Search");
         JButton cancelButton = new JButton("Cancel");
@@ -410,16 +482,32 @@ public class SuperAdministratorUI extends Component
         mainPanel.revalidate();
         mainPanel.repaint();
 
-
         searchButton.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog("Enter name: ");
-            String firstname = JOptionPane.showInputDialog("Enter firstname: ");
-            try {
-                ResultSet rs = DBController.searchUser2(sadmin, name,firstname);
-                StringBuilder results = new StringBuilder();
+            String name = showCustomInputDialog("Enter name:");
+            String firstname = showCustomInputDialog("Enter firstname:");
 
+            if (name == null || firstname == null || name.trim().isEmpty() || firstname.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(mainPanel, "Please provide both name and firstname!");
+                return;
+            }
+
+            try {
+                ResultSet rs = DBController.searchUser2(sadmin, name.trim(), firstname.trim());
+                JPanel resultsPanel = new JPanel();
+                resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
+                resultsPanel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.GRAY, 1),
+                        "Search Results",
+                        TitledBorder.CENTER,
+                        TitledBorder.TOP,
+                        new Font("Arial", Font.BOLD, 14)
+                ));
+
+                boolean hasResults = false;
 
                 while (rs.next()) {
+                    hasResults = true;
+
                     String cnp = rs.getString("cnp");
                     String nume = rs.getString("nume");
                     String prenume = rs.getString("prenume");
@@ -430,17 +518,53 @@ public class SuperAdministratorUI extends Component
                     String numarContract = rs.getString("numar_contract");
                     String tipUtilizator = rs.getString("tip_utilizator");
 
-                    results.append("CNP: ").append(cnp).append(", Last Name: ").append(nume).append(", First Name: ").append(prenume)
-                            .append(", Adress: ").append(adresa).append(", Phone number: ").append(numarTelefon)
-                            .append(", Email: ").append(email).append(", IBAN: ").append(iban)
-                            .append(", Contract number: ").append(numarContract).append(",user type: ").append(tipUtilizator)
-                            .append("\n");
+
+                    JPanel userPanel = new JPanel(new GridLayout(2, 1));
+                    userPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+                    userPanel.setBackground(new Color(245, 245, 245));
+                    userPanel.setMaximumSize(new Dimension(580, 100));
+
+                    JLabel userLabel = new JLabel(
+                            "<html><b>CNP:</b> " + cnp +
+                                    " | <b>Name:</b> " + nume + " " + prenume +
+                                    " | <b>Phone:</b> " + numarTelefon +
+                                    " | <b>Email:</b> " + email +
+                                    "</html>"
+                    );
+                    userLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+                    JLabel detailsLabel = new JLabel(
+                            "<html><b>Address:</b> " + adresa +
+                                    " | <b>IBAN:</b> " + iban +
+                                    " | <b>Contract:</b> " + numarContract +
+                                    " | <b>User Type:</b> " + tipUtilizator +
+                                    "</html>"
+                    );
+                    detailsLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+                    userPanel.add(userLabel);
+                    userPanel.add(detailsLabel);
+
+                    resultsPanel.add(userPanel);
+                    resultsPanel.add(Box.createVerticalStrut(10));
+                }
+
+                if (!hasResults) {
+                    resultsPanel.add(new JLabel("No results found for the given name."));
                 }
 
 
-                JOptionPane.showMessageDialog(mainPanel, results.length() > 0 ? results.toString() : "No results found for the given name.");
+                JScrollPane scrollPane = new JScrollPane(resultsPanel);
+                scrollPane.setPreferredSize(new Dimension(600, 400));
+                scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+                mainPanel.removeAll();
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(mainPanel, "Error " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainPanel, "Error: " + ex.getMessage());
             }
         });
 
@@ -449,8 +573,8 @@ public class SuperAdministratorUI extends Component
         mainPanel.repaint();
     }
 
-    private void displayFilterUserPanel()
-    {
+
+    private void displayFilterUserPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -461,13 +585,11 @@ public class SuperAdministratorUI extends Component
         JLabel typeLabel = new JLabel("Press 'Filter' to enter a user type (e.g., professor, administrator):");
         typeLabel.setFont(labelFont);
 
-
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(typeLabel, gbc);
-
 
         JButton filterButton = new JButton("Filter");
         JButton cancelButton = new JButton("Cancel");
@@ -477,7 +599,6 @@ public class SuperAdministratorUI extends Component
 
         filterButton.setFont(new Font("Arial", Font.PLAIN, 14));
         cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
-
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -495,12 +616,29 @@ public class SuperAdministratorUI extends Component
         mainPanel.repaint();
 
         filterButton.addActionListener(e -> {
-            String userType = JOptionPane.showInputDialog("Enter user type:").trim();
+            String userType = showCustomInputDialog("Enter user type:");
+            if (userType == null || userType.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(mainPanel, "Please provide a valid user type!");
+                return;
+            }
+
             try {
-                ResultSet rs = DBController.filterUser2(sadmin, userType);
-                StringBuilder results = new StringBuilder();
+                ResultSet rs = DBController.filterUser2(sadmin, userType.trim());
+                JPanel resultsPanel = new JPanel();
+                resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
+                resultsPanel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.GRAY, 1),
+                        "Filter Results",
+                        TitledBorder.CENTER,
+                        TitledBorder.TOP,
+                        new Font("Arial", Font.BOLD, 14)
+                ));
+
+                boolean hasResults = false;
 
                 while (rs.next()) {
+                    hasResults = true;
+
                     String cnp = rs.getString("cnp");
                     String nume = rs.getString("nume");
                     String prenume = rs.getString("prenume");
@@ -511,16 +649,53 @@ public class SuperAdministratorUI extends Component
                     String numarContract = rs.getString("numar_contract");
                     String tipUtilizator = rs.getString("tip_utilizator");
 
-                    results.append("CNP: ").append(cnp).append(", Name: ").append(nume).append(", First name: ").append(prenume)
-                            .append(", Adress: ").append(adresa).append(", Telephone number : ").append(numarTelefon)
-                            .append(", Email: ").append(email).append(", IBAN: ").append(iban)
-                            .append(", Contract number : ").append(numarContract).append(", user type: ").append(tipUtilizator)
-                            .append("\n");
+
+                    JPanel userPanel = new JPanel(new GridLayout(2, 1));
+                    userPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+                    userPanel.setBackground(new Color(245, 245, 245));
+                    userPanel.setMaximumSize(new Dimension(580, 100));
+
+                    JLabel userLabel = new JLabel(
+                            "<html><b>CNP:</b> " + cnp +
+                                    " | <b>Name:</b> " + nume + " " + prenume +
+                                    " | <b>Phone:</b> " + numarTelefon +
+                                    " | <b>Email:</b> " + email +
+                                    "</html>"
+                    );
+                    userLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+                    JLabel detailsLabel = new JLabel(
+                            "<html><b>Address:</b> " + adresa +
+                                    " | <b>IBAN:</b> " + iban +
+                                    " | <b>Contract:</b> " + numarContract +
+                                    " | <b>User Type:</b> " + tipUtilizator +
+                                    "</html>"
+                    );
+                    detailsLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+                    userPanel.add(userLabel);
+                    userPanel.add(detailsLabel);
+
+                    resultsPanel.add(userPanel);
+                    resultsPanel.add(Box.createVerticalStrut(10));
                 }
 
-                JOptionPane.showMessageDialog(null, results.length() > 0 ? results.toString() : "No results found for the given user type.");
+                if (!hasResults) {
+                    resultsPanel.add(new JLabel("No results found for the given user type."));
+                }
+
+
+                JScrollPane scrollPane = new JScrollPane(resultsPanel);
+                scrollPane.setPreferredSize(new Dimension(600, 400));
+                scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+                mainPanel.removeAll();
+                mainPanel.add(scrollPane, BorderLayout.CENTER);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, "Error " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainPanel, "Error: " + ex.getMessage());
             }
         });
 
@@ -528,6 +703,7 @@ public class SuperAdministratorUI extends Component
         mainPanel.revalidate();
         mainPanel.repaint();
     }
+
 
     private JTable buildUserTable(ResultSet resultSet) throws SQLException, SQLException {
 
@@ -548,8 +724,7 @@ public class SuperAdministratorUI extends Component
         return new JTable(dataArray, columns);
     }
 
-    private void displayStudentsForCourse(int courseId)
-    {
+    private void displayStudentsForCourse(int courseId) {
         try {
             ResultSet rs = DBController.getStudentsForCourse2(sadmin, courseId);
             StringBuilder result = new StringBuilder("All students enrolled:\n");
@@ -570,9 +745,89 @@ public class SuperAdministratorUI extends Component
         }
     }
 
+    private String showCustomScrollDialog(String title, List<String> options) {
+        JDialog dialog = new JDialog((Frame) null, title, true);
+        dialog.setLayout(new GridBagLayout());
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setSize(500, 400);
+        dialog.setLocationRelativeTo(null);
 
-    private void displayAssignProfessorPanel()
-    {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // Titlu
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        dialog.add(titleLabel, gbc);
+
+        // Listă derulantă
+        JList<String> list = new JList<>(options.toArray(new String[0]));
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setFont(new Font("Arial", Font.PLAIN, 14));
+        list.setVisibleRowCount(8);
+
+        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        dialog.add(scrollPane, gbc);
+
+        // Panou pentru butoane
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Stilizare butoane
+        okButton.setBackground(Color.GRAY);
+        okButton.setForeground(Color.WHITE);
+        okButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+        cancelButton.setBackground(Color.GRAY);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+        // Adăugăm butoanele
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        dialog.add(buttonPanel, gbc);
+
+        // Acțiuni pentru butoane
+        final String[] result = {null};
+        okButton.addActionListener(e -> {
+            if (list.getSelectedValue() != null) {
+                result[0] = list.getSelectedValue();
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Please select a course!");
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
+            result[0] = null;
+            dialog.dispose();
+        });
+
+        // Afișăm dialogul
+        dialog.setVisible(true);
+
+        return result[0];
+    }
+
+
+    private void displayAssignProfessorPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -580,7 +835,7 @@ public class SuperAdministratorUI extends Component
 
         Font labelFont = new Font("Arial", Font.BOLD, 14);
 
-        JLabel cnpLabel = new JLabel("Press 'Assign' and enter the CNP of the professor and the ID of the course:");
+        JLabel cnpLabel = new JLabel("Press 'Assign' to assign a professor to a course:");
         cnpLabel.setFont(labelFont);
 
         gbc.gridx = 0;
@@ -588,7 +843,6 @@ public class SuperAdministratorUI extends Component
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(cnpLabel, gbc);
-
 
         JButton assignButton = new JButton("Assign");
         JButton cancelButton = new JButton("Cancel");
@@ -598,7 +852,6 @@ public class SuperAdministratorUI extends Component
 
         assignButton.setFont(new Font("Arial", Font.PLAIN, 14));
         cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
-
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -610,24 +863,32 @@ public class SuperAdministratorUI extends Component
         buttonPanel.add(cancelButton);
         panel.add(buttonPanel, gbc);
 
-
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
         mainPanel.revalidate();
         mainPanel.repaint();
 
         assignButton.addActionListener(e -> {
-            String profCNP = JOptionPane.showInputDialog("Enter professor CNP: ");
-            String idMaterieStr = JOptionPane.showInputDialog("Enter course ID:");
+            String profCNP = showCustomInputDialog("Enter professor CNP:");
 
             try {
-                int idMaterie = Integer.parseInt(idMaterieStr);
-                DBController.assignProfessor2(sadmin, profCNP, idMaterie);
-                JOptionPane.showMessageDialog(null, "The professor was assigned to the course successfully. ");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(null, "The id has to be a valid number. ");
+                List<String> courses = getAllCourseNamesFromDB();
+                if (courses.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "No courses found in the database");
+                    return;
+                }
+
+                String selectedCourse = showCustomScrollDialog("Select a course:", courses);
+
+                if (selectedCourse != null) {
+
+                    int courseId = getCourseIdByName(selectedCourse);
+
+                    DBController.assignProfessor2(sadmin, profCNP, courseId);
+                    JOptionPane.showMessageDialog(null, "The professor was assigned to the course successfully.");
+                }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, "Error " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         });
 
@@ -636,8 +897,38 @@ public class SuperAdministratorUI extends Component
         mainPanel.repaint();
     }
 
-    private void displaySearchCoursePanel()
-    {
+
+    private List<String> getAllCourseNamesFromDB() throws SQLException {
+        List<String> courses = new ArrayList<>();
+        try (Statement stmt = DBController.db.getCon().createStatement()) {
+            stmt.execute("USE proiect");
+        }
+        String query = "SELECT nume FROM materii";
+        try (PreparedStatement pstmt = DBController.db.getCon().prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                courses.add(rs.getString("nume"));
+            }
+        }
+        return courses;
+    }
+
+
+    private int getCourseIdByName(String courseName) throws SQLException {
+        String query = "SELECT id FROM materii WHERE nume = ?";
+        try (PreparedStatement pstmt = DBController.db.getCon().prepareStatement(query)) {
+            pstmt.setString(1, courseName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                } else {
+                    throw new SQLException("Course not found: " + courseName);
+                }
+            }
+        }
+    }
+
+    private void displaySearchCoursePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -685,52 +976,60 @@ public class SuperAdministratorUI extends Component
 
 
         searchButton.addActionListener(e -> {
-            String courseName = JOptionPane.showInputDialog("Enter course name:");
+            String courseName = showCustomInputDialog("Enter course name:");
 
             if (courseName == null || courseName.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Course name cannot be empty.");
+                JOptionPane.showMessageDialog(mainPanel, "Course name cannot be empty.");
                 return;
             }
 
             try {
                 ResultSet rs = DBController.searchCourseByName2(sadmin, courseName);
                 List<Integer> courseIds = new ArrayList<>();
-                StringBuilder result = new StringBuilder();
+                List<String> courseDetails = new ArrayList<>();
 
                 while (rs.next()) {
                     int id = rs.getInt("id");
                     courseIds.add(id);
+
                     String course = rs.getString("nume");
                     String professorFirstName = rs.getString("prenume_profesor");
                     String professorLastName = rs.getString("nume_profesor");
 
-                    result.append(String.format("ID: %d, Course: %s, Professor: %s %s\n", id, course, professorFirstName, professorLastName));
+                    courseDetails.add(String.format("ID: %d | Course: %s | Professor: %s %s",
+                            id, course, professorFirstName, professorLastName));
                 }
 
-                if (result.length() > 0) {
-                    JOptionPane.showMessageDialog(null, result.toString());
-                    String selectedCourseIdInput = JOptionPane.showInputDialog("Enter the course ID to view enrolled students:");
+                if (!courseDetails.isEmpty()) {
+                    String selectedCourseIdInput = showCustomScrollDialog(
+                            "Search Results - Select a Course ID",
+                            courseDetails
+                    );
 
-                    try {
-                        int selectedCourseId = Integer.parseInt(selectedCourseIdInput);
+                    if (selectedCourseIdInput != null) {
+                        try {
+                            int selectedCourseId = Integer.parseInt(selectedCourseIdInput.split("\\|")[0].replace("ID:", "").trim());
 
-                        if (courseIds.contains(selectedCourseId)) {
-                            displayStudentsForCourse(selectedCourseId);
-                        } else {
-                            JOptionPane.showMessageDialog(null, "Invalid course ID. No course found with the provided ID.");
+                            if (courseIds.contains(selectedCourseId)) {
+                                displayStudentsForCourse(selectedCourseId);
+                            } else {
+                                JOptionPane.showMessageDialog(mainPanel, "Invalid course ID. No course found with the provided ID.");
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(mainPanel, "Invalid input. Please select a valid numeric ID.");
                         }
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid numeric ID.");
                     }
                 } else {
-                    JOptionPane.showMessageDialog(null, "No results found for the given course name.");
+                    JOptionPane.showMessageDialog(mainPanel, "No results found for the given course name.");
                 }
-
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainPanel, "Error: " + ex.getMessage());
             }
         });
 
         cancelButton.addActionListener(e -> returnToMainPanel());
+
     }
+
+
 }
