@@ -25,7 +25,6 @@ public class SuperAdministratorUI extends Component {
 
     private SuperAdministrator sadmin;
 
-
     public SuperAdministratorUI(SuperAdministrator sadmin) {
         this.sadmin = sadmin;
 
@@ -384,7 +383,7 @@ public class SuperAdministratorUI extends Component {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Etichetă pentru mesaj
+
         JLabel messageLabel = new JLabel(message);
         messageLabel.setFont(new Font("Arial", Font.BOLD, 14));
         gbc.gridx = 0;
@@ -392,19 +391,19 @@ public class SuperAdministratorUI extends Component {
         gbc.gridwidth = 2;
         dialog.add(messageLabel, gbc);
 
-        // TextField pentru input
+
         JTextField inputField = new JTextField(20);
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 2;
         dialog.add(inputField, gbc);
 
-        // Panou pentru butoane
+
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
 
-        // Stilizare butoane
+
         okButton.setBackground(Color.GRAY);
         okButton.setForeground(Color.WHITE);
         okButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -413,7 +412,7 @@ public class SuperAdministratorUI extends Component {
         cancelButton.setForeground(Color.WHITE);
         cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // Adăugăm butoanele în panou
+
         buttonPanel.add(okButton);
         buttonPanel.add(cancelButton);
 
@@ -422,8 +421,8 @@ public class SuperAdministratorUI extends Component {
         gbc.gridwidth = 2;
         dialog.add(buttonPanel, gbc);
 
-        // Acțiuni pentru butoane
-        final String[] result = {null}; // Variabilă pentru rezultat
+
+        final String[] result = {null};
         okButton.addActionListener(e -> {
             result[0] = inputField.getText().trim();
             dialog.dispose();
@@ -434,10 +433,10 @@ public class SuperAdministratorUI extends Component {
             dialog.dispose();
         });
 
-        // Afișăm dialogul
+
         dialog.setVisible(true);
 
-        return result[0]; // Returnăm rezultatul
+        return result[0];
     }
 
 
@@ -550,7 +549,7 @@ public class SuperAdministratorUI extends Component {
                 }
 
                 if (!hasResults) {
-                    resultsPanel.add(new JLabel("No results found for the given name."));
+                    resultsPanel.add(new JLabel("No results found for the given name"));
                 }
 
 
@@ -756,7 +755,7 @@ public class SuperAdministratorUI extends Component {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.BOTH;
 
-        // Titlu
+
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
         gbc.gridx = 0;
@@ -764,7 +763,8 @@ public class SuperAdministratorUI extends Component {
         gbc.gridwidth = 2;
         dialog.add(titleLabel, gbc);
 
-        // Listă derulantă
+
+
         JList<String> list = new JList<>(options.toArray(new String[0]));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -779,12 +779,12 @@ public class SuperAdministratorUI extends Component {
         gbc.weighty = 1.0;
         dialog.add(scrollPane, gbc);
 
-        // Panou pentru butoane
+
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
 
-        // Stilizare butoane
+
         okButton.setBackground(Color.GRAY);
         okButton.setForeground(Color.WHITE);
         okButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -793,7 +793,7 @@ public class SuperAdministratorUI extends Component {
         cancelButton.setForeground(Color.WHITE);
         cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // Adăugăm butoanele
+
         buttonPanel.add(okButton);
         buttonPanel.add(cancelButton);
 
@@ -804,7 +804,7 @@ public class SuperAdministratorUI extends Component {
         gbc.weighty = 0;
         dialog.add(buttonPanel, gbc);
 
-        // Acțiuni pentru butoane
+
         final String[] result = {null};
         okButton.addActionListener(e -> {
             if (list.getSelectedValue() != null) {
@@ -820,7 +820,7 @@ public class SuperAdministratorUI extends Component {
             dialog.dispose();
         });
 
-        // Afișăm dialogul
+
         dialog.setVisible(true);
 
         return result[0];
@@ -871,10 +871,21 @@ public class SuperAdministratorUI extends Component {
         assignButton.addActionListener(e -> {
             String profCNP = showCustomInputDialog("Enter professor CNP:");
 
+            if (profCNP == null || profCNP.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Error: You must enter a valid CNP.");
+                return;
+            }
+
             try {
+
+                if (!DBController.doesCNPExist(sadmin, profCNP)) {
+                    JOptionPane.showMessageDialog(null, "Error: No professor found with the provided CNP.");
+                    return;
+                }
+
                 List<String> courses = getAllCourseNamesFromDB();
                 if (courses.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "No courses found in the database");
+                    JOptionPane.showMessageDialog(null, "No courses found in the database.");
                     return;
                 }
 
@@ -936,16 +947,37 @@ public class SuperAdministratorUI extends Component {
 
         Font labelFont = new Font("Arial", Font.BOLD, 14);
 
-
-        JLabel courseLabel = new JLabel("Press 'Search' to find a course by name:");
+        JLabel courseLabel = new JLabel("Select a course from the list:");
         courseLabel.setFont(labelFont);
-
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(courseLabel, gbc);
+
+        String[] courses = {
+                "Introduction to Programming",
+                "Data Structures",
+                "Operating Systems",
+                "Computer Networks",
+                "Database Systems",
+                "Artificial Intelligence",
+                "Machine Learning",
+                "Web Development",
+                "Cybersecurity",
+                "Mobile Application Development"
+        };
+
+
+        JComboBox<String> courseDropdown = new JComboBox<>(courses);
+        courseDropdown.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(courseDropdown, gbc);
 
 
         JButton searchButton = new JButton("Search");
@@ -957,9 +989,8 @@ public class SuperAdministratorUI extends Component {
         searchButton.setFont(new Font("Arial", Font.PLAIN, 14));
         cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
 
-
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.CENTER;
 
@@ -968,7 +999,6 @@ public class SuperAdministratorUI extends Component {
         buttonPanel.add(cancelButton);
         panel.add(buttonPanel, gbc);
 
-
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
         mainPanel.revalidate();
@@ -976,15 +1006,15 @@ public class SuperAdministratorUI extends Component {
 
 
         searchButton.addActionListener(e -> {
-            String courseName = showCustomInputDialog("Enter course name:");
+            String selectedCourse = (String) courseDropdown.getSelectedItem();
 
-            if (courseName == null || courseName.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(mainPanel, "Course name cannot be empty.");
+            if (selectedCourse == null || selectedCourse.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(mainPanel, "Please select a course.");
                 return;
             }
 
             try {
-                ResultSet rs = DBController.searchCourseByName2(sadmin, courseName);
+                ResultSet rs = DBController.searchCourseByName2(sadmin, selectedCourse);
                 List<Integer> courseIds = new ArrayList<>();
                 List<String> courseDetails = new ArrayList<>();
 
@@ -1020,7 +1050,7 @@ public class SuperAdministratorUI extends Component {
                         }
                     }
                 } else {
-                    JOptionPane.showMessageDialog(mainPanel, "No results found for the given course name.");
+                    JOptionPane.showMessageDialog(mainPanel, "No results found for the selected course.");
                 }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(mainPanel, "Error: " + ex.getMessage());
@@ -1028,8 +1058,6 @@ public class SuperAdministratorUI extends Component {
         });
 
         cancelButton.addActionListener(e -> returnToMainPanel());
-
     }
-
 
 }

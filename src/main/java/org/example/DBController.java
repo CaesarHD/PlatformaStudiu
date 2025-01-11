@@ -774,6 +774,30 @@ public class DBController {
         return userType;
     }
 
+    public static boolean doesCNPExist(SuperAdministrator sadmin, String cnp) throws SQLException {
+        String query = "SELECT COUNT(*) FROM utilizatori WHERE cnp = ? AND tip_utilizator = 'profesor'";
+        db.execute("use proiect");
+        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+            stmt.setString(1, cnp);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
 
+    public static boolean doesCNPExist2(Admin admin, String cnp) throws SQLException {
+        String query = "SELECT COUNT(*) FROM utilizatori WHERE cnp = ? AND tip_utilizator = 'profesor'";
+        db.execute("use proiect");
+        try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
+            stmt.setString(1, cnp);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
 
 }
