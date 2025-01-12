@@ -16,12 +16,6 @@ public class CezarMain {
         Professor professor;
         professor = DBController.initializeProfessor("2174897302000", "WZuxthqdob");
 
-
-//        try {
-//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
-//            System.err.println("Failed to initialize LaF");
-//        }
         ProffesorUI pUi = new ProffesorUI(professor);
         pUi.show();
 

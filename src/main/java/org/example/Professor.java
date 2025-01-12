@@ -14,7 +14,6 @@ public class Professor extends User {
     private List<ProfessorActivity> professorActivities;
     private List<Meeting> meetings;
 
-
     public Professor() {
         subjects = new ArrayList<>();
         professorActivities = new ArrayList<>();

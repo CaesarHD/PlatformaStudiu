@@ -69,7 +69,6 @@ public class AdminUI extends Component
         assignProfessorButton.addActionListener(e -> displayAssignProfessorPanel());
         searchCourseButton.addActionListener(e -> displaySearchCoursePanel());
         addUserButton.addActionListener(e -> displayAddUserPanel());
-//        listStudentsButton.addActionListener(e -> displayStudentsForCourse());
         addUserButton.addActionListener(e -> displayAddUserPanel());
         logoutButton.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(jFrame,
