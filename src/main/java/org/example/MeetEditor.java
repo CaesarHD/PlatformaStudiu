@@ -7,13 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 public class MeetEditor extends JPanel {
     public MeetEditor(Meeting meet, MeetingCard meetingCard, JPanel parent, Professor professor, JPanel cardList) {
-
-        int year = meet.getStartDate().getYear();
-        int month = meet.getStartDate().getMonthValue();
 
         JFrame frame = new JFrame("Calendar");
         frame.setSize(1000, 500);
@@ -217,9 +213,7 @@ public class MeetEditor extends JPanel {
                                         meetingCard.getType().setText(selectedActivity.getType());
                                         meetingCard.getDescription().setText(meet.getDescription());
 
-//                                        parent.removeAll();
-//                                        parent.add(new Calendar(year, month, meet.getStartDate(), mainPanel, professor));
-//                                        parent.add(new MeetingsCalendar(professor, meet.getStartDate(), mainPanel));
+
                                         cardList.add(meetingCard);
                                         professor.getMeetings().add(meet);
 

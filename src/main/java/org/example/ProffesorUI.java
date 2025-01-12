@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.out.production.example.org.example.InvitationCard;
+
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
@@ -42,6 +44,7 @@ public class ProffesorUI extends UI {
         addClassBookActionListener();
         addAllActivitiesActionListener();
         addMeetingsActionListener();
+        addStudentActivitiesActionListener();
         addLogOutActionListener();
     }
 
@@ -104,6 +107,140 @@ public class ProffesorUI extends UI {
             }
         });
     }
+
+    public void addStudentActivitiesActionListener() {
+        studentActivities.addActionListener(e -> {
+            displayStudentActivitiesForProfessor();
+        });
+    }
+
+    private void displayStudentActivitiesForProfessor() {
+        displayPanel.removeAll();
+        JPanel studentActivitiesPanel = new JPanel();
+
+        displayPanel.setLayout(new BorderLayout());
+        displayPanel.add(getNotificationPanel(studentActivitiesPanel), BorderLayout.NORTH);
+
+
+        displayStudentsActivityEnrolledForProfessor(professor, studentActivitiesPanel);
+
+        displayPanel.add(studentActivitiesPanel, BorderLayout.CENTER);
+
+        displayPanel.revalidate();
+        displayPanel.repaint();
+
+    }
+
+    private static void displayStudentsActivityEnrolledForProfessor(Professor professor, JPanel studentActivitiesPanel) {
+
+        studentActivitiesPanel.setLayout(new BorderLayout());
+
+        try {
+            List<Object[]> activities = DBController.fetchActivitiesForProfessor(professor);
+
+            DefaultTableModel tableModel = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+
+            tableModel.addColumn("Activity Name");
+            tableModel.addColumn("Date");
+            tableModel.addColumn("Hours");
+            tableModel.addColumn("Minimum Participants");
+            tableModel.addColumn("Current Participants");
+            tableModel.addColumn("Expiration Time");
+            tableModel.addColumn("Status");
+
+            for (Object[] activity : activities) {
+                tableModel.addRow(new Object[]{
+                        activity[0],
+                        activity[1],
+                        activity[2],
+                        activity[3],
+                        activity[4],
+                        activity[5],
+                        activity[6]
+                });
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(60);
+            table.setFont(new Font("Arial", Font.PLAIN, 18));
+            table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 20));
+
+            table.getColumnModel().getColumn(0).setPreferredWidth(300);
+            table.getColumnModel().getColumn(1).setPreferredWidth(200);
+            table.getColumnModel().getColumn(2).setPreferredWidth(150);
+            table.getColumnModel().getColumn(3).setPreferredWidth(250);
+            table.getColumnModel().getColumn(4).setPreferredWidth(250);
+            table.getColumnModel().getColumn(5).setPreferredWidth(250);
+            table.getColumnModel().getColumn(6).setPreferredWidth(150);
+
+            JScrollPane scrollPane = new JScrollPane(table);
+            scrollPane.setPreferredSize(new Dimension(1000, 500));
+
+            studentActivitiesPanel.add(scrollPane, BorderLayout.CENTER);
+
+            studentActivitiesPanel.revalidate();
+            studentActivitiesPanel.repaint();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            System.out.println("Error fetching activities: " + ex.getMessage());
+        }
+    }
+
+
+
+
+    private JPanel getNotificationPanel(JPanel studentActivityPanel) {
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.setPreferredSize(new Dimension(displayPanel.getWidth(), 100));
+
+
+        JButton notificationButton = new JButton("Invitations");
+        notificationButton.setFont(new Font("Arial", Font.BOLD, 30));
+        notificationButton.setFocusPainted(false);
+        notificationButton.setBackground(Color.WHITE);
+        notificationButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        notificationButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        notificationButton.setToolTipText("View Notifications");
+
+        notificationButton.addActionListener(e -> {
+            JFrame notificationFrame = new JFrame("Invitations");
+            notificationFrame.setSize(1000, 750);
+            notificationFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            notificationFrame.setLocationRelativeTo(null);
+            notificationFrame.setVisible(true);
+
+            JPanel panel = new JPanel();
+            panel.setBackground(Color.LIGHT_GRAY);
+
+            notificationFrame.add(panel);
+
+            displayInvitations(panel, studentActivityPanel);
+
+        });
+
+        topPanel.add(notificationButton, BorderLayout.EAST);
+        return topPanel;
+    }
+
+        public void displayInvitations(JPanel panel, JPanel studentActivityPanel) {
+            try {
+                List<Object[]> activities = DBController.getProfessorStudentActivities(professor);
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                for (Object[] activity : activities) {
+                    JPanel cardPanel = new InvitationCard(activity, panel, professor, activities, studentActivityPanel);
+                    panel.add(cardPanel);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this.getjFrame(), "Error fetching activities: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
 
     public void addClassesActionListener() {
         classes.addActionListener(e -> displayCoursesTable());

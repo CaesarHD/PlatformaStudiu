@@ -1,5 +1,9 @@
 package org.example;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,10 +24,6 @@ public class DBController {
 
     public static void setDbConnection(DataBase newConnection) {
         db = newConnection;
-    }
-
-    public static void execute(String sql) {
-        db.execute(sql);
     }
 
     public static Professor initializeProfessor(String CNP, String password) throws SQLException {
@@ -62,6 +62,146 @@ public class DBController {
         }
 
         return user;
+    }
+
+
+    public static List<Object[]> fetchActivitiesForProfessor(Professor professor) throws SQLException {
+        List<Object[]> activities = new ArrayList<>();
+        String query = """
+        SELECT
+            a.id_activitate,
+            a.data,
+            a.numar_ore,
+            a.numar_minim_participanti,
+            a.numar_participanti,
+            a.id_grup,
+            a.timp_expirare,
+            a.nume
+        FROM
+            activitati_studenti a
+        JOIN
+            studenti_activitati_studenti pgs ON a.id_activitate = pgs.id_activitate
+        WHERE
+            pgs.CNP_student = ?;
+    """;
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setString(1, professor.getCNP());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String name = rs.getString("nume");
+                String date = rs.getString("data");
+                int duration = rs.getInt("numar_ore");
+                int minParticipants = rs.getInt("numar_minim_participanti");
+                int currentParticipants = rs.getInt("numar_participanti");
+                String expirationTime = rs.getString("timp_expirare");
+
+                boolean isCanceled = currentParticipants < minParticipants
+                        && LocalDateTime.parse(expirationTime.replace(" ", "T")).isBefore(LocalDateTime.now());
+
+                activities.add(new Object[]{
+                        name,
+                        date,
+                        duration,
+                        minParticipants,
+                        currentParticipants,
+                        expirationTime,
+                        isCanceled ? "This activity was canceled" : "active"
+                });
+            }
+        }
+
+        return activities;
+    }
+
+    static List<Object[]> getProfessorStudentActivities(Professor professor) throws SQLException {
+        List<Object[]> activities = new ArrayList<>();
+        String query = """
+            SELECT
+                     w.*
+                 FROM
+                     activitati_studenti w
+                 JOIN
+                     profesori_grupuri_studenti pg
+                 ON
+                     w.id_activitate = pg.id_activitate
+                 WHERE
+                     pg.CNP_profesor = ?;
+   \s""";
+
+        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
+            stmt.setString(1, professor.getCNP());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String name = rs.getString("nume");
+                String date = rs.getString("data");
+                int duration = rs.getInt("numar_ore");
+                int minParticipants = rs.getInt("numar_minim_participanti");
+                int currentParticipants = rs.getInt("numar_participanti");
+                String expirationTime = rs.getString("timp_expirare");
+                int activityId = rs.getInt("id_activitate");
+
+                boolean isCanceled = currentParticipants < minParticipants
+                        && LocalDateTime.parse(expirationTime.replace(" ", "T")).isBefore(LocalDateTime.now());
+
+                activities.add(new Object[]{
+                        name,
+                        date,
+                        duration,
+                        minParticipants,
+                        currentParticipants,
+                        expirationTime,
+                        isCanceled ? "This activity was canceled" : "active",
+                        activityId
+                });
+            }
+        }
+
+        return activities;
+    }
+
+    public static void deleteInvitation(String CNP, int activityId){
+        System.out.println(CNP + " " + activityId);
+        try {
+            db.execute("use proiect");
+            db.execute("DELETE FROM profesori_grupuri_studenti where CNP_profesor = '" + CNP + "' and id_activitate = " + activityId +";");
+        }
+        catch (RuntimeException e) {
+            System.out.println("nu mere");
+        }
+    }
+
+    public static void selectStudentActivitiesEnrolled() {
+        db.execute("SELECT * from ");
+    }
+
+    public static void addProfessorToStudentActivity(Professor professor, int activityId) {
+        try {
+            String enrollQuery = """
+                INSERT INTO studenti_activitati_studenti (CNP_student, id_activitate)
+                VALUES (?, ?);
+            """;
+            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(enrollQuery)) {
+                stmt.setString(1, professor.getCNP());
+                stmt.setInt(2, activityId);
+                stmt.executeUpdate();
+            }
+
+            String updateParticipantsQuery = """
+                UPDATE activitati_studenti
+                SET numar_participanti = numar_participanti + 1
+                WHERE id_activitate = ?;
+            """;
+            try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(updateParticipantsQuery)) {
+                stmt.setInt(1, activityId);
+                int rowsUpdated = stmt.executeUpdate();
+                System.out.println("Updated participants count for activity ID: " + activityId + ". Rows affected: " + rowsUpdated);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Nu se poate adauga profesorul.");
+        }
     }
 
     private static void populateUserFields(User user, ResultSet rs) throws SQLException {

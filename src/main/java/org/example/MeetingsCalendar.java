@@ -88,7 +88,6 @@ public class MeetingsCalendar extends JPanel {
 
     }
 
-
     private static List<Meeting> getMeetings(List<Meeting> meetings, LocalDateTime date) {
         List<Meeting> crtMeetings = new ArrayList<>();
         for (Meeting meeting : meetings) {
@@ -99,9 +98,6 @@ public class MeetingsCalendar extends JPanel {
         return crtMeetings;
     }
 
-    public boolean isEmpty() {
-        return isEmpty;
-    }
 
     public void setEmpty(boolean empty) {
         isEmpty = empty;
