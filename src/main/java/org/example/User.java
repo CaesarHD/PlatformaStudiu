@@ -38,8 +38,8 @@ public class User {
                 "'" + this.contractNumber + "'" + "," + "'" + this.userType + "'" + ");");
     }
 
-    public static String findUser(String CNP, String password) {
-        return ("select * from utilizatori where CNP = '" + CNP + "' and parola = '" + password + "';");
+    public static String findUser(String email, String password) {
+        return ("select * from utilizatori where email = '" + email + "' and parola = '" + password + "';");
     }
 
     public static String findUser(String CNP) {

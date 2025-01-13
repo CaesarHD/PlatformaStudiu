@@ -26,8 +26,8 @@ public class DBController {
         db = newConnection;
     }
 
-    public static Professor initializeProfessor(String CNP, String password) throws SQLException {
-        User user = getUser(User.findUser(CNP, password));
+    public static Professor initializeProfessor(String email, String password) throws SQLException {
+        User user = getUser(User.findUser(email, password));
         Professor professor = (Professor) user;
         getSubjectsFromDB(professor);
         getProfessorActivityFromDB(professor);
@@ -51,6 +51,7 @@ public class DBController {
                 case "profesor" -> new Professor();
                 case "administrator" -> new Admin();
                 case "student" -> new Student();
+                case "super-administrator" -> new SuperAdministrator();
                 default -> throw new IllegalArgumentException("Unknown user type: " + userType);
             };
 
@@ -748,7 +749,7 @@ public class DBController {
 
     public static String retrieveUserType(String email, String password) {
         String userType = null;
-        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE email = ? AND parola = ?";
+        String query = "SELECT tip_utilizator FROM proiect.utilizatori WHERE utilizatori.email = ? AND utilizatori.parola = ?";
 
         try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
             stmt.setString(1, email);
