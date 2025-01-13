@@ -18,7 +18,7 @@ import java.util.List;
 public class StudentUI {
 
     private JFrame jFrame;
-    private JPanel mainPanel; // Panel to dynamically update content
+    private JPanel mainPanel;
     private JMenuBar menuBar;
     private JButton subjectsButton;
     private JButton studentsGroupsButton;
@@ -45,7 +45,7 @@ public class StudentUI {
         JMenu menu = new JMenu("Menu");
         menuBar.add(menu);
 
-        Font buttonFont = new Font("Arial", Font.BOLD, 18); // Larger text
+        Font buttonFont = new Font("Arial", Font.BOLD, 18);
         Color buttonBackground = Color.LIGHT_GRAY;
 
         subjectsButton = new JButton("My Subjects");
@@ -123,19 +123,19 @@ public class StudentUI {
             mainPanel.removeAll();
 
             JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JTextField searchField = new JTextField(20); // Width is still 20 columns
-            searchField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+            JTextField searchField = new JTextField(20);
+            searchField.setFont(new Font("Arial", Font.PLAIN, 18));
             searchField.setPreferredSize(new Dimension(300, 30));
 
             JButton searchButton = new JButton("Search");
-            Font buttonFont = new Font("Arial", Font.PLAIN, 18); // Larger text
+            Font buttonFont = new Font("Arial", Font.PLAIN, 18);
             Color buttonBackground = Color.LIGHT_GRAY;
             searchButton.setFont(buttonFont);
             searchButton.setBackground(buttonBackground);
 
             JLabel searchLabel = new JLabel("Search by Subject:");
-            searchLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set font and size
-            searchLabel.setForeground(Color.BLACK); // Set text color (optional)
+            searchLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            searchLabel.setForeground(Color.BLACK);
             searchPanel.add(searchLabel);
 
 //            searchPanel.add(new JLabel("Search by Subject: "));
@@ -272,9 +272,9 @@ public class StudentUI {
             List<Object[]> gradesData = fetchGradesFromDatabase();
 
             DefaultTableModel tableModel = new DefaultTableModel();
-            tableModel.addColumn("Subject");        // Column 1
-            tableModel.addColumn("Activity Type"); // Column 2
-            tableModel.addColumn("Grade");         // Column 3
+            tableModel.addColumn("Subject");
+            tableModel.addColumn("Activity Type");
+            tableModel.addColumn("Grade");
 
             for (Object[] row : gradesData) {
                 tableModel.addRow(row);
@@ -300,10 +300,10 @@ public class StudentUI {
         try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                String subjectName = rs.getString("subject_name");  // Get subject name
-                String activityType = rs.getString("activity_type"); // Get activity type
-                Float grade = rs.getFloat("grade");                // Get grade (can be null)
-                data.add(new Object[]{subjectName, activityType, grade != 0 ? grade : "N/A"}); // Handle null grades
+                String subjectName = rs.getString("subject_name");
+                String activityType = rs.getString("activity_type");
+                Float grade = rs.getFloat("grade");
+                data.add(new Object[]{subjectName, activityType, grade != 0 ? grade : "N/A"});
             }
         }
 
@@ -372,9 +372,9 @@ public class StudentUI {
         try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                String subjectName = rs.getString("subject_name"); // Get subject name
-                int groupId = rs.getInt("group_id");              // Get group ID
-                groups.add(new Object[]{subjectName, groupId});   // Add to the list
+                String subjectName = rs.getString("subject_name");
+                int groupId = rs.getInt("group_id");
+                groups.add(new Object[]{subjectName, groupId});
             }
         }
 
@@ -474,7 +474,7 @@ public class StudentUI {
         chatArea.setEditable(false);
         JTextField inputField = new JTextField();
         JButton sendButton = new JButton("Send");
-        Font buttonFont = new Font("Arial", Font.BOLD, 14); // Larger text
+        Font buttonFont = new Font("Arial", Font.BOLD, 14);
         Color buttonBackground = Color.LIGHT_GRAY;
         sendButton.setFont(buttonFont);
         sendButton.setBackground(buttonBackground);
@@ -672,7 +672,7 @@ public class StudentUI {
             table.getColumn("Add professor").setCellEditor(new AddProfessorButtonEditor(new JCheckBox(), activities));
 
             JButton addActivityButton = new JButton("Add Activity");
-            Font buttonFont = new Font("Arial", Font.BOLD, 14); // Larger text
+            Font buttonFont = new Font("Arial", Font.BOLD, 14);
             Color buttonBackground = Color.LIGHT_GRAY;
             addActivityButton.setFont(buttonFont);
             addActivityButton.setBackground(buttonBackground);
@@ -740,16 +740,16 @@ public class StudentUI {
 
     private void downloadActivityDetails(Object[] activityDetails) throws Exception {
         String content = "Activity Details:\n";
-        content += "Activity Name: " + activityDetails[0] + "\n"; // Activity Name
-        content += "Date: " + activityDetails[1] + "\n"; // Date
-        content += "Hours: " + activityDetails[2] + "\n"; // Hours
-        content += "Minimum Participants: " + activityDetails[3] + "\n"; // Minimum Participants
-        content += "Current Participants: " + activityDetails[4] + "\n"; // Current Participants
-        content += "Expiration Time: " + activityDetails[5] + "\n"; // Expiration Time
+        content += "Activity Name: " + activityDetails[0] + "\n";
+        content += "Date: " + activityDetails[1] + "\n";
+        content += "Hours: " + activityDetails[2] + "\n";
+        content += "Minimum Participants: " + activityDetails[3] + "\n";
+        content += "Current Participants: " + activityDetails[4] + "\n";
+        content += "Expiration Time: " + activityDetails[5] + "\n";
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save Activity Details");
-        fileChooser.setSelectedFile(new File(activityDetails[0] + "_details.txt")); // Default file name
+        fileChooser.setSelectedFile(new File(activityDetails[0] + "_details.txt"));
         int userSelection = fileChooser.showSaveDialog(jFrame);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -887,7 +887,6 @@ public class StudentUI {
                 System.out.println("Deleted " + rowsDeleted + " dependent activities for group ID: " + groupId);
             }
 
-            // Step 2: Delete the student from the group
             String deleteGroupQuery = """
             DELETE FROM studenti_grupuri_studenti 
             WHERE CNP_student = ? AND id_grup = ?;
@@ -899,9 +898,8 @@ public class StudentUI {
                 System.out.println("Deleted group membership for group ID: " + groupId);
             }
 
-            // Step 3: Notify user and refresh the groups table
             JOptionPane.showMessageDialog(jFrame, "Successfully left the group!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            displayGroupsTable(); // Refresh the groups table
+            displayGroupsTable();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(jFrame, "Error leaving group: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -911,40 +909,33 @@ public class StudentUI {
 
     private void displayAvailableGroups() {
         try {
-            // Fetch available groups
             List<Object[]> availableGroups = fetchAvailableGroupsFromDatabase();
 
-            // Create Table Model with Two Columns: "Subject Name" and "Actions"
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 1; // Make only "Actions" column editable
+                    return column == 1;
                 }
             };
-            tableModel.addColumn("Subject Name"); // Column for subject names
-            tableModel.addColumn("Actions");      // Column for the "Join Group" button
+            tableModel.addColumn("Subject Name");
+            tableModel.addColumn("Actions");
 
-            // Add rows to the table model
             for (Object[] group : availableGroups) {
                 String subjectName = (String) group[0];
                 int groupId = (int) group[1];
-                tableModel.addRow(new Object[]{subjectName, "Join Group"}); // Add placeholder button
+                tableModel.addRow(new Object[]{subjectName, "Join Group"});
             }
 
-            // Create JTable with the model
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
-            // Set custom renderer and editor for the "Actions" column
             table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
             table.getColumn("Actions").setCellEditor(new JoinGroupButtonEditor(new JCheckBox(), availableGroups));
 
-            // Add JTable to JScrollPane
             JScrollPane scrollPane = new JScrollPane(table);
             mainPanel.removeAll();
             mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-            // Refresh the main panel
             mainPanel.revalidate();
             mainPanel.repaint();
         } catch (SQLException ex) {
@@ -1007,11 +998,9 @@ public class StudentUI {
         @Override
         public Object getCellEditorValue() {
             if (clicked && "Join Group".equals(label)) {
-                // Get the selected group's ID
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
                 int groupId = (int) availableGroups.get(rowIndex)[1];
 
-                // Perform join action
                 try {
                     joinGroup(groupId);
                 } catch (SQLException ex) {
@@ -1038,7 +1027,6 @@ public class StudentUI {
 
         JOptionPane.showMessageDialog(jFrame, "Successfully joined the group!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-        // Refresh available groups table
         displayAvailableGroups();
     }
 
@@ -1068,7 +1056,7 @@ public class StudentUI {
 
 
     private void filterAvailableCourses(String query, DefaultTableModel tableModel, List<Object[]> data) {
-        tableModel.setRowCount(0); // Clear existing rows
+        tableModel.setRowCount(0);
         for (Object[] row : data) {
             String courseName = (String) row[0];
             if (courseName.toLowerCase().contains(query.toLowerCase())) {
@@ -1105,11 +1093,9 @@ public class StudentUI {
         @Override
         public Object getCellEditorValue() {
             if (clicked && "Enroll".equals(label)) {
-                // Get the selected course's ID
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
                 int courseId = (int) availableCourses.get(rowIndex)[1];
 
-                // Perform enroll action
                 try {
                     enrollInCourse(courseId);
                 } catch (SQLException ex) {
@@ -1138,7 +1124,6 @@ public class StudentUI {
             if (rs.next()) {
                 String professorCNP = rs.getString("CNP_profesor");
 
-                // Insert the student enrollment with a default value for nota_finala
                 String insertQuery = """
                 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala)
                 VALUES (?, ?, ?, ?);
@@ -1148,7 +1133,7 @@ public class StudentUI {
                     insertStmt.setString(1, student.getCNP());
                     insertStmt.setString(2, professorCNP);
                     insertStmt.setInt(3, courseId);
-                    insertStmt.setInt(4, 0); // Default value for nota_finala
+                    insertStmt.setInt(4, 0);
                     insertStmt.executeUpdate();
 
                     JOptionPane.showMessageDialog(jFrame, "Successfully enrolled in the course!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -1161,7 +1146,6 @@ public class StudentUI {
             throw e;
         }
 
-        // Refresh available courses table
         displayAvailableCourses();
     }
 
@@ -1169,8 +1153,8 @@ public class StudentUI {
 
 
     public int fetchYearOfStudies() {
-        int yearOfStudies = -1; // Default value in case of no data found or errors
-        String query = student.getYearOfStudies(); // Get the SQL query
+        int yearOfStudies = -1;
+        String query = student.getYearOfStudies();
 
         try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -1185,8 +1169,8 @@ public class StudentUI {
     }
 
     public int fetchNrHoursSustained() {
-        int hoursSustained = -1; // Default value in case of no data found or errors
-        String query = student.getNrHoursSustained(); // Get the SQL query
+        int hoursSustained = -1;
+        String query = student.getNrHoursSustained();
 
         try (Statement stmt = DBController.db.getCon().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -1202,10 +1186,7 @@ public class StudentUI {
 
 
     private void displayProfileDetails() {
-        // Clear the main panel
         mainPanel.removeAll();
-
-        // Fetch student details
         String[] columnNames = {"Field", "Value"};
         Object[][] data = {
                 {"CNP", student.getCNP()},
@@ -1220,58 +1201,47 @@ public class StudentUI {
                 {"Hours Sustained", fetchNrHoursSustained()},
         };
 
-        // Create a JTable to display the details
         JTable table = new JTable(data, columnNames);
         table.setRowHeight(30);
 
-        // Add the table to the main panel
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Create a panel for the GIF and static image
-        JPanel gifPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Center-align with padding
-        gifPanel.setOpaque(false); // Make it transparent to avoid background conflicts
+        JPanel gifPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        gifPanel.setOpaque(false);
 
-        // Load the static and animated images
-        ImageIcon staticGif = new ImageIcon("grinch.png"); // Update path
-        ImageIcon animatedGif = new ImageIcon("grinch.gif"); // Update path
+        ImageIcon staticGif = new ImageIcon("grinch.png");
+        ImageIcon animatedGif = new ImageIcon("grinch.gif");
 
-        // Create a JLabel for the static image
         JLabel gifLabel = new JLabel(staticGif);
 
-        // Add MouseListener to switch between static and animated GIFs
         gifLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                gifLabel.setIcon(animatedGif); // Switch to animated GIF on hover
+                gifLabel.setIcon(animatedGif);
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                gifLabel.setIcon(staticGif); // Revert to static image on mouse exit
+                gifLabel.setIcon(staticGif);
             }
         });
 
-        // Add the label to the panel
         gifPanel.add(gifLabel);
 
-        // Add the GIF panel below the table
         mainPanel.add(gifPanel, BorderLayout.SOUTH);
 
-        // Refresh the main panel
         mainPanel.revalidate();
         mainPanel.repaint();
 
     }
 
     private void handleLogout() {
-        // Create a custom panel for the message
         JPanel panel = new JPanel(new BorderLayout());
         JLabel messageLabel = new JLabel("Are you sure you want to log out?");
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 16)); // Bigger font for the message
+        messageLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(messageLabel, BorderLayout.CENTER);
 
-        // Custom buttons
         JButton yesButton = new JButton("YES");
         yesButton.setFont(new Font("Arial", Font.BOLD, 14));
         yesButton.setBackground(Color.LIGHT_GRAY);
@@ -1282,12 +1252,10 @@ public class StudentUI {
         noButton.setBackground(Color.LIGHT_GRAY);
         noButton.setFocusPainted(false);
 
-        // Create a custom dialog
         JDialog dialog = new JDialog(jFrame, "Log Out", true);
         dialog.setSize(300, 150);
         dialog.setLayout(new BorderLayout());
 
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonPanel.add(yesButton);
         buttonPanel.add(noButton);
@@ -1295,7 +1263,6 @@ public class StudentUI {
         dialog.add(panel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Add button actions
         yesButton.addActionListener(e -> {
             dialog.dispose();
             jFrame.dispose();
@@ -1304,7 +1271,6 @@ public class StudentUI {
 
         noButton.addActionListener(e -> dialog.dispose());
 
-        // Display the dialog
         dialog.setLocationRelativeTo(jFrame);
         dialog.setVisible(true);
     }
@@ -1313,7 +1279,6 @@ public class StudentUI {
 
     private void displayMeetingsTable() {
         try {
-            // Query to fetch meetings data
             String query = """
         SELECT 
             ap.tip_activitate AS activity_type,
@@ -1342,14 +1307,12 @@ public class StudentUI {
         ORDER BY p.data_inceput;
         """;
 
-            // Execute query and fetch results
             List<Object[]> meetings = fetchMeetingsFromDatabase(query);
 
-            // Create Table Model
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 7; // Only the "Download" column is editable
+                    return column == 7;
                 }
             };
             tableModel.addColumn("Activity Type");
@@ -1359,35 +1322,31 @@ public class StudentUI {
             tableModel.addColumn("Start Date");
             tableModel.addColumn("End Date");
             tableModel.addColumn("Participants");
-            tableModel.addColumn("Actions"); // Download Button Column
+            tableModel.addColumn("Actions");
 
-            // Populate the table
             for (Object[] meeting : meetings) {
-                String participants = meeting[7] + "/" + meeting[1]; // current_participants/max_participants
+                String participants = meeting[7] + "/" + meeting[1];
                 tableModel.addRow(new Object[]{
-                        meeting[0], // Activity Type
-                        meeting[4], // Subject
-                        meeting[2], // Description
-                        meeting[3], // Professor Name
-                        meeting[5], // Start Date
-                        meeting[6], // End Date
-                        participants, // Participants
-                        "Download" // Download Button Placeholder
+                        meeting[0],
+                        meeting[4],
+                        meeting[2],
+                        meeting[3],
+                        meeting[5],
+                        meeting[6],
+                        participants,
+                        "Download"
                 });
             }
 
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
-            // Set custom renderer and editor for the "Actions" column
             table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
             table.getColumn("Actions").setCellEditor(new MeetingDownloadButtonEditor(new JCheckBox(), meetings));
 
-            // Add table to the main panel
             mainPanel.removeAll();
             mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-            // Refresh the panel
             mainPanel.revalidate();
             mainPanel.repaint();
         } catch (SQLException ex) {
@@ -1410,7 +1369,7 @@ public class StudentUI {
                 String startDate = rs.getString("start_date");
                 String endDate = rs.getString("end_date");
                 int currentParticipants = rs.getInt("current_participants");
-                int scheduleId = rs.getInt("schedule_id"); // Add schedule_id here
+                int scheduleId = rs.getInt("schedule_id");
 
                 data.add(new Object[]{
                         activityType,
@@ -1421,7 +1380,7 @@ public class StudentUI {
                         startDate,
                         endDate,
                         currentParticipants,
-                        scheduleId // Include schedule_id
+                        scheduleId
                 });
             }
         }
@@ -1430,7 +1389,6 @@ public class StudentUI {
 
     private void displayAvailableMeetingsTable() {
         try {
-            // Query to fetch available meetings
             String query = """
                 SELECT 
                     ap.tip_activitate AS activity_type,
@@ -1467,58 +1425,50 @@ public class StudentUI {
                 """;
             List<Object[]> availableMeetings = fetchAvailableMeetingsFromDatabase(query);
 
-            // Create Table Model
             DefaultTableModel tableModel = new DefaultTableModel() {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 7; // Make only the "Enroll" column editable
+                    return column == 7;
                 }
             };
-            tableModel.addColumn("Subject Name");    // New column for subject name
+            tableModel.addColumn("Subject Name");
             tableModel.addColumn("Activity Type");
             tableModel.addColumn("Description");
             tableModel.addColumn("Professor Name");
             tableModel.addColumn("Start Date");
             tableModel.addColumn("End Date");
             tableModel.addColumn("Participants");
-            tableModel.addColumn("Actions"); // Enroll Button Column
+            tableModel.addColumn("Actions");
 
-            // Populate the table
             for (Object[] meeting : availableMeetings) {
-                String participants = meeting[8] + "/" + meeting[1]; // current/max participants
+                String participants = meeting[8] + "/" + meeting[1];
                 tableModel.addRow(new Object[]{
-                        meeting[4], // Subject Name
-                        meeting[0], // Activity Type
-                        meeting[2], // Description
-                        meeting[3], // Professor Name
-                        meeting[6], // Start Date
-                        meeting[7], // End Date
-                        participants, // Participants
-                        "Enroll" // Enroll Button Placeholder
+                        meeting[4],
+                        meeting[0],
+                        meeting[2],
+                        meeting[3],
+                        meeting[6],
+                        meeting[7],
+                        participants,
+                        "Enroll"
                 });
             }
 
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
-            // Set custom renderer and editor for the "Actions" column
             table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
             table.getColumn("Actions").setCellEditor(new AvailableMeetingEnrollButtonEditor(new JCheckBox(), availableMeetings));
 
-            // Add table to the main panel
             mainPanel.removeAll();
             mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-            // Refresh the panel
             mainPanel.revalidate();
             mainPanel.repaint();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(jFrame, "Error fetching available meetings: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
-
 
     private List<Object[]> fetchAvailableMeetingsFromDatabase(String query) throws SQLException {
         List<Object[]> data = new ArrayList<>();
@@ -1529,7 +1479,7 @@ public class StudentUI {
                 int maxParticipants = rs.getInt("max_participants");
                 String description = rs.getString("description");
                 String professorName = rs.getString("professor_name");
-                String subjectName = rs.getString("subject_name"); // Fetch subject name
+                String subjectName = rs.getString("subject_name");
                 int scheduleId = rs.getInt("schedule_id");
                 String startDate = rs.getString("start_date");
                 String endDate = rs.getString("end_date");
@@ -1540,8 +1490,8 @@ public class StudentUI {
                         maxParticipants,
                         description,
                         professorName,
-                        subjectName,      // Subject name
-                        scheduleId,       // Schedule ID
+                        subjectName,
+                        scheduleId,
                         startDate,
                         endDate,
                         currentParticipants
@@ -1550,10 +1500,6 @@ public class StudentUI {
         }
         return data;
     }
-
-
-
-
 
     class AvailableMeetingEnrollButtonEditor extends DefaultCellEditor {
         private JButton button;
@@ -1584,21 +1530,17 @@ public class StudentUI {
             if (clicked && "Enroll".equals(label)) {
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
                 try {
-                    int scheduleId = Integer.parseInt(availableMeetings.get(rowIndex)[5].toString()); // Corrected index for schedule_id
+                    int scheduleId = Integer.parseInt(availableMeetings.get(rowIndex)[5].toString());
 
-                    // Check both conditions: no time conflict and max participants not reached
                     if (!canEnroll(scheduleId)) {
-                        return label; // Exit without enrolling if validation fails
+                        return label;
                     }
 
-                    // Perform the enrollment
                     enrollInMeeting(scheduleId, student.getCNP());
                     JOptionPane.showMessageDialog(button, "Successfully enrolled in the meeting!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Update the participants count
                     updateParticipants(scheduleId);
 
-                    // Refresh the table
                     displayAvailableMeetingsTable();
                 } catch (NumberFormatException nfe) {
                     JOptionPane.showMessageDialog(button, "Error parsing schedule ID: " + nfe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -1617,28 +1559,27 @@ public class StudentUI {
     }
 
     private void enrollInMeeting(int scheduleId, String cnpStudent) throws SQLException {
-        System.out.println("Inserting enrollment for student CNP: " + cnpStudent + " and schedule ID: " + scheduleId); // Debugging log
+        System.out.println("Inserting enrollment for student CNP: " + cnpStudent + " and schedule ID: " + scheduleId);
         String query = "INSERT INTO programari_studenti (id_programare, CNP_student) VALUES (?, ?)";
         try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setInt(1, scheduleId);
             stmt.setString(2, cnpStudent);
             stmt.executeUpdate();
-            System.out.println("Enrollment inserted."); // Debugging log
+            System.out.println("Enrollment inserted.");
         }
     }
 
     private void updateParticipants(int scheduleId) throws SQLException {
-        System.out.println("Updating participants for schedule ID: " + scheduleId); // Debugging log
+        System.out.println("Updating participants for schedule ID: " + scheduleId);
         String query = "UPDATE programari SET nr_participanti = nr_participanti + 1 WHERE id_programare = ?";
         try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setInt(1, scheduleId);
             stmt.executeUpdate();
-            System.out.println("Participants updated."); // Debugging log
+            System.out.println("Participants updated.");
         }
     }
 
     private boolean canEnroll(int scheduleId) throws SQLException {
-        // Query to get the start and end time, and current/max participants of the selected meeting
         String query = """
         SELECT p.data_inceput AS start_date, 
                p.data_final AS end_date, 
@@ -1667,13 +1608,11 @@ public class StudentUI {
             }
         }
 
-        // Check if the meeting has reached the maximum number of participants
         if (currentParticipants >= maxParticipants) {
             JOptionPane.showMessageDialog(null, "The maximum number of participants for this meeting has been reached.", "Max Participants Reached", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
-        // Query to get all existing meetings for the student
         String existingMeetingsQuery = """
         SELECT p.data_inceput AS start_date, p.data_final AS end_date
         FROM programari_studenti ps
@@ -1747,17 +1686,15 @@ public class StudentUI {
         }
 
         private void saveMeetingDetailsToFile(Object[] meeting) throws Exception {
-            // Use a file chooser to allow the user to select a save location
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Save Meeting Details");
-            fileChooser.setSelectedFile(new java.io.File("MeetingDetails_" + meeting[8] + ".txt")); // Default file name
+            fileChooser.setSelectedFile(new java.io.File("MeetingDetails_" + meeting[8] + ".txt"));
 
             int userSelection = fileChooser.showSaveDialog(null);
 
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 java.io.File fileToSave = fileChooser.getSelectedFile();
 
-                // Write meeting details to the selected file
                 try (PrintWriter writer = new PrintWriter(fileToSave)) {
                     writer.println("Meeting Details:");
                     writer.println("Activity Type: " + meeting[0]);
@@ -1808,18 +1745,14 @@ public class StudentUI {
                 try {
                     int rowIndex = ((JTable) button.getParent()).getSelectedRow();
 
-                    // Retrieve activity ID and group ID
-                    int activityId = (int) activities.get(rowIndex)[6]; // Index for activity ID
-                    int groupId = (int) activities.get(rowIndex)[8];    // Index for group ID
+                    int activityId = (int) activities.get(rowIndex)[6];
+                    int groupId = (int) activities.get(rowIndex)[8];
                     String studentCNP = student.getCNP();
 
-                    // Enroll in the activity
                     enrollInActivity(activityId, studentCNP, groupId);
 
-                    // Notify the user
                     JOptionPane.showMessageDialog(button, "Successfully enrolled in the activity!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Refresh the activities table
                     System.out.println("Refreshing activities for Group ID: " + groupId);
                     displayActivitiesTable(groupId);
                 } catch (Exception ex) {
@@ -1837,7 +1770,7 @@ public class StudentUI {
 
         private void enrollInActivity(int activityId, String studentCNP, int groupId) {
             try {
-                // Step 1: Insert the enrollment into `studenti_activitati_studenti`
+
                 String enrollQuery = """
                 INSERT INTO studenti_activitati_studenti (CNP_student, id_activitate)
                 VALUES (?, ?);
@@ -1889,8 +1822,8 @@ public class StudentUI {
         public Object getCellEditorValue() {
             if (clicked) {
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
-                int activityId = (int) activities.get(rowIndex)[6]; // Assuming activity ID is stored at index 6
-                int subjectId = (int) activities.get(rowIndex)[8]; // Assuming subject ID is stored at index 8
+                int activityId = (int) activities.get(rowIndex)[6];
+                int subjectId = (int) activities.get(rowIndex)[8];
                 displayProfessorSelectionDialog(activityId, subjectId);
             }
             clicked = false;
@@ -1905,28 +1838,23 @@ public class StudentUI {
 
     private void displayProfessorSelectionDialog(int activityId, int subjectId) {
         try {
-            // Fetch professors dynamically for the current activity and subject
             List<String[]> professors = fetchProfessorsForSubject(activityId, subjectId);
 
-            // Clear existing data from the table model
             DefaultTableModel tableModel = new DefaultTableModel();
             tableModel.addColumn("First Name");
             tableModel.addColumn("Last Name");
             tableModel.addColumn("Email");
             tableModel.addColumn("Invite");
 
-            // Populate the table with professors
             for (String[] professor : professors) {
                 tableModel.addRow(new Object[]{professor[1], professor[2], professor[3], professor[4]});
             }
 
-            // Set up the table
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
             table.getColumn("Invite").setCellRenderer(new ButtonRenderer());
             table.getColumn("Invite").setCellEditor(new InviteProfessorButtonEditor(new JCheckBox(), professors, activityId, table));
 
-            // Display the dialog
             JScrollPane scrollPane = new JScrollPane(table);
             JDialog dialog = new JDialog(jFrame, "Select Professor", true);
             dialog.setSize(600, 400);
@@ -1938,9 +1866,6 @@ public class StudentUI {
             JOptionPane.showMessageDialog(jFrame, "Error fetching professors: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
-
 
     private List<String[]> fetchProfessorsForSubject(int activityId, int subjectId) throws SQLException {
         List<String[]> professors = new ArrayList<>();
@@ -1975,8 +1900,7 @@ public class StudentUI {
                 String firstName = rs.getString("first_name");
                 String lastName = rs.getString("last_name");
                 String email = rs.getString("email");
-                // Include CNP, names, email, and status in the array
-                professors.add(new String[]{cnp, firstName, lastName, email, "Invite"}); // Default status is "Invite"
+                professors.add(new String[]{cnp, firstName, lastName, email, "Invite"});
             }
         }
         return professors;
@@ -1988,13 +1912,13 @@ public class StudentUI {
         private JButton button;
         private String label;
         private boolean clicked;
-        private List<String[]> professors; // Include CNP in the data
+        private List<String[]> professors;
         private int activityId;
-        private JTable table; // Reference to the table for updating the cell
+        private JTable table;
 
         public InviteProfessorButtonEditor(JCheckBox checkBox, List<String[]> professors, int activityId, JTable table) {
             super(checkBox);
-            this.professors = professors; // Each professor record contains CNP
+            this.professors = professors;
             this.activityId = activityId;
             this.table = table;
             button = new JButton();
@@ -2017,7 +1941,6 @@ public class StudentUI {
                 int rowIndex = table.getEditingRow();
                 String[] professor = professors.get(rowIndex);
 
-                // Check if the professor is already invited
                 if ("Invited".equals(professor[4])) {
                     JOptionPane.showMessageDialog(button, "Professor is already invited.", "Information", JOptionPane.INFORMATION_MESSAGE);
                     clicked = false;
@@ -2029,8 +1952,8 @@ public class StudentUI {
 
                 try {
                     sendInvitationToProfessor(activityId, professorCNP);
-                    professor[4] = "Invited"; // Update the status in the professors list
-                    table.setValueAt("Invited", rowIndex, table.getColumn("Invite").getModelIndex()); // Update the table cell
+                    professor[4] = "Invited";
+                    table.setValueAt("Invited", rowIndex, table.getColumn("Invite").getModelIndex());
                     JOptionPane.showMessageDialog(button, "Invitation sent to " + professorEmail, "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(button, "Error sending invitation: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -2039,11 +1962,6 @@ public class StudentUI {
             clicked = false;
             return label;
         }
-
-
-
-
-
 
         @Override
         protected void fireEditingStopped() {
@@ -2057,7 +1975,7 @@ public class StudentUI {
         """;
             try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
                 stmt.setInt(1, activityId);
-                stmt.setString(2, professorCNP); // Insert CNP correctly
+                stmt.setString(2, professorCNP);
                 stmt.executeUpdate();
             }
         }
@@ -2067,16 +1985,14 @@ public class StudentUI {
 
     private void displaySuggestionsForGroup(int groupId) {
         try {
-            // Fetch suggestions for the group
             List<String[]> suggestions = fetchSuggestionsForGroupFromDatabase(groupId);
 
-            // Create Table Model with Student Information
             DefaultTableModel tableModel = new DefaultTableModel();
             tableModel.addColumn("First Name");
             tableModel.addColumn("Last Name");
             tableModel.addColumn("Email");
 
-            // Add rows to the table model
+
             for (String[] suggestion : suggestions) {
                 tableModel.addRow(suggestion);
             }
@@ -2084,7 +2000,7 @@ public class StudentUI {
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
 
-            // Display the suggestions in a dialog or new panel
+
             JFrame suggestionsFrame = new JFrame("Suggestions for Members - Group " + groupId);
             suggestionsFrame.setSize(600, 400);
             suggestionsFrame.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -2151,11 +2067,9 @@ public class StudentUI {
         @Override
         public Object getCellEditorValue() {
             if (clicked) {
-                // Get the selected group's ID
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
                 int groupId = (int) groups.get(rowIndex)[1];
 
-                // Display suggestions for members
                 displaySuggestionsForGroup(groupId);
             }
             clicked = false;
