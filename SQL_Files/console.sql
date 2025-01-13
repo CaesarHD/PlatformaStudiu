@@ -200,6 +200,18 @@ create table studenti_activitati_studenti
 ALTER TABLE activitati_studenti
 ADD COLUMN status ENUM('active', 'canceled') DEFAULT 'active';
 
+create table profesori_grupuri_studenti
+(
+    id_activitate      int         null,
+    CNP_profesor varchar(13) null,
+    constraint profesor_detalii_profesor_fk
+        foreign key (CNP_profesor) references detalii_profesori(CNP)
+        on delete cascade,
+    constraint profesori_grupuri_activitati_fk
+        foreign key (id_activitate) references activitati_studenti(id_activitate)
+        on delete cascade
+);
+
 
 
 create definer = root@localhost trigger delete_user
@@ -256,6 +268,11 @@ ADD CONSTRAINT studenti_grupuri_studenti_detalii_studenti_CNP_fk
 alter table note_activitati
     drop foreign key note_activitati_detalii_studenti_CNP_fk;
 
+alter table profesori_grupuri_studenti
+    drop foreign key profesori_grupuri_activitati_fk;
+
+alter table profesori_grupuri_studenti
+    drop foreign key profesor_detalii_profesor_fk;
 
 ALTER TABLE note_activitati
 ADD CONSTRAINT note_activitati_detalii_studenti_CNP_fk
@@ -314,6 +331,10 @@ ADD CONSTRAINT materii_studenti_profesor_id_fk
     FOREIGN KEY (CNP_profesor)
     REFERENCES detalii_profesori(CNP)
     ON DELETE CASCADE;
+
+ALTER TABLE studenti_activitati_studenti
+    DROP FOREIGN KEY studenti_activitati_studenti_CNP_student_fk,
+    DROP FOREIGN KEY studenti_activitati_studenti_id_activitate_fk;
 #
 # drop index activitati_studenti_grupuri_studenti_id_grup_fk on activitati_studenti;
 
@@ -786,6 +807,8 @@ INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9794389736547', '4104733170501', 10, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9805837237664', '9741169600624', 9, 0);
 INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('9847606272399', '9636398095255', 7, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '3252625163261', 3, 0);
+INSERT INTO materii_studenti (CNP_student, CNP_profesor, id_materie, nota_finala) VALUES ('2404023608380', '3951032160081', 4, 0);
 
 
 
@@ -1137,3 +1160,84 @@ select * from programari join activitati_profesori
         join activitati_profesori ap on materii.id = ap.id_materie
         join programari p on ap.id_activitate = p.id_activitate
         where id_programare = 1;
+
+SELECT
+            ap.tip_activitate AS activity_type,
+            ap.nr_max_participanti AS max_participants,
+            p.descriere_programare AS description,
+            CONCAT(u.nume, ' ', u.prenume) AS professor_name,
+            m.nume AS subject_name,
+            p.data_inceput AS start_date,
+            p.data_final AS end_date,
+            p.nr_participanti AS current_participants,
+            p.id_programare AS schedule_id
+        FROM
+            programari_studenti ps
+        JOIN
+            programari p ON ps.id_programare = p.id_programare
+        JOIN
+            activitati_profesori ap ON p.id_activitate = ap.id_activitate
+        JOIN
+            materii m ON ap.id_materie = m.id
+        JOIN
+            detalii_profesori dp ON ap.CNP_profesor = dp.CNP
+        JOIN
+            utilizatori u ON dp.CNP = u.CNP
+        WHERE
+            ps.CNP_student = '2404023608380'
+        ORDER BY p.data_inceput;
+
+
+
+SELECT DISTINCT m.nume AS subject_name, gs.id_grup AS group_id
+                   FROM grupuri_studenti gs
+                   JOIN materii m ON gs.id_materie = m.id
+                   JOIN materii_studenti ms ON ms.id_materie = m.id
+                   WHERE ms.CNP_student = '2404023608380'
+                   AND gs.id_grup NOT IN (
+                       SELECT id_grup
+                       FROM studenti_grupuri_studenti
+                       WHERE CNP_student = '2404023608380'
+                   );
+
+ SELECT u.nume AS first_name, u.prenume AS last_name, u.email
+        FROM utilizatori u
+        JOIN materii_studenti ms ON u.CNP = ms.CNP_student
+        JOIN grupuri_studenti gs ON ms.id_materie = gs.id_materie
+        WHERE gs.id_grup = 1
+        AND u.CNP NOT IN (
+            SELECT CNP_student
+            FROM studenti_grupuri_studenti
+            WHERE id_grup = 1
+        );
+
+#       " SELECT u.nume AS first_name, u.prenume AS last_name, u.email  " +
+#                   " FROM utilizatori u  " +
+#                   " JOIN materii_studenti ms ON u.CNP = ms.CNP_student " +
+#                   " JOIN grupuri_studenti gs ON ms.id_materie = gs.id_materie " +
+#                   " WHERE gs.id_grup =  "  + groupId +
+#                   " AND u.CNP NOT IN ( " +
+#                       " SELECT CNP_student " +
+#                       " FROM studenti_grupuri_studenti " +
+#                       " WHERE id_grup = "   + groupId + "  ); "
+
+SELECT utilizatori.CNP, nume, prenume, adresa, numar_telefon, email, IBAN, numar_contract, parola, tip_utilizator, detalii_studenti.an_de_studiu, detalii_studenti.numar_ore_sustinute
+FROM utilizatori
+    JOIN detalii_studenti on utilizatori.CNP = detalii_studenti.CNP
+WHERE detalii_studenti.CNP = '0042217620436';
+
+
+SELECT
+    dp.CNP AS professor_cnp,
+    u.nume AS first_name,
+    u.prenume AS last_name,
+    u.email AS email
+FROM
+    detalii_profesori dp
+JOIN
+    utilizatori u ON dp.CNP = u.CNP
+JOIN profesori_materii pm ON dp.CNP = pm.CNP_profesor
+            WHERE pm.id_materie = 1;
+
+
+

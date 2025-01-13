@@ -1849,7 +1849,6 @@ public class StudentUI {
                     System.out.println("Enrolled student: " + studentCNP + " in activity ID: " + activityId);
                 }
 
-                // Step 2: Update the number of current participants
                 String updateParticipantsQuery = """
                 UPDATE activitati_studenti
                 SET numar_participanti = numar_participanti + 1
@@ -1871,16 +1870,13 @@ public class StudentUI {
         private String label;
         private boolean clicked;
         private List<Object[]> activities;
-
         public AddProfessorButtonEditor(JCheckBox checkBox, List<Object[]> activities) {
             super(checkBox);
             this.activities = activities;
             button = new JButton();
             button.setOpaque(true);
-
             button.addActionListener(e -> fireEditingStopped());
         }
-
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
@@ -1889,92 +1885,103 @@ public class StudentUI {
             clicked = true;
             return button;
         }
-
         @Override
         public Object getCellEditorValue() {
             if (clicked) {
                 int rowIndex = ((JTable) button.getParent()).getSelectedRow();
                 int activityId = (int) activities.get(rowIndex)[6]; // Assuming activity ID is stored at index 6
                 int subjectId = (int) activities.get(rowIndex)[8]; // Assuming subject ID is stored at index 8
-
                 displayProfessorSelectionDialog(activityId, subjectId);
             }
             clicked = false;
             return label;
         }
-
         @Override
         protected void fireEditingStopped() {
             super.fireEditingStopped();
         }
     }
 
+
     private void displayProfessorSelectionDialog(int activityId, int subjectId) {
         try {
-            List<String[]> professors = fetchProfessorsForSubject(subjectId);
+            // Fetch professors dynamically for the current activity and subject
+            List<String[]> professors = fetchProfessorsForSubject(activityId, subjectId);
 
+            // Clear existing data from the table model
             DefaultTableModel tableModel = new DefaultTableModel();
             tableModel.addColumn("First Name");
             tableModel.addColumn("Last Name");
             tableModel.addColumn("Email");
             tableModel.addColumn("Invite");
 
+            // Populate the table with professors
             for (String[] professor : professors) {
-                tableModel.addRow(new Object[]{professor[1], professor[2], professor[3], "Invite"});
+                tableModel.addRow(new Object[]{professor[1], professor[2], professor[3], professor[4]});
             }
 
+            // Set up the table
             JTable table = new JTable(tableModel);
             table.setRowHeight(30);
-
             table.getColumn("Invite").setCellRenderer(new ButtonRenderer());
-            table.getColumn("Invite").setCellEditor(new InviteProfessorButtonEditor(new JCheckBox(), professors, activityId));
+            table.getColumn("Invite").setCellEditor(new InviteProfessorButtonEditor(new JCheckBox(), professors, activityId, table));
 
+            // Display the dialog
             JScrollPane scrollPane = new JScrollPane(table);
-
             JDialog dialog = new JDialog(jFrame, "Select Professor", true);
             dialog.setSize(600, 400);
             dialog.add(scrollPane);
             dialog.setLocationRelativeTo(jFrame);
             dialog.setVisible(true);
+
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(jFrame, "Error fetching professors: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private List<String[]> fetchProfessorsForSubject(int subjectId) throws SQLException {
+
+
+
+    private List<String[]> fetchProfessorsForSubject(int activityId, int subjectId) throws SQLException {
         List<String[]> professors = new ArrayList<>();
         String query = """
-        SELECT
-            dp.CNP AS professor_cnp,
-            u.nume AS first_name,
-            u.prenume AS last_name,
-            u.email AS email
-        FROM
-            detalii_profesori dp
-        JOIN
-            utilizatori u ON dp.CNP = u.CNP
-        JOIN
-            profesori_materii pm ON dp.CNP = pm.CNP_profesor
-        WHERE
-            pm.id_materie = ?;
-    """;
+    SELECT
+        dp.CNP AS professor_cnp,
+        u.nume AS first_name,
+        u.prenume AS last_name,
+        u.email AS email
+    FROM
+        detalii_profesori dp
+    JOIN
+        utilizatori u ON dp.CNP = u.CNP
+    JOIN
+        profesori_materii pm ON dp.CNP = pm.CNP_profesor
+    WHERE
+        pm.id_materie = ?
+        AND NOT EXISTS (
+            SELECT 1
+            FROM profesori_grupuri_studenti pgs
+            WHERE pgs.CNP_profesor = dp.CNP
+              AND pgs.id_activitate = ?
+        );
+""";
 
         try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setInt(1, subjectId);
+            stmt.setInt(2, activityId);
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
                 String cnp = rs.getString("professor_cnp");
                 String firstName = rs.getString("first_name");
                 String lastName = rs.getString("last_name");
                 String email = rs.getString("email");
-
-                // Include CNP in the data passed to the editor
-                professors.add(new String[]{cnp, firstName, lastName, email});
+                // Include CNP, names, email, and status in the array
+                professors.add(new String[]{cnp, firstName, lastName, email, "Invite"}); // Default status is "Invite"
             }
         }
         return professors;
     }
+
 
 
     class InviteProfessorButtonEditor extends DefaultCellEditor {
@@ -1983,14 +1990,15 @@ public class StudentUI {
         private boolean clicked;
         private List<String[]> professors; // Include CNP in the data
         private int activityId;
+        private JTable table; // Reference to the table for updating the cell
 
-        public InviteProfessorButtonEditor(JCheckBox checkBox, List<String[]> professors, int activityId) {
+        public InviteProfessorButtonEditor(JCheckBox checkBox, List<String[]> professors, int activityId, JTable table) {
             super(checkBox);
             this.professors = professors; // Each professor record contains CNP
             this.activityId = activityId;
+            this.table = table;
             button = new JButton();
             button.setOpaque(true);
-
             button.addActionListener(e -> fireEditingStopped());
         }
 
@@ -2006,12 +2014,23 @@ public class StudentUI {
         @Override
         public Object getCellEditorValue() {
             if (clicked) {
-                int rowIndex = ((JTable) button.getParent()).getSelectedRow();
-                String professorCNP = professors.get(rowIndex)[0]; // Get the CNP of the selected professor
-                String professorEmail = professors.get(rowIndex)[3]; // For display purposes
+                int rowIndex = table.getEditingRow();
+                String[] professor = professors.get(rowIndex);
+
+                // Check if the professor is already invited
+                if ("Invited".equals(professor[4])) {
+                    JOptionPane.showMessageDialog(button, "Professor is already invited.", "Information", JOptionPane.INFORMATION_MESSAGE);
+                    clicked = false;
+                    return label;
+                }
+
+                String professorCNP = professor[0];
+                String professorEmail = professor[3];
 
                 try {
                     sendInvitationToProfessor(activityId, professorCNP);
+                    professor[4] = "Invited"; // Update the status in the professors list
+                    table.setValueAt("Invited", rowIndex, table.getColumn("Invite").getModelIndex()); // Update the table cell
                     JOptionPane.showMessageDialog(button, "Invitation sent to " + professorEmail, "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(button, "Error sending invitation: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -2021,6 +2040,11 @@ public class StudentUI {
             return label;
         }
 
+
+
+
+
+
         @Override
         protected void fireEditingStopped() {
             super.fireEditingStopped();
@@ -2028,8 +2052,8 @@ public class StudentUI {
 
         private void sendInvitationToProfessor(int activityId, String professorCNP) throws SQLException {
             String query = """
-            INSERT INTO profesori_grupuri_studenti (id_activitate, CNP_profesor)
-            VALUES (?, ?);
+        INSERT INTO profesori_grupuri_studenti (id_activitate, CNP_profesor)
+        VALUES (?, ?);
         """;
             try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
                 stmt.setInt(1, activityId);
@@ -2039,26 +2063,6 @@ public class StudentUI {
         }
     }
 
-
-
-
-    private void sendInvitationToProfessor(int activityId, String professorCNP) throws SQLException {
-        System.out.println("Professor CNP: " + professorCNP + " (Length: " + professorCNP.length() + ")");
-        String query = """
-        INSERT INTO profesori_grupuri_studenti (id_activitate, CNP_profesor)
-        VALUES (?, ?);
-    """;
-
-        try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
-            stmt.setInt(1, activityId);
-            stmt.setString(2, professorCNP);
-            stmt.executeUpdate();
-            JOptionPane.showMessageDialog(jFrame, "Invite sent successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(jFrame, "Error sending invite: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
 
     private void displaySuggestionsForGroup(int groupId) {
