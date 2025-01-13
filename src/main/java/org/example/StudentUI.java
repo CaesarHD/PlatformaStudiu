@@ -1888,8 +1888,14 @@ public class StudentUI {
             FROM profesori_grupuri_studenti pgs
             WHERE pgs.CNP_profesor = dp.CNP
               AND pgs.id_activitate = ?
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM studenti_activitati_studenti sas
+            WHERE sas.CNP_student = dp.CNP
         );
 """;
+
 
         try (PreparedStatement stmt = DBController.db.getCon().prepareStatement(query)) {
             stmt.setInt(1, subjectId);
