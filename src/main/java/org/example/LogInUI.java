@@ -108,41 +108,26 @@ public class LogInUI {
         frame.setVisible(true);
     }
 
-    private ResultSet getUserDataFromDB(String email) throws SQLException
+    private String getUserType(String email, String password) throws SQLException
     {
         DBController.db.execute("use proiect");
 
-        String query = "SELECT \n" +
-                "    utilizatori.CNP, \n" +
-                "    utilizatori.nume, \n" +
-                "    utilizatori.prenume, \n" +
-                "    utilizatori.adresa, \n" +
-                "    utilizatori.numar_telefon, \n" +
-                "    utilizatori.email, \n" +
-                "    utilizatori.IBAN, \n" +
-                "    utilizatori.numar_contract, \n" +
-                "    utilizatori.parola, \n" +
-                "    utilizatori.tip_utilizator, \n" +
-                "    detalii_studenti.an_de_studiu, \n" +
-                "    detalii_studenti.numar_ore_sustinute \n" +
-                "FROM \n" +
-                "    utilizatori \n" +
-                "JOIN \n" +
-                "    detalii_studenti \n" +
-                "ON \n" +
-                "    utilizatori.CNP = detalii_studenti.CNP  \n" +
-                "WHERE \n" +
-                "    utilizatori.email = ?;\n";
+        String query = "SELECT tip_utilizator FROM utilizatori WHERE email = '" + email + "' AND parola = '" + password + "';";
 
         PreparedStatement pstmt = DBController.db.getCon().prepareStatement(query);
-        pstmt.setString(1, email);
 
-        return pstmt.executeQuery();
+        ResultSet resultSet = pstmt.executeQuery();
+
+        String type=null;
+
+        if (resultSet.next())
+        {
+            type = resultSet.getString("tip_utilizator");
+        }
+        return type;
     }
 
-
-    private void handleLogin(ActionEvent event)
-    {
+    private void handleLogin(ActionEvent event) {
         String email = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
@@ -170,78 +155,56 @@ public class LogInUI {
         frame.dispose();
 
         try {
-            ResultSet resultSet = getUserDataFromDB(email);
-            if (resultSet != null && resultSet.next()) {
-                switch (userType) {
-                    case "student" -> {
-                        Student student = new Student(
-                                resultSet.getString("CNP"),
-                                resultSet.getString("nume"),
-                                resultSet.getString("prenume"),
-                                resultSet.getString("adresa"),
-                                resultSet.getString("numar_telefon"),
-                                resultSet.getString("email"),
-                                resultSet.getString("IBAN"),
-                                resultSet.getInt("numar_contract"),
-                                resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator"),
-                                resultSet.getInt("an_de_studiu"),
-                                resultSet.getInt("numar_ore_sustinute")
+            String type = getUserType(email, password);
+            if (type != null )
+            {
+                switch (type)
+                {
+                    case "student" ->
+                    {
+                        User user = DBController.getUser(User.findUser(usernameField.getText(), passwordField.getText()));
+                        if (user instanceof Student student) {
 
-                        );
-                        new StudentUI(student);
+                            new StudentUI(student);
+                        } else {
+                            System.out.println("Error: Retrieved user is not a Student.");
+                        }
                     }
-                    case "professor" -> {
-                        Professor professor = new Professor(
-                                resultSet.getString("CNP"),
-                                resultSet.getString("nume"),
-                                resultSet.getString("prenume"),
-                                resultSet.getString("adresa"),
-                                resultSet.getString("numar_telefon"),
-                                resultSet.getString("email"),
-                                resultSet.getString("IBAN"),
-                                resultSet.getInt("numar_contract"),
-                                resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator")
-                        );
-                        new ProffesorUI(professor);
+                    case "profesor" -> {
+                        Professor professor;
+                        professor = DBController.initializeProfessor(usernameField.getText(), passwordField.getText());
+
+                        ProffesorUI pUi = new ProffesorUI(professor);
+                        pUi.show();
+
                     }
                     case "administrator" -> {
-                        Admin admin = new Admin(
-                                resultSet.getString("CNP"),
-                                resultSet.getString("nume"),
-                                resultSet.getString("prenume"),
-                                resultSet.getString("adresa"),
-                                resultSet.getString("numar_telefon"),
-                                resultSet.getString("email"),
-                                resultSet.getString("IBAN"),
-                                resultSet.getInt("numar_contract"),
-                                resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator")
-                        );
-                        new AdminUI(admin);
+                        User user = DBController.getUser(User.findUser(usernameField.getText(), passwordField.getText()));
+                        if (user instanceof Admin admin) {
+
+                            new AdminUI(admin);
+                        } else {
+                            System.out.println("Error: Retrieved user is not an Admin.");
+                        }
+
                     }
                     case "super-administrator" -> {
-                        SuperAdministrator sadmin = new SuperAdministrator(
-                                resultSet.getString("CNP"),
-                                resultSet.getString("nume"),
-                                resultSet.getString("prenume"),
-                                resultSet.getString("adresa"),
-                                resultSet.getString("numar_telefon"),
-                                resultSet.getString("email"),
-                                resultSet.getString("IBAN"),
-                                resultSet.getInt("numar_contract"),
-                                resultSet.getString("parola"),
-                                resultSet.getString("tip_utilizator")
-                        );
-                        new SuperAdministratorUI(sadmin);
+                        User user = DBController.getUser(User.findUser(usernameField.getText(), passwordField.getText()));
+                        if (user instanceof SuperAdministrator sadmin) {
+
+                            new SuperAdministratorUI(sadmin);
+                        } else {
+                            System.out.println("Error: Retrieved user is not a Super-Administrator.");
+                        }
                     }
                     default -> JOptionPane.showMessageDialog(frame, "Unknown user type!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException e)
+        {
             e.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error retrieving user data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            new LogInUI();
         }
     }
 }
