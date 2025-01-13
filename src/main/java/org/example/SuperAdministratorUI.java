@@ -133,7 +133,7 @@ public class SuperAdministratorUI extends Component {
         JTextField emailField = addRow(panel, gbc, 5, "Email:", labelFont, textFieldFont);
         JTextField ibanField = addRow(panel, gbc, 6, "IBAN:", labelFont, textFieldFont);
         JTextField contractNumberField = addRow(panel, gbc, 7, "Contract Number:", labelFont, textFieldFont);
-        JTextField userTypeField = addRow(panel, gbc, 8, "User Type (student, professor):", labelFont, textFieldFont);
+        JTextField userTypeField = addRow(panel, gbc, 8, "User Type (student, professor,administrator):", labelFont, textFieldFont);
 
 
         JButton addButton = createStyledButton("Add ");
