@@ -354,7 +354,7 @@ public class DBController {
             professorActivity.setClassId(rs.getInt("id"));
         } else {
             System.out.println("Nu există înregistrări pentru id-ul specificat.");
-            professorActivity.setClassId(-1); // Sau o altă valoare implicită
+            professorActivity.setClassId(-1);
         }
     }
 
@@ -370,9 +370,6 @@ public class DBController {
         }
     }
 
-//    public void getStudents() {
-//        this.db.execute("SELECT * from utilizatori where");
-//    }
     public static void saveMessage(int groupId, String sender, String message) throws SQLException {
         String query = "INSERT INTO group_messages (id_grup, sender, message) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = db.getCon().prepareStatement(query)) {
@@ -452,10 +449,6 @@ public class DBController {
     public static void updateMeeting(Meeting meeting) {
         db.execute(meeting.updateMeeting());
     }
-//    public void getStudents() {
-//        this.db.execute("SELECT * from utilizatori where");
-//    }
-    // functii pt admin
 
     public static void addUser(Admin admin, User user) throws SQLException {
 
@@ -508,7 +501,7 @@ public class DBController {
         }
 
 
-        String query = admin.deleteUser(); // Modificăm `deleteUser` din Admin să returneze un query cu parametri
+        String query = admin.deleteUser();
         try (PreparedStatement pstmt = db.getCon().prepareStatement(query)) {
             pstmt.setString(1, CNP);
             pstmt.executeUpdate();
@@ -543,7 +536,7 @@ public class DBController {
         try (PreparedStatement pstmt = db.getCon().prepareStatement(query)) {
             pstmt.setString(1, newValue);
             pstmt.setString(2, CNP);
-            pstmt.setString(3, field); // Aici presupunem că field este parametrizat în query
+            pstmt.setString(3, field);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating user: " + e.getMessage());
@@ -609,7 +602,6 @@ public class DBController {
         return messages;
     }
 
-    // functii pt super admin
 
     public static void addUser2(SuperAdministrator sadmin, User user) throws SQLException
     {

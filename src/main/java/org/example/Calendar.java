@@ -150,7 +150,6 @@ public class Calendar extends JPanel {
                 public void mouseClicked(MouseEvent e) {
                     mainPanel.removeAll();
                     
-                    //TODO: figure out how to get time parameters :D
                     LocalDateTime selected = LocalDateTime.of(year, month, day, 0, 0, 0);
 
                     mainPanel.add(new Calendar(year, month, selected, mainPanel, professor));
